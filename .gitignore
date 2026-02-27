@@ -1,0 +1,19 @@
+# Gradle
+/.gradle/
+/build/
+**/build/
+local.properties
+
+# Android Studio
+/.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keystore
+*.jks
+*.keystore
+app/google-services.json
+firebase-app-id.json

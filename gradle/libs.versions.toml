@@ -1,0 +1,137 @@
+[versions]
+# Gradle & Android
+agp = "8.10.0"                     # Android Gradle Plugin
+kotlin = "2.3.10"                  # Kotlin
+compileSdk = "35"
+minSdk = "24"
+targetSdk = "35"
+
+# AndroidX / Compose
+coreKtx = "1.18.0"
+activityCompose = "1.12.0"         # Activity Compose
+lifecycle = "2.8.7"                # lifecycle-runtime-ktx / viewmodel
+navigation = "2.8.5"               # navigation-compose
+composeBom = "2025.11.00"          # BOM Compose
+material3 = "1.4.0"                # стабильный material3
+composeAnimation = "1.7.6"
+
+# DI
+hilt = "2.54"                      # Dagger Hilt
+hiltExt = "1.2.0"                  # hilt-navigation-compose
+
+# Coroutines
+coroutines = "1.10.2"              # kotlinx-coroutines-android
+
+# Network & JSON
+retrofit = "3.0.0"                 # Retrofit 3
+okhttp = "5.3.1"                   # OkHttp
+kotlinxSerialization = "1.8.0"     # kotlinx-serialization-json
+retrofitKotlinxConverter = "1.0.0" # jakewharton converter
+
+# Local storage
+room = "2.6.1"                     # стабильная Room
+datastore = "1.1.1"                # datastore-preferences
+
+# WorkManager
+work = "2.10.0"                    # work-runtime-ktx
+
+# Firebase & Play Services
+firebaseBom = "34.3.0"             # Firebase BoM
+playServicesAuth = "21.2.0"
+
+# Test
+junit4 = "4.13.2"
+androidxTestCore = "1.6.1"         # core-ktx
+androidxTestExtJunit = "1.2.1"     # junit-ktx
+composeUiTest = "1.7.6"            # via compose BOM
+coroutinesTest = "1.10.2"          # coroutines
+mockk = "1.14.9"                   # mockk-android
+turbine = "1.1.0"                  # turbine
+
+# Utils
+timber = "5.0.1"                   # timber
+composeColorPicker = "1.1.2"       # compose-colorpicker
+kotlinxDatetime = "0.6.1"          # kotlinx-datetime
+
+# Plugins
+kotlinSerializationPlugin = "2.3.10"
+ksp = "2.3.10-1.0.29"
+
+[libraries]
+# AndroidX / Compose
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycle" }
+
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
+
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+compose-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata" }
+compose-animation = { module = "androidx.compose.animation:animation" }
+
+# DI / Hilt
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
+hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltExt" }
+hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "hiltExt" }
+
+# Coroutines
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }
+
+# Network & JSON
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofit-converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "retrofit" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+okhttp-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp" }
+
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+retrofit-kotlinx-serialization-converter = { module = "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter", version.ref = "retrofitKotlinxConverter" }
+
+# Local storage
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+
+datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+
+# WorkManager
+work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+
+# Firebase (через BoM)
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx" }
+firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx" }
+firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
+
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+
+# Test
+junit4 = { module = "junit:junit", version.ref = "junit4" }
+androidx-test-core-ktx = { module = "androidx.test:core-ktx", version.ref = "androidxTestCore" }
+androidx-test-ext-junit-ktx = { module = "androidx.test.ext:junit-ktx", version.ref = "androidxTestExtJunit" }
+
+compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+
+mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+
+# Utils
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+compose-colorpicker = { module = "com.github.opherv:compose-colorpicker", version.ref = "composeColorPicker" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerializationPlugin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+google-services = { id = "com.google.gms.google-services", version = "4.4.2" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
