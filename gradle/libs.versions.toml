@@ -1,7 +1,7 @@
 [versions]
 # Gradle & Android
-agp = "8.7.0"                     # Android Gradle Plugin
-kotlin = "2.0.0"                  # Kotlin
+agp = "8.9.1"                     # Android Gradle Plugin
+kotlin = "2.0.20"                  # Kotlin
 compileSdk = "36"
 minSdk = "26"
 targetSdk = "35"
@@ -15,6 +15,7 @@ composeBom = "2024.11.00"          # BOM Compose
 material3 = "1.4.0"                # стабильный material3
 composeAnimation = "1.7.6"
 composeCompiler = "1.5.10"
+composeIcons = "1.7.6"
 
 # DI
 hilt = "2.51.1"                      # Dagger Hilt
@@ -73,6 +74,7 @@ compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview"
 compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 compose-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata" }
 compose-animation = { module = "androidx.compose.animation:animation" }
+compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "composeIcons" }
 
 # DI / Hilt
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
