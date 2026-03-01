@@ -99,7 +99,6 @@ dependencies {
 
     // Utils
     implementation(libs.timber)
-    implementation(libs.compose.colorpicker)
     implementation(libs.kotlinx.datetime)
 
     // Tests

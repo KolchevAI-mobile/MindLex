@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "YourApp"
+rootProject.name = "MindLex"
 include(":app")

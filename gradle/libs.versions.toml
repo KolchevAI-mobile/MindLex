@@ -7,7 +7,7 @@ minSdk = "24"
 targetSdk = "35"
 
 # AndroidX / Compose
-coreKtx = "1.18.0"
+coreKtx = "1.16.0"
 activityCompose = "1.12.0"         # Activity Compose
 lifecycle = "2.8.7"                # lifecycle-runtime-ktx / viewmodel
 navigation = "2.8.5"               # navigation-compose
@@ -36,7 +36,7 @@ datastore = "1.1.1"                # datastore-preferences
 work = "2.10.0"                    # work-runtime-ktx
 
 # Firebase & Play Services
-firebaseBom = "34.3.0"             # Firebase BoM
+firebaseBom = "33.4.0"             # Firebase BoM
 playServicesAuth = "21.2.0"
 
 # Test
@@ -50,7 +50,6 @@ turbine = "1.1.0"                  # turbine
 
 # Utils
 timber = "5.0.1"                   # timber
-composeColorPicker = "1.1.2"       # compose-colorpicker
 kotlinxDatetime = "0.6.1"          # kotlinx-datetime
 
 # Plugins
@@ -124,7 +123,6 @@ turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 # Utils
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
-compose-colorpicker = { module = "com.github.opherv:compose-colorpicker", version.ref = "composeColorPicker" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 
 [plugins]
