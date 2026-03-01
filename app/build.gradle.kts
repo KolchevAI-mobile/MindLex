@@ -4,13 +4,35 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
-    alias(libs.plugins.google.services)
-    alias(libs.plugins.kotlin.kapt)
+    // alias(libs.plugins.google.services)
+    alias(libs.plugins.ksp)
 }
 
 android {
-    namespace = "com.example.app"
+    namespace = "com.example.mindlex"
     compileSdk = libs.versions.compileSdk.get().toInt()
+
+    defaultConfig {
+        applicationId = "com.example.mindlex"
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
+        versionCode = 1
+        versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            freeCompilerArgs.add("-opt-in=androidx.compose.material3.ExperimentalMaterial3Api")
+        }
+    }
 
     buildTypes {
         release {
@@ -22,22 +44,12 @@ android {
         }
     }
 
-    defaultConfig {
-        applicationId = "com.example.app"
-        minSdk = libs.versions.minSdk.get().toInt()
-        targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
     buildFeatures {
         compose = true
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.kotlin.get()
+        kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
 
     packaging {
@@ -65,9 +77,10 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
@@ -84,13 +97,13 @@ dependencies {
     // Local storage
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    kapt(libs.room.compiler)
+    ksp(libs.room.compiler)
     implementation(libs.datastore.preferences)
 
     // WorkManager
     implementation(libs.work.runtime.ktx)
 
-    // Firebase (через BoM)
+    // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.firestore.ktx)

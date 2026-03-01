@@ -1,9 +1,9 @@
 [versions]
 # Gradle & Android
-agp = "8.10.0"                     # Android Gradle Plugin
-kotlin = "2.3.10"                  # Kotlin
-compileSdk = "35"
-minSdk = "24"
+agp = "8.7.0"                     # Android Gradle Plugin
+kotlin = "2.0.0"                  # Kotlin
+compileSdk = "36"
+minSdk = "26"
 targetSdk = "35"
 
 # AndroidX / Compose
@@ -11,20 +11,21 @@ coreKtx = "1.16.0"
 activityCompose = "1.12.0"         # Activity Compose
 lifecycle = "2.8.7"                # lifecycle-runtime-ktx / viewmodel
 navigation = "2.8.5"               # navigation-compose
-composeBom = "2025.11.00"          # BOM Compose
+composeBom = "2024.11.00"          # BOM Compose
 material3 = "1.4.0"                # стабильный material3
 composeAnimation = "1.7.6"
+composeCompiler = "1.5.10"
 
 # DI
-hilt = "2.54"                      # Dagger Hilt
-hiltExt = "1.2.0"                  # hilt-navigation-compose
+hilt = "2.51.1"                      # Dagger Hilt
+hiltExt = "1.2.0"      # hilt-navigation-compose
 
 # Coroutines
 coroutines = "1.10.2"              # kotlinx-coroutines-android
 
 # Network & JSON
-retrofit = "3.0.0"                 # Retrofit 3
-okhttp = "5.3.1"                   # OkHttp
+retrofit = "2.11.0"                 # Retrofit 3
+okhttp = "4.12.0"                   # OkHttp
 kotlinxSerialization = "1.8.0"     # kotlinx-serialization-json
 retrofitKotlinxConverter = "1.0.0" # jakewharton converter
 
@@ -53,8 +54,8 @@ timber = "5.0.1"                   # timber
 kotlinxDatetime = "0.6.1"          # kotlinx-datetime
 
 # Plugins
-kotlinSerializationPlugin = "2.3.10"
-ksp = "2.3.10-1.0.29"
+kotlinSerializationPlugin = "2.0.0"
+ksp = "2.0.20-1.0.24"
 
 [libraries]
 # AndroidX / Compose
@@ -76,6 +77,7 @@ compose-animation = { module = "androidx.compose.animation:animation" }
 # DI / Hilt
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
+androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltExt" }
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltExt" }
 hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "hiltExt" }
 
@@ -132,4 +134,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 google-services = { id = "com.google.gms.google-services", version = "4.4.2" }
-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
