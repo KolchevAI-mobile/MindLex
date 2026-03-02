@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.mindlex.feature.dashboard.DashboardScreen
 import com.example.mindlex.feature.onboarding.OnboardingScreen
+import com.example.mindlex.feature.word.WordScreen
 
 @Composable
 fun AppNavHost(
@@ -33,8 +34,15 @@ fun AppNavHost(
             DashboardScreen(
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onWordClick = {
+                    navController.navigate(Screen.Word.route)
                 }
             )
+        }
+
+        composable(route = Screen.Word.route) {
+            WordScreen()
         }
     }
 }

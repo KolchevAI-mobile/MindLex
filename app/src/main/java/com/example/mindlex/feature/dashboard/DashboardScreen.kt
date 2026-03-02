@@ -2,7 +2,9 @@ package com.example.mindlex.feature.dashboard
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -25,7 +27,8 @@ import com.example.mindlex.ui.theme.MindLexTheme
 @Composable
 fun DashboardScreen(
     modifier: Modifier = Modifier,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onWordClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -61,6 +64,15 @@ fun DashboardScreen(
             ) {
                 Text(text = "Назад")
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                modifier = Modifier.padding(top = 16.dp),
+                onClick = onWordClick
+            ) {
+                Text(text = "Поиск слов")
+            }
         }
     }
 }
@@ -70,7 +82,8 @@ fun DashboardScreen(
 private fun DashboardScreenPreview() {
     MindLexTheme {
         DashboardScreen(
-            onBackClick = {}
+            onBackClick = {},
+            onWordClick = {}
         )
     }
 }
