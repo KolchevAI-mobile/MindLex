@@ -1,0 +1,38 @@
+package com.example.mindlex.di
+
+import com.example.mindlex.data.local.dao.ProgressDao
+import com.example.mindlex.data.local.dao.WordDao
+import com.example.mindlex.data.local.repository.SettingsLocalDataSource
+import com.example.mindlex.data.local.repository.WordLocalDataSource
+import com.example.mindlex.data.repository.SettingsRepositoryImpl
+import com.example.mindlex.data.repository.WordRepositoryImpl
+import com.example.mindlex.domain.repository.SettingsRepository
+import com.example.mindlex.domain.repository.WordRepository
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object RepositoryModule {
+
+    @Provides
+    @Singleton
+    fun provideWordRepository(
+        localDataSource: WordLocalDataSource,
+        progressDao: ProgressDao,
+        wordDao: WordDao
+    ): WordRepository {
+        return WordRepositoryImpl(localDataSource, progressDao, wordDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSettingsRepository(
+        localDataSource: SettingsLocalDataSource
+    ): SettingsRepository {
+        return SettingsRepositoryImpl(localDataSource)
+    }
+}
