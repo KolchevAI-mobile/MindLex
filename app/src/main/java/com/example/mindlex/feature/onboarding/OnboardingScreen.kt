@@ -1,51 +1,103 @@
 package com.example.mindlex.feature.onboarding
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.example.mindlex.ui.theme.MindLexTheme
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 @Composable
 fun OnboardingScreen(
-    modifier: Modifier = Modifier,
-    onStartClick: () -> Unit
+    onCompleted: () -> Unit,
+    viewModel: OnboardingViewModel = hiltViewModel()
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Добро пожаловать в MindLex",
-            style = MaterialTheme.typography.headlineMedium
-        )
+    val uiState by viewModel.uiState.collectAsState()
 
-        Button(
-            modifier = Modifier.padding(top = 16.dp),
-            onClick = onStartClick
-        ) {
-            Text(text = "Начать")
+    LaunchedEffect(uiState.completed) {
+        if (uiState.completed) {
+            onCompleted()
         }
     }
-}
 
-@Preview(showBackground = true)
-@Composable
-private fun OnboardingScreenPreview() {
-    MindLexTheme {
-        OnboardingScreen(
-            onStartClick = {}
-        )
+    val languages = listOf("en", "de", "fr", "es")
+    var isLanguageMenuExpanded by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Добро пожаловать в MindLex!",
+                style = MaterialTheme.typography.titleLarge
+            )
+
+            OutlinedTextField(
+                value = uiState.userName,
+                onValueChange = viewModel::onNameChanged,
+                label = { Text("Ваше имя") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = uiState.selectedLanguage,
+                    onValueChange = {},
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { isLanguageMenuExpanded = true },
+                    label = { Text("Язык изучения") },
+                    enabled = false,
+                    readOnly = true
+                )
+
+                DropdownMenu(
+                    expanded = isLanguageMenuExpanded,
+                    onDismissRequest = { isLanguageMenuExpanded = false }
+                ) {
+                    languages.forEach { lang ->
+                        DropdownMenuItem(
+                            text = { Text(lang.uppercase()) },
+                            onClick = {
+                                viewModel.onLanguageSelected(lang)
+                                isLanguageMenuExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            if (uiState.errorMessage != null) {
+                Text(
+                    text = uiState.errorMessage ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            if (uiState.isLoading) {
+                CircularProgressIndicator()
+            }
+
+            Button(
+                onClick = { viewModel.onCompleteClick() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Начать обучение")
+            }
+        }
     }
 }

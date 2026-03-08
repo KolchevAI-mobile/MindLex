@@ -1,0 +1,23 @@
+package com.example.mindlex.feature.dashboard
+
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
+import androidx.navigation.navigation
+
+object DashboardDestinations {
+    const val ROOT = "dashboard_root"
+    const val DASHBOARD = "dashboard_screen"
+}
+
+fun NavGraphBuilder.dashboardGraph(
+    onOpenSettings: () -> Unit
+) {
+    navigation(
+        startDestination = DashboardDestinations.DASHBOARD,
+        route = DashboardDestinations.ROOT
+    ) {
+        composable(DashboardDestinations.DASHBOARD) {
+            DashboardScreen(onOpenSettings = onOpenSettings)
+        }
+    }
+}

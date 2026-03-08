@@ -1,89 +1,107 @@
 package com.example.mindlex.feature.dashboard
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.mindlex.ui.theme.MindLexTheme
+import androidx.hilt.navigation.compose.hiltViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    modifier: Modifier = Modifier,
-    onBackClick: () -> Unit,
-    onWordClick: () -> Unit
+    onOpenSettings: () -> Unit = {},
+    viewModel: DashboardViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(text = "MindLex") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад"
-                        )
+            TopAppBar(
+                title = { Text("MindLex") },
+                actions = {
+                    TextButton(onClick = onOpenSettings) {
+                        Text("Настройки")
                     }
                 }
             )
         }
-    ) { paddingValues ->
+    ) { padding ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Главный экран",
-                style = MaterialTheme.typography.headlineMedium
+                text = "Привет, ${uiState.userName.ifBlank { "ученик" }}!",
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Text(
+                text = "Язык обучения: ${uiState.selectedLanguage.uppercase()}",
+                style = MaterialTheme.typography.bodyLarge
             )
 
-            Button(
-                modifier = Modifier.padding(top = 16.dp),
-                onClick = onBackClick
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Назад")
+                StatCard(
+                    title = "Выучено слов",
+                    value = uiState.wordsLearned.toString(),
+                    modifier = Modifier.weight(1f)
+                )
+                StatCard(
+                    title = "Серия дней",
+                    value = uiState.currentStreak.toString(),
+                    modifier = Modifier.weight(1f)
+                )
             }
+
+            StatCard(
+                title = "Прогресс на сегодня",
+                value = "${uiState.dailyProgress}%",
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                modifier = Modifier.padding(top = 16.dp),
-                onClick = onWordClick
+                onClick = { /* TODO: перейти в режим карточек */ },
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Поиск слов")
+                Text("Учить новые слова")
+            }
+
+            OutlinedButton(
+                onClick = { /* TODO: перейти к повторению */ },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Повторение слов")
             }
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-private fun DashboardScreenPreview() {
-    MindLexTheme {
-        DashboardScreen(
-            onBackClick = {},
-            onWordClick = {}
-        )
+private fun StatCard(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth()
+        ) {
+            Text(text = title, style = MaterialTheme.typography.bodyMedium)
+            Text(text = value, style = MaterialTheme.typography.titleLarge)
+        }
     }
 }
