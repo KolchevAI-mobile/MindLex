@@ -7,17 +7,25 @@ import androidx.navigation.navigation
 object DashboardDestinations {
     const val ROOT = "dashboard_root"
     const val DASHBOARD = "dashboard_screen"
+    const val LEARNING = "learning_screen"
 }
 
 fun NavGraphBuilder.dashboardGraph(
-    onOpenSettings: () -> Unit
+    onOpenSettings: () -> Unit,
+    onStartLearning: () -> Unit
 ) {
     navigation(
         startDestination = DashboardDestinations.DASHBOARD,
         route = DashboardDestinations.ROOT
     ) {
         composable(DashboardDestinations.DASHBOARD) {
-            DashboardScreen(onOpenSettings = onOpenSettings)
+            DashboardScreen(
+                onOpenSettings = onOpenSettings,
+                onStartLearning = onStartLearning
+            )
+        }
+        composable(DashboardDestinations.LEARNING) {
+            com.example.mindlex.feature.learning.LearningWordsScreen()
         }
     }
 }

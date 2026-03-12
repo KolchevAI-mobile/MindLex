@@ -1,0 +1,56 @@
+package com.example.mindlex.data.local.repository
+
+import com.example.mindlex.data.local.dao.VocabularyDao
+import com.example.mindlex.data.local.entity.VocabularyEntity
+import com.example.mindlex.data.local.entity.toDomain
+import com.example.mindlex.domain.model.Vocabulary
+import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
+
+/**
+ * Локальный источник данных для кэша слов Supabase.
+ * Инкапсулирует логику LRU (обновление lastAccessed и обрезка размера кэша).
+ */
+class VocabularyLocalDataSource @Inject constructor(
+    private val dao: VocabularyDao
+) {
+
+    private val maxCacheSize: Int = 500
+
+    fun getRandomWords(
+        lang: String,
+        limit: Int
+    ): Flow<List<Vocabulary>> {
+        return dao.getRandomWords(lang = lang, limit = limit)
+            .map { entities -> entities.map(VocabularyEntity::toDomain) }
+    }
+
+    fun getWordsByCategory(
+        lang: String,
+        category: String,
+        limit: Int
+    ): Flow<List<Vocabulary>> {
+        return dao.getWordsByCategory(lang = lang, cat = category, limit = limit)
+            .map { entities -> entities.map(VocabularyEntity::toDomain) }
+    }
+
+    /**
+     * Сохранить слова в кэш и применить LRU-стратегию.
+     */
+    suspend fun cacheWords(words: List<VocabularyEntity>) {
+        if (words.isEmpty()) return
+
+        withContext(Dispatchers.IO) {
+            dao.insertAll(words)
+            val now = Clock.System.now()
+            val ids = words.map { it.id }
+            dao.updateLastAccessed(ids = ids, now = now)
+            dao.trimCacheToSize(maxCacheSize)
+        }
+    }
+}
+

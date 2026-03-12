@@ -1,6 +1,6 @@
 [versions]
 # Gradle & Android
-agp = "8.9.1"                     # Android Gradle Plugin
+agp = "8.9.3"                     # Android Gradle Plugin
 kotlin = "2.0.20"                  # Kotlin
 compileSdk = "36"
 minSdk = "26"
@@ -27,7 +27,7 @@ coroutines = "1.10.2"              # kotlinx-coroutines-android
 # Network & JSON
 retrofit = "2.11.0"                 # Retrofit 3
 okhttp = "4.12.0"                   # OkHttp
-kotlinxSerialization = "1.8.0"     # kotlinx-serialization-json
+kotlinxSerialization = "1.7.3"     # kotlinx-serialization-json
 retrofitKotlinxConverter = "1.0.0" # jakewharton converter
 
 # Local storage
@@ -40,6 +40,10 @@ work = "2.10.0"                    # work-runtime-ktx
 # Firebase & Play Services
 firebaseBom = "33.4.0"             # Firebase BoM
 playServicesAuth = "21.2.0"
+
+# Supabase
+supabase = "3.0.0"
+ktor = "3.0.0"
 
 # Test
 junit4 = "4.13.2"
@@ -55,7 +59,7 @@ timber = "5.0.1"                   # timber
 kotlinxDatetime = "0.6.1"          # kotlinx-datetime
 
 # Plugins
-kotlinSerializationPlugin = "2.0.0"
+kotlinSerializationPlugin = "2.0.20"
 ksp = "2.0.20-1.0.24"
 
 [libraries]
@@ -113,6 +117,13 @@ firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx"
 firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
 
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+
+# Supabase (через BOM)
+supabase-bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "supabase" }
+supabase-postgrest = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
+ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
 # Test
 junit4 = { module = "junit:junit", version.ref = "junit4" }

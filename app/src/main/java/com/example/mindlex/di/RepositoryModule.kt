@@ -1,12 +1,17 @@
 package com.example.mindlex.di
 
 import com.example.mindlex.data.local.dao.ProgressDao
+import com.example.mindlex.data.local.dao.VocabularyDao
 import com.example.mindlex.data.local.dao.WordDao
 import com.example.mindlex.data.local.repository.SettingsLocalDataSource
+import com.example.mindlex.data.local.repository.VocabularyLocalDataSource
 import com.example.mindlex.data.local.repository.WordLocalDataSource
+import com.example.mindlex.data.remote.supabase.SupabaseVocabularyRemoteDataSource
 import com.example.mindlex.data.repository.SettingsRepositoryImpl
+import com.example.mindlex.data.repository.VocabularyRepositoryImpl
 import com.example.mindlex.data.repository.WordRepositoryImpl
 import com.example.mindlex.domain.repository.SettingsRepository
+import com.example.mindlex.domain.repository.VocabularyRepository
 import com.example.mindlex.domain.repository.WordRepository
 import dagger.Module
 import dagger.Provides
@@ -26,6 +31,22 @@ object RepositoryModule {
         wordDao: WordDao
     ): WordRepository {
         return WordRepositoryImpl(localDataSource, progressDao, wordDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideVocabularyRepository(
+        supabaseClient: io.github.jan.supabase.SupabaseClient,
+        vocabularyDao: VocabularyDao,
+        settingsRepository: SettingsRepository
+    ): VocabularyRepository {
+        val remoteDataSource = SupabaseVocabularyRemoteDataSource(supabaseClient)
+        val localDataSource = VocabularyLocalDataSource(vocabularyDao)
+        return VocabularyRepositoryImpl(
+            remoteDataSource = remoteDataSource,
+            localDataSource = localDataSource,
+            settingsRepository = settingsRepository
+        )
     }
 
     @Provides

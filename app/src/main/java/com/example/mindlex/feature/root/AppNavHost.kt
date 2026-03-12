@@ -61,6 +61,9 @@ fun MindLexAppNavHost(
         dashboardGraph(
             onOpenSettings = {
                 // TODO: добавить экран настроек
+            },
+            onStartLearning = {
+                navController.navigate(DashboardDestinations.LEARNING)
             }
         )
     }

@@ -16,6 +16,13 @@ class SettingsRepositoryImpl @Inject constructor(
         localDataSource.setSelectedLanguage(language)
     }
 
+    override fun getSelectedCategory(): Flow<String> =
+        localDataSource.getSelectedCategory()
+
+    override suspend fun setSelectedCategory(category: String) {
+        localDataSource.setSelectedCategory(category)
+    }
+
     override fun getDailyGoal(): Flow<Int> =
         localDataSource.getDailyGoal()
 

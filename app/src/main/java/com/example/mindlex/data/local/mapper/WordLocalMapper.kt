@@ -3,6 +3,7 @@ package com.example.mindlex.data.local.mapper
 import com.example.mindlex.data.local.entity.WordEntity
 import com.example.mindlex.domain.model.Definition
 import com.example.mindlex.domain.model.Word
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 object WordLocalMapper {

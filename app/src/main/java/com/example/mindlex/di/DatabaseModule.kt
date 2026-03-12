@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.mindlex.data.local.LocalDatabase
 import com.example.mindlex.data.local.dao.ProgressDao
+import com.example.mindlex.data.local.dao.VocabularyDao
 import com.example.mindlex.data.local.dao.WordDao
 import dagger.Module
 import dagger.Provides
@@ -35,4 +36,7 @@ object DatabaseModule {
 
     @Provides
     fun provideProgressDao(database: LocalDatabase): ProgressDao = database.progressDao()
+
+    @Provides
+    fun provideVocabularyDao(database: LocalDatabase): VocabularyDao = database.vocabularyDao()
 }
