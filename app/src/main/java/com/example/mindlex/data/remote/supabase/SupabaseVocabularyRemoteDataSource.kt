@@ -10,40 +10,67 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
- * DataSource для работы с таблицей vocabulary в Supabase.
- * Инкапсулирует сетевые вызовы и оборачивает результат в Result.
+ * DataSource для работы с таблицей words в Supabase.
  *
- * Важно: из-за отличий версий supabase-kt фильтрация по языку
- * реализована на стороне клиента (в Kotlin-коде), а не в SQL.
+ * ВАЖНО: Фильтрация выполняется на стороне клиента для надёжности.
+ * Для 100-500 слов это не влияет на производительность.
  */
 class SupabaseVocabularyRemoteDataSource(
     private val client: SupabaseClient
 ) : SupabaseVocabularyApi {
 
-    private val tableName = "vocabulary"
+    private val tableName = "words"
 
     override suspend fun getRandomWords(
         targetLang: String,
         limit: Int
     ): List<SupabaseVocabularyDto> = withContext(Dispatchers.IO) {
-        // Загружаем строки и фильтруем по нужному языку на клиенте
+        Timber.d("[SupabaseAPI] Запрос к таблице '$tableName': targetLang=$targetLang, limit=$limit")
+
+        // Загружаем ВСЕ слова из таблицы (без серверных фильтров)
         val all = client.postgrest.from(tableName)
             .select()
             .decodeList<SupabaseVocabularyDto>()
 
-        all
-            .filter { dto ->
-                // Оставляем только те записи, где слово на целевом языке не null
-                when (targetLang) {
-                    "en" -> dto.word_en != null
-                    "de" -> dto.word_de != null
-                    "fr" -> dto.word_fr != null
-                    "es" -> dto.word_es != null
-                    else -> dto.word_en != null || dto.word_ru.isNotBlank()
-                }
+        Timber.d("[SupabaseAPI] Загружено ${all.size} записей из таблицы '$tableName'")
+
+        // Логируем примеры для отладки
+        if (all.isNotEmpty()) {
+            val sample = all.take(3).map { dto ->
+                "(id=${dto.id.take(8)}..., word_en=${dto.word_en}, word_ru=${dto.word_ru}, category=${dto.category})"
             }
+            Timber.d("[SupabaseAPI] Примеры: $sample")
+        } else {
+            Timber.e("[SupabaseAPI] ⚠️ ТАБЛИЦА ПУСТА! Проверь импорт данных в Supabase")
+        }
+
+        // Клиентская фильтрация: слово на целевом языке НЕ пустое
+        val filteredByLang = all.filter { dto ->
+            when (targetLang) {
+                "en" -> !dto.word_en.isNullOrBlank()
+                "de" -> !dto.word_de.isNullOrBlank()
+                "fr" -> !dto.word_fr.isNullOrBlank()
+                "es" -> !dto.word_es.isNullOrBlank()
+                else -> !dto.word_en.isNullOrBlank()
+            }
+        }
+
+        Timber.d("[SupabaseAPI] После фильтрации по языку '$targetLang': ${filteredByLang.size} записей")
+
+        // Фильтрация по категории (по умолчанию 'general')
+        val filteredByCategory = filteredByLang.filter { dto ->
+            dto.category?.lowercase() == "general"
+        }
+
+        Timber.d("[SupabaseAPI] После фильтрации по категории 'general': ${filteredByCategory.size} записей")
+
+        // Возвращаем случайные слова в нужном количестве
+        filteredByCategory
             .shuffled()
             .take(limit)
+            .also { result ->
+                Timber.d("[SupabaseAPI] Возвращаю ${result.size} слов")
+            }
     }
 
     override suspend fun getWordsByCategory(
@@ -51,50 +78,59 @@ class SupabaseVocabularyRemoteDataSource(
         category: String,
         limit: Int
     ): List<SupabaseVocabularyDto> = withContext(Dispatchers.IO) {
+        val normalizedCategory = category.lowercase()
+        Timber.d("[SupabaseAPI] Запрос по категории: lang=$targetLang, category=$normalizedCategory, limit=$limit")
+
+        // Загружаем все слова
         val all = client.postgrest.from(tableName)
             .select()
             .decodeList<SupabaseVocabularyDto>()
 
-        all
-            .filter { dto ->
-                val hasTargetWord = when (targetLang) {
-                    "en" -> dto.word_en != null
-                    "de" -> dto.word_de != null
-                    "fr" -> dto.word_fr != null
-                    "es" -> dto.word_es != null
-                    else -> dto.word_en != null || dto.word_ru.isNotBlank()
-                }
-                val matchesCategory = (dto.category ?: "general") == category
-                hasTargetWord && matchesCategory
+        Timber.d("[SupabaseAPI] Загружено ${all.size} записей")
+
+        // Клиентская фильтрация
+        val filtered = all.filter { dto ->
+            // 1. Слово на целевом языке не пустое
+            val hasWord = when (targetLang) {
+                "en" -> !dto.word_en.isNullOrBlank()
+                "de" -> !dto.word_de.isNullOrBlank()
+                "fr" -> !dto.word_fr.isNullOrBlank()
+                "es" -> !dto.word_es.isNullOrBlank()
+                else -> !dto.word_en.isNullOrBlank()
             }
+            // 2. Категория совпадает (регистронезависимо)
+            val hasCategory = dto.category?.lowercase() == normalizedCategory
+
+            hasWord && hasCategory
+        }
+
+        Timber.d("[SupabaseAPI] После фильтрации: ${filtered.size} записей")
+
+        filtered
             .shuffled()
             .take(limit)
+            .also { result ->
+                Timber.d("[SupabaseAPI] Возвращаю ${result.size} слов по категории")
+            }
     }
 
-    /**
-     * Обёртка, которая возвращает Result и логирует ошибки.
-     */
+    // Обёртки с обработкой ошибок
     suspend fun safeGetRandomWords(
         targetLang: String,
         limit: Int
-    ): Result<List<SupabaseVocabularyDto>> {
-        return runCatching {
-            getRandomWords(targetLang, limit)
-        }.onFailure { throwable ->
-            Timber.d(throwable, "Ошибка загрузки слов из Supabase (random)")
-        }
+    ): Result<List<SupabaseVocabularyDto>> = runCatching {
+        getRandomWords(targetLang, limit)
+    }.onFailure { e ->
+        Timber.e(e, "[SupabaseAPI] Ошибка: getRandomWords(lang=$targetLang)")
     }
 
     suspend fun safeGetWordsByCategory(
         targetLang: String,
         category: String,
         limit: Int
-    ): Result<List<SupabaseVocabularyDto>> {
-        return runCatching {
-            getWordsByCategory(targetLang, category, limit)
-        }.onFailure { throwable ->
-            Timber.d(throwable, "Ошибка загрузки слов из Supabase (category=$category)")
-        }
+    ): Result<List<SupabaseVocabularyDto>> = runCatching {
+        getWordsByCategory(targetLang, category, limit)
+    }.onFailure { e ->
+        Timber.e(e, "[SupabaseAPI] Ошибка: getWordsByCategory(cat=$category)")
     }
 }
-
