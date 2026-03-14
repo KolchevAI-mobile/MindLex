@@ -27,4 +27,8 @@ interface SettingsRepository {
     fun isNotificationsEnabled(): Flow<Boolean>
 
     suspend fun setNotificationsEnabled(enabled: Boolean)
+
+    fun getUserName(): Flow<String>
+
+    suspend fun setUserName(name: String)
 }

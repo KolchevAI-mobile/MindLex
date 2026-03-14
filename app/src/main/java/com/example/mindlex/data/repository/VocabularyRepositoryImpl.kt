@@ -24,9 +24,10 @@ class VocabularyRepositoryImpl @Inject constructor(
 ) : VocabularyRepository {
 
     override fun getRandomWords(
-        lang: String,
         limit: Int
     ): Flow<Result<List<Vocabulary>>> = flow {
+        // Read current language from settings
+        val lang = settingsRepository.getSelectedLanguage().first()
         Timber.d("[VocabularyRepository] Запрос слов: lang=$lang, limit=$limit")
 
         val safeResult = remoteDataSource.safeGetRandomWords(lang, limit)
@@ -60,10 +61,11 @@ class VocabularyRepositoryImpl @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     override fun getWordsByCategory(
-        lang: String,
         category: String,
         limit: Int
     ): Flow<Result<List<Vocabulary>>> = flow {
+        // Read current language from settings
+        val lang = settingsRepository.getSelectedLanguage().first()
         Timber.d("[VocabularyRepository] Запрос слов по категории: lang=$lang, category=$category, limit=$limit")
 
         val safeResult = remoteDataSource.safeGetWordsByCategory(lang, category, limit)

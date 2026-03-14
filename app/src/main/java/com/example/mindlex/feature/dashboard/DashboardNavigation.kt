@@ -12,7 +12,8 @@ object DashboardDestinations {
 
 fun NavGraphBuilder.dashboardGraph(
     onOpenSettings: () -> Unit,
-    onStartLearning: () -> Unit
+    onStartLearning: () -> Unit,
+    onBackFromLearning: () -> Unit
 ) {
     navigation(
         startDestination = DashboardDestinations.DASHBOARD,
@@ -25,7 +26,9 @@ fun NavGraphBuilder.dashboardGraph(
             )
         }
         composable(DashboardDestinations.LEARNING) {
-            com.example.mindlex.feature.learning.LearningWordsScreen()
+            com.example.mindlex.feature.learning.LearningWordsScreen(
+                onBackClick = onBackFromLearning
+            )
         }
     }
 }

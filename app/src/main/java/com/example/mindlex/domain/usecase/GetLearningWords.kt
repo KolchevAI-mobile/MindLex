@@ -21,29 +21,22 @@ class GetLearningWords @Inject constructor(
 ) {
 
     operator fun invoke(limit: Int = 50): Flow<Result<List<Vocabulary>>> = flow {
-        // ВРЕМЕННЫЙ ДЕБАГ: принудительно устанавливаем значения
-        val lang = "en"  // ПРИНУДИТЕЛЬНО en для теста
-        val category = "general"  // ПРИНУДИТЕЛЬНО general для теста
+        // Read language and category from settings
+        val lang = settingsRepository.getSelectedLanguage().first()
+        val category = settingsRepository.getSelectedCategory().first()
 
-        // Закомментировано чтение из настроек для дебага:
-        // val lang = settingsRepository.getSelectedLanguage().first()
-        // val category = settingsRepository.getSelectedCategory().first()
-
-        Timber.d("[GetLearningWords] ===== ДЕБАГ РЕЖИМ =====")
         Timber.d("[GetLearningWords] Настройки: lang=$lang, category=$category, limit=$limit")
 
-        // ИСПРАВЛЕНИЕ: регистронезависимое сравнение
         val normalizedCategory = category.lowercase()
         Timber.d("[GetLearningWords] Нормализованная категория: $normalizedCategory")
 
         val result: Result<List<Vocabulary>> =
             if (normalizedCategory == "general") {
                 Timber.d("[GetLearningWords] Вызов getRandomWords() для категории 'general'")
-                repository.getRandomWords(lang = lang, limit = limit).first()
+                repository.getRandomWords(limit = limit).first()
             } else {
                 Timber.d("[GetLearningWords] Вызов getWordsByCategory() для категории '$normalizedCategory'")
                 repository.getWordsByCategory(
-                    lang = lang,
                     category = normalizedCategory,
                     limit = limit
                 ).first()

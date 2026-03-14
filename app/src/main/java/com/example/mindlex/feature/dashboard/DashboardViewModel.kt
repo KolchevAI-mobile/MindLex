@@ -2,43 +2,42 @@ package com.example.mindlex.feature.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mindlex.domain.model.UserSettings
-import com.example.mindlex.domain.repository.OnboardingRepository
+import com.example.mindlex.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    onboardingRepository: OnboardingRepository
+    settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     data class UiState(
-        val userName: String = "",
+        val userName: String = "Ученик",
         val selectedLanguage: String = "en",
         val wordsLearned: Int = 0,
         val currentStreak: Int = 0,
         val dailyProgress: Int = 0
     )
 
-    private val userSettingsFlow: Flow<UserSettings> =
-        onboardingRepository.getUserSettings()
-
-    val uiState: StateFlow<UiState> =
-        userSettingsFlow
-            .map { settings ->
-                UiState(
-                    userName = settings.userName,
-                    selectedLanguage = settings.selectedLanguage,
-                    wordsLearned = 0,
-                    currentStreak = 0,
-                    dailyProgress = 0
-                )
-            }
-            .stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
-                UiState()
-            )
+    val uiState: StateFlow<UiState> = combine(
+        settingsRepository.getUserName(),
+        settingsRepository.getSelectedLanguage(),
+        settingsRepository.getDailyGoal()
+    ) { userName, language, dailyGoal ->
+        UiState(
+            userName = userName,
+            selectedLanguage = language,
+            wordsLearned = 0, // TODO: Get from progress repository
+            currentStreak = 0, // TODO: Get from progress repository
+            dailyProgress = 0  // TODO: Calculate based on daily goal
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        UiState()
+    )
 }

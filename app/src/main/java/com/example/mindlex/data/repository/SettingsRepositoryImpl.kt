@@ -36,4 +36,11 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setNotificationsEnabled(enabled: Boolean) {
         localDataSource.setNotificationsEnabled(enabled)
     }
+
+    override fun getUserName(): Flow<String> =
+        localDataSource.getUserName()
+
+    override suspend fun setUserName(name: String) {
+        localDataSource.setUserName(name)
+    }
 }

@@ -10,6 +10,8 @@ import com.example.mindlex.feature.dashboard.DashboardDestinations
 import com.example.mindlex.feature.dashboard.dashboardGraph
 import com.example.mindlex.feature.onboarding.OnboardingDestinations
 import com.example.mindlex.feature.onboarding.onboardingGraph
+import com.example.mindlex.feature.settings.SettingsDestinations
+import com.example.mindlex.feature.settings.settingsGraph
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.ViewModel
@@ -50,6 +52,9 @@ fun MindLexAppNavHost(
         navController = navController,
         startDestination = startDestination
     ) {
+        // ═══════════════════════════════════════════
+        // ONBOARDING
+        // ═══════════════════════════════════════════
         onboardingGraph(
             onCompleted = {
                 navController.navigate(DashboardDestinations.ROOT) {
@@ -58,12 +63,27 @@ fun MindLexAppNavHost(
             }
         )
 
+        // ═══════════════════════════════════════════
+        // DASHBOARD
+        // ═══════════════════════════════════════════
         dashboardGraph(
             onOpenSettings = {
-                // TODO: добавить экран настроек
+                navController.navigate(SettingsDestinations.ROOT)
             },
             onStartLearning = {
                 navController.navigate(DashboardDestinations.LEARNING)
+            },
+            onBackFromLearning = {
+                navController.popBackStack()
+            }
+        )
+
+        // ═══════════════════════════════════════════
+        // SETTINGS
+        // ═══════════════════════════════════════════
+        settingsGraph(
+            onBackClick = {
+                navController.popBackStack()
             }
         )
     }

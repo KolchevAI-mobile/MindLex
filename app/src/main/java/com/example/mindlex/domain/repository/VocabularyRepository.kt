@@ -10,12 +10,10 @@ import kotlinx.coroutines.flow.Flow
 interface VocabularyRepository {
 
     fun getRandomWords(
-        lang: String,
         limit: Int
     ): Flow<Result<List<Vocabulary>>>
 
     fun getWordsByCategory(
-        lang: String,
         category: String,
         limit: Int
     ): Flow<Result<List<Vocabulary>>>
