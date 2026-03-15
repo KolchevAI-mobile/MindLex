@@ -28,9 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mindlex.domain.model.Vocabulary
 
-/**
- * Простой экран для отладки логики загрузки слов через Supabase + Room.
- */
 @Composable
 fun LearningWordsScreen(
     onBackClick: () -> Unit,

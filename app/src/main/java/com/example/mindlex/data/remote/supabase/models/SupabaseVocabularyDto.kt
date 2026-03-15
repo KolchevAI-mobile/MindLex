@@ -7,10 +7,7 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * DTO для строки из таблицы vocabulary в Supabase.
- * Включает варианты слова и примеры на разных языках.
- */
+/** DTO таблицы vocabulary в Supabase с поддержкой мультиязычности. */
 @Serializable
 data class SupabaseVocabularyDto(
     val id: String,
@@ -33,9 +30,7 @@ data class SupabaseVocabularyDto(
     val category: String? = null
 ) {
 
-    /**
-     * Преобразование в сущность кэша Room для конкретного языка обучения.
-     */
+    /** Конвертирует в Room entity для заданного языка обучения. */
     fun toVocabularyEntity(targetLang: String): VocabularyEntity {
         val now = Clock.System.now()
 
@@ -76,9 +71,7 @@ data class SupabaseVocabularyDto(
         )
     }
 
-    /**
-     * Преобразование в доменную модель Vocabulary для слоя Domain.
-     */
+    /** Конвертирует в доменную модель для заданного языка обучения. */
     fun toVocabulary(targetLang: String): Vocabulary {
         val entity = toVocabularyEntity(targetLang)
         return entity.toDomain()

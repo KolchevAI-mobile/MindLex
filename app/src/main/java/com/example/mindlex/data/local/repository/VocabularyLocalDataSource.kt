@@ -12,10 +12,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import timber.log.Timber
 
-/**
- * Локальный источник данных для кэша слов Supabase.
- * Инкапсулирует логику LRU (обновление lastAccessed и обрезка размера кэша).
- */
+/** Локальный источник данных для кэша слов с LRU стратегией. */
 class VocabularyLocalDataSource @Inject constructor(
     private val dao: VocabularyDao
 ) {
@@ -47,9 +44,7 @@ class VocabularyLocalDataSource @Inject constructor(
             }
     }
 
-    /**
-     * Сохранить слова в кэш и применить LRU-стратегию.
-     */
+    /** Кэширует слова и применяет LRU стратегию. */
     suspend fun cacheWords(words: List<VocabularyEntity>) {
         if (words.isEmpty()) {
             Timber.d("[RoomCache] Нечего кэшировать, список пуст")

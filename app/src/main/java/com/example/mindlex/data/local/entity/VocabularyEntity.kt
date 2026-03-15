@@ -6,10 +6,7 @@ import androidx.room.PrimaryKey
 import com.example.mindlex.domain.model.Vocabulary
 import kotlinx.datetime.Instant
 
-/**
- * Локальный кэш слов, полученных из Supabase.
- * Хранит минимальный набор полей, необходимых для UI.
- */
+/** Room entity для кэшированных слов словаря. */
 @Entity(
     tableName = "vocabulary_cache",
     indices = [
@@ -29,9 +26,7 @@ data class VocabularyEntity(
     val lastAccessed: Instant
 )
 
-/**
- * Преобразование в доменную модель Vocabulary.
- */
+/** Конвертирует entity в доменную модель. */
 fun VocabularyEntity.toDomain(): Vocabulary =
     Vocabulary(
         id = id,

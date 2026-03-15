@@ -52,9 +52,6 @@ fun MindLexAppNavHost(
         navController = navController,
         startDestination = startDestination
     ) {
-        // ═══════════════════════════════════════════
-        // ONBOARDING
-        // ═══════════════════════════════════════════
         onboardingGraph(
             onCompleted = {
                 navController.navigate(DashboardDestinations.ROOT) {
@@ -63,9 +60,6 @@ fun MindLexAppNavHost(
             }
         )
 
-        // ═══════════════════════════════════════════
-        // DASHBOARD
-        // ═══════════════════════════════════════════
         dashboardGraph(
             onOpenSettings = {
                 navController.navigate(SettingsDestinations.ROOT)
@@ -78,9 +72,6 @@ fun MindLexAppNavHost(
             }
         )
 
-        // ═══════════════════════════════════════════
-        // SETTINGS
-        // ═══════════════════════════════════════════
         settingsGraph(
             onBackClick = {
                 navController.popBackStack()

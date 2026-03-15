@@ -1,8 +1,6 @@
 package com.example.mindlex.domain.model
 
-/**
- * Доменная модель изучаемого слова (Supabase + кэш Room).
- */
+/** Доменная модель слова словаря с переводами. */
 data class Vocabulary(
     val id: String,
     val targetLanguage: String,

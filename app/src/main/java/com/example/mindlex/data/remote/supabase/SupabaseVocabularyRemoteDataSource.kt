@@ -9,12 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-/**
- * DataSource для работы с таблицей words в Supabase.
- *
- * ВАЖНО: Фильтрация выполняется на стороне клиента для надёжности.
- * Для 100-500 слов это не влияет на производительность.
- */
+/** Удаленный источник данных для таблицы vocabulary в Supabase с клиентской фильтрацией. */
 class SupabaseVocabularyRemoteDataSource(
     private val client: SupabaseClient
 ) : SupabaseVocabularyApi {
@@ -27,7 +22,7 @@ class SupabaseVocabularyRemoteDataSource(
     ): List<SupabaseVocabularyDto> = withContext(Dispatchers.IO) {
         Timber.d("[SupabaseAPI] Запрос к таблице '$tableName': targetLang=$targetLang, limit=$limit")
 
-        // Загружаем ВСЕ слова из таблицы (без серверных фильтров)
+        // Загружаем все слова из таблицы (клиентская фильтрация)
         val all = client.postgrest.from(tableName)
             .select()
             .decodeList<SupabaseVocabularyDto>()
@@ -41,10 +36,10 @@ class SupabaseVocabularyRemoteDataSource(
             }
             Timber.d("[SupabaseAPI] Примеры: $sample")
         } else {
-            Timber.e("[SupabaseAPI] ⚠️ ТАБЛИЦА ПУСТА! Проверь импорт данных в Supabase")
+            Timber.e("[SupabaseAPI] ⚠️ ТАБЛИЦА ПУСТА! Проверьте импорт данных в Supabase")
         }
 
-        // Клиентская фильтрация: слово на целевом языке НЕ пустое
+        // Фильтрация: слово не должно быть пустым на целевом языке
         val filteredByLang = all.filter { dto ->
             when (targetLang) {
                 "en" -> !dto.word_en.isNullOrBlank()
@@ -114,14 +109,14 @@ class SupabaseVocabularyRemoteDataSource(
             }
     }
 
-    // Обёртки с обработкой ошибок
+    // Обертки для обработки ошибок
     suspend fun safeGetRandomWords(
         targetLang: String,
         limit: Int
     ): Result<List<SupabaseVocabularyDto>> = runCatching {
         getRandomWords(targetLang, limit)
     }.onFailure { e ->
-        Timber.e(e, "[SupabaseAPI] Ошибка: getRandomWords(lang=$targetLang)")
+        Timber.e(e, "[SupabaseAPI] Error: getRandomWords(lang=$targetLang)")
     }
 
     suspend fun safeGetWordsByCategory(
@@ -131,6 +126,6 @@ class SupabaseVocabularyRemoteDataSource(
     ): Result<List<SupabaseVocabularyDto>> = runCatching {
         getWordsByCategory(targetLang, category, limit)
     }.onFailure { e ->
-        Timber.e(e, "[SupabaseAPI] Ошибка: getWordsByCategory(cat=$category)")
+        Timber.e(e, "[SupabaseAPI] Error: getWordsByCategory(cat=$category)")
     }
 }

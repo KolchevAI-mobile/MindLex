@@ -14,9 +14,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import timber.log.Timber
 
-/**
- * Имплементация репозитория словаря с логикой offline-first.
- */
+/** Реализация репозитория со стратегией offline-first кэширования. */
 class VocabularyRepositoryImpl @Inject constructor(
     private val remoteDataSource: SupabaseVocabularyRemoteDataSource,
     private val localDataSource: VocabularyLocalDataSource,
@@ -28,14 +26,14 @@ class VocabularyRepositoryImpl @Inject constructor(
     ): Flow<Result<List<Vocabulary>>> = flow {
         // Read current language from settings
         val lang = settingsRepository.getSelectedLanguage().first()
-        Timber.d("[VocabularyRepository] Запрос слов: lang=$lang, limit=$limit")
+        Timber.d("[VocabularyRepository] Запрос: lang=$lang, limit=$limit")
 
         val safeResult = remoteDataSource.safeGetRandomWords(lang, limit)
 
         safeResult
             .onSuccess { remoteWords ->
                 Timber.d("[VocabularyRepository] Получено ${remoteWords.size} слов из Supabase")
-                // Успех сети: кэшируем в Room и возвращаем доменные модели
+                // Успех сети: кэшируем в Room и возвращаем
                 val entities: List<VocabularyEntity> =
                     remoteWords.map { it.toVocabularyEntity(lang) }
                 Timber.d("[VocabularyRepository] Кэширую ${entities.size} слов в Room")
@@ -44,11 +42,11 @@ class VocabularyRepositoryImpl @Inject constructor(
                 emit(Result.success(remoteWords.map { it.toVocabulary(lang) }))
             }
             .onFailure { throwable ->
-                Timber.e(throwable, "[VocabularyRepository] Ошибка сети/декодирования при загрузке random слов (lang=$lang)")
-                // Ошибка сети: пробуем достать слова из локального кэша
+                Timber.e(throwable, "[VocabularyRepository] Ошибка загрузки слов (lang=$lang)")
+                // Ошибка сети: пробуем загрузить из кэша
                 Timber.d("[VocabularyRepository] Пробую загрузить из Room...")
                 val cached = localDataSource.getRandomWords(lang, limit).first()
-                Timber.d("[VocabularyRepository] В кэше найдено ${cached.size} слов")
+                Timber.d("[VocabularyRepository] Найдено ${cached.size} слов в кэше")
 
                 if (cached.isNotEmpty()) {
                     Timber.d("[VocabularyRepository] Возвращаю ${cached.size} слов из кэша")
@@ -64,9 +62,9 @@ class VocabularyRepositoryImpl @Inject constructor(
         category: String,
         limit: Int
     ): Flow<Result<List<Vocabulary>>> = flow {
-        // Read current language from settings
+        // Читаем текущий язык из настроек
         val lang = settingsRepository.getSelectedLanguage().first()
-        Timber.d("[VocabularyRepository] Запрос слов по категории: lang=$lang, category=$category, limit=$limit")
+        Timber.d("[VocabularyRepository] Запрос по категории: lang=$lang, category=$category, limit=$limit")
 
         val safeResult = remoteDataSource.safeGetWordsByCategory(lang, category, limit)
 
@@ -81,10 +79,10 @@ class VocabularyRepositoryImpl @Inject constructor(
                 emit(Result.success(remoteWords.map { it.toVocabulary(lang) }))
             }
             .onFailure { throwable ->
-                Timber.e(throwable, "[VocabularyRepository] Ошибка сети/декодирования при загрузке слов по категории (lang=$lang, category=$category)")
+                Timber.e(throwable, "[VocabularyRepository] Ошибка загрузки по категории (lang=$lang, category=$category)")
                 Timber.d("[VocabularyRepository] Пробую загрузить из Room...")
                 val cached = localDataSource.getWordsByCategory(lang, category, limit).first()
-                Timber.d("[VocabularyRepository] В кэше найдено ${cached.size} слов")
+                Timber.d("[VocabularyRepository] Найдено ${cached.size} слов в кэше")
 
                 if (cached.isNotEmpty()) {
                     Timber.d("[VocabularyRepository] Возвращаю ${cached.size} слов из кэша")

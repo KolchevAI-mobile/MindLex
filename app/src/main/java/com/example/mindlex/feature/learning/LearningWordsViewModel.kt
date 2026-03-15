@@ -12,9 +12,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-/**
- * ViewModel для экрана обучения, работающего через Supabase + Room кэш.
- */
+/** ViewModel для экрана обучения слов. */
 @HiltViewModel
 class LearningWordsViewModel @Inject constructor(
     private val getLearningWords: GetLearningWords
@@ -34,9 +32,7 @@ class LearningWordsViewModel @Inject constructor(
         loadWords()
     }
 
-    /**
-     * Загрузить слова для обучения с учётом текущих настроек пользователя.
-     */
+    /** Загружает слова для обучения на основе текущих настроек пользователя. */
     fun loadWords() {
         Timber.d("[LearningWordsVM] loadWords() начало")
         viewModelScope.launch {

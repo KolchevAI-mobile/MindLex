@@ -3,10 +3,7 @@ package com.example.mindlex.domain.repository
 import com.example.mindlex.domain.model.Vocabulary
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Репозиторий для получения слов для обучения.
- * Инкапсулирует логику offline-first (Supabase + Room кэш).
- */
+/** Репозиторий для получения слов обучения с офлайн-кэшированием. */
 interface VocabularyRepository {
 
     fun getRandomWords(
@@ -18,4 +15,3 @@ interface VocabularyRepository {
         limit: Int
     ): Flow<Result<List<Vocabulary>>>
 }
-

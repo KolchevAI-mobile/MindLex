@@ -11,17 +11,14 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import timber.log.Timber
 
-/**
- * UseCase, инкапсулирующий логику получения слов для обучения.
- * Учитывает текущий язык и категорию из настроек пользователя.
- */
+/** Получает слова для обучения на основе настроек пользователя (язык и категория). */
 class GetLearningWords @Inject constructor(
     private val repository: VocabularyRepository,
     private val settingsRepository: SettingsRepository
 ) {
 
     operator fun invoke(limit: Int = 50): Flow<Result<List<Vocabulary>>> = flow {
-        // Read language and category from settings
+        // Читаем язык и категорию из настроек
         val lang = settingsRepository.getSelectedLanguage().first()
         val category = settingsRepository.getSelectedCategory().first()
 

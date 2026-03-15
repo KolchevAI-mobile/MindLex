@@ -10,10 +10,7 @@ import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import javax.inject.Singleton
 
-/**
- * Модуль DI для инициализации Supabase клиента.
- * Ключи читаются из BuildConfig, чтобы не хардкодить значения.
- */
+/** DI модуль для инициализации Supabase клиента. Ключи читаются из BuildConfig. */
 @Module
 @InstallIn(SingletonComponent::class)
 object SupabaseModule {
@@ -25,9 +22,8 @@ object SupabaseModule {
             supabaseUrl = BuildConfig.SUPABASE_URL,
             supabaseKey = BuildConfig.SUPABASE_ANON_KEY
         ) {
-            // Подключаем Postgrest для работы с таблицей vocabulary
+            // Установка Postgrest для таблицы словаря
             install(Postgrest)
         }
     }
 }
-
