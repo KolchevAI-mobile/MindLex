@@ -1,10 +1,5 @@
 package com.example.mindlex.feature.settings
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,11 +15,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -34,7 +29,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -49,6 +43,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -162,7 +157,7 @@ fun SettingsScreen(
 
             // Category Section
             SettingsCard(
-                icon = Icons.Default.Sort,
+                icon = Icons.AutoMirrored.Filled.Sort,
                 title = "Категория слов",
                 description = "Выберите тему для изучения"
             ) {
@@ -211,7 +206,6 @@ private fun UserNameField(
     androidx.compose.material3.OutlinedTextField(
         value = text,
         onValueChange = {
-            text = it
             onUserNameChange(it)
         },
         label = { Text("Ваше имя") },
@@ -293,6 +287,7 @@ private fun LanguageDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selectedOption = Languages.ALL.find { it.code == selectedLanguage } ?: Languages.ALL.first()
+    val menuShape = RoundedCornerShape(12.dp)
 
     Column {
         Text(
@@ -302,12 +297,12 @@ private fun LanguageDropdown(
         )
 
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = true },
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+            ),
+            shape = menuShape
         ) {
             Row(
                 modifier = Modifier
@@ -327,24 +322,26 @@ private fun LanguageDropdown(
             }
         }
 
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .background(
-                    color = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(12.dp)
-                )
+        MaterialTheme(
+            shapes = MaterialTheme.shapes.copy(
+                extraSmall = menuShape
+            )
         ) {
-            Languages.ALL.forEach { language ->
-                DropdownMenuItem(
-                    text = { Text(language.displayName) },
-                    onClick = {
-                        onLanguageSelected(language.code)
-                        expanded = false
-                    }
-                )
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Languages.ALL.forEach { language ->
+                    DropdownMenuItem(
+                        text = { Text(language.displayName) },
+                        onClick = {
+                            onLanguageSelected(language.code)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
@@ -357,6 +354,7 @@ private fun CategoryDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selectedOption = Categories.ALL.find { it.code == selectedCategory } ?: Categories.ALL.first()
+    val menuShape = RoundedCornerShape(12.dp)
 
     Column {
         Text(
@@ -366,12 +364,12 @@ private fun CategoryDropdown(
         )
 
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = true },
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+            ),
+            shape = menuShape
         ) {
             Row(
                 modifier = Modifier
@@ -391,24 +389,26 @@ private fun CategoryDropdown(
             }
         }
 
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .background(
-                    color = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(12.dp)
-                )
+        MaterialTheme(
+            shapes = MaterialTheme.shapes.copy(
+                extraSmall = menuShape
+            )
         ) {
-            Categories.ALL.forEach { category ->
-                DropdownMenuItem(
-                    text = { Text(category.displayName) },
-                    onClick = {
-                        onCategorySelected(category.code)
-                        expanded = false
-                    }
-                )
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Categories.ALL.forEach { category ->
+                    DropdownMenuItem(
+                        text = { Text(category.displayName) },
+                        onClick = {
+                            onCategorySelected(category.code)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
@@ -419,7 +419,7 @@ private fun DailyGoalSlider(
     currentGoal: Int,
     onGoalChanged: (Int) -> Unit
 ) {
-    var sliderValue by remember(currentGoal) { mutableStateOf(currentGoal.toFloat()) }
+    var sliderValue by remember(currentGoal) { mutableFloatStateOf(currentGoal.toFloat()) }
 
     Column {
         Row(

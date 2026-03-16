@@ -1,8 +1,15 @@
 package com.example.mindlex.feature.root
 
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -23,25 +30,26 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.example.mindlex.domain.usecase.IsOnboardingCompleted
 
 @HiltViewModel
 class RootViewModel @Inject constructor(
-    isOnboardingCompleted: IsOnboardingCompleted
+    private val isOnboardingCompleted: IsOnboardingCompleted
 ) : ViewModel() {
 
-    private val _startDestination = MutableStateFlow<String>(OnboardingDestinations.ROOT)
-    val startDestination: StateFlow<String> = _startDestination
+    private val _startDestination = MutableStateFlow<String?>(null)
+    val startDestination: StateFlow<String?> = _startDestination
 
     init {
         viewModelScope.launch {
-            isOnboardingCompleted()
-                .collect { completed ->
-                    _startDestination.value =
-                        if (completed) DashboardDestinations.ROOT
-                        else OnboardingDestinations.ROOT
-                }
+            val completed = isOnboardingCompleted().first()
+            _startDestination.value = if (completed) {
+                DashboardDestinations.ROOT
+            } else {
+                OnboardingDestinations.ROOT
+            }
         }
     }
 }
@@ -53,9 +61,22 @@ fun MindLexAppNavHost(
 ) {
     val startDestination by rootViewModel.startDestination.collectAsState()
 
+    // Показываем загрузку, пока startDestination не определен
+    if (startDestination == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = startDestination!! // Safe because we return early if null
     ) {
         onboardingGraph(
             onCompleted = {
