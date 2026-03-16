@@ -6,8 +6,13 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import com.example.mindlex.feature.active_recall.ActiveRecallDestinations
+import com.example.mindlex.feature.active_recall.activeRecallGraph
 import com.example.mindlex.feature.dashboard.DashboardDestinations
 import com.example.mindlex.feature.dashboard.dashboardGraph
+import com.example.mindlex.feature.mechanics.MechanicType
+import com.example.mindlex.feature.mechanics.MechanicsDestinations
+import com.example.mindlex.feature.mechanics.mechanicsGraph
 import com.example.mindlex.feature.onboarding.OnboardingDestinations
 import com.example.mindlex.feature.onboarding.onboardingGraph
 import com.example.mindlex.feature.settings.SettingsDestinations
@@ -65,9 +70,31 @@ fun MindLexAppNavHost(
                 navController.navigate(SettingsDestinations.ROOT)
             },
             onStartLearning = {
-                navController.navigate(DashboardDestinations.LEARNING)
+                navController.navigate(MechanicsDestinations.ROOT)
             },
             onBackFromLearning = {
+                navController.popBackStack()
+            }
+        )
+
+        mechanicsGraph(
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onMechanicSelected = { mechanicType ->
+                when (mechanicType) {
+                    MechanicType.ACTIVE_RECALL -> {
+                        navController.navigate(ActiveRecallDestinations.ROOT)
+                    }
+                    else -> {
+                        // Другие механики пока не реализованы
+                    }
+                }
+            }
+        )
+
+        activeRecallGraph(
+            onBackClick = {
                 navController.popBackStack()
             }
         )

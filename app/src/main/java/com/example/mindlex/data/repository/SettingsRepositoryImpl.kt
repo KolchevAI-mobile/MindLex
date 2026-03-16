@@ -43,4 +43,11 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setUserName(name: String) {
         localDataSource.setUserName(name)
     }
+
+    override fun isActiveRecallTutorialShown(): Flow<Boolean> =
+        localDataSource.isActiveRecallTutorialShown()
+
+    override suspend fun setActiveRecallTutorialShown(shown: Boolean) {
+        localDataSource.setActiveRecallTutorialShown(shown)
+    }
 }

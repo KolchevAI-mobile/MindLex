@@ -1,7 +1,7 @@
 package com.example.mindlex.data.local
 
 import androidx.room.TypeConverter
-import com.example.mindlex.domain.model.Definition
+import com.example.mindlex.data.remote.api.models.Definition
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toInstant
 import kotlinx.serialization.encodeToString

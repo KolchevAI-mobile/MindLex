@@ -70,4 +70,16 @@ class SettingsLocalDataSource @Inject constructor(
             prefs[PreferencesKeys.USER_NAME] = name
         }
     }
+
+    fun isActiveRecallTutorialShown(): Flow<Boolean> {
+        return dataStore.data.map { prefs ->
+            prefs[PreferencesKeys.ACTIVE_RECALL_TUTORIAL_SHOWN] ?: false
+        }
+    }
+
+    suspend fun setActiveRecallTutorialShown(shown: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.ACTIVE_RECALL_TUTORIAL_SHOWN] = shown
+        }
+    }
 }

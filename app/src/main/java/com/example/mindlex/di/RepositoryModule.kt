@@ -3,15 +3,18 @@ package com.example.mindlex.di
 import com.example.mindlex.data.local.dao.ProgressDao
 import com.example.mindlex.data.local.dao.VocabularyDao
 import com.example.mindlex.data.local.dao.WordDao
+import com.example.mindlex.data.local.dao.WordProgressDao
 import com.example.mindlex.data.local.repository.SettingsLocalDataSource
 import com.example.mindlex.data.local.repository.VocabularyLocalDataSource
 import com.example.mindlex.data.local.repository.WordLocalDataSource
+import com.example.mindlex.data.repository.WordProgressRepositoryImpl
 import com.example.mindlex.data.remote.supabase.SupabaseVocabularyRemoteDataSource
 import com.example.mindlex.data.repository.SettingsRepositoryImpl
 import com.example.mindlex.data.repository.VocabularyRepositoryImpl
 import com.example.mindlex.data.repository.WordRepositoryImpl
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.repository.VocabularyRepository
+import com.example.mindlex.domain.repository.WordProgressRepository
 import com.example.mindlex.domain.repository.WordRepository
 import dagger.Module
 import dagger.Provides
@@ -55,5 +58,14 @@ object RepositoryModule {
         localDataSource: SettingsLocalDataSource
     ): SettingsRepository {
         return SettingsRepositoryImpl(localDataSource)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWordProgressRepository(
+        wordProgressDao: WordProgressDao,
+        wordRepository: WordRepository
+    ): WordProgressRepository {
+        return WordProgressRepositoryImpl(wordProgressDao, wordRepository)
     }
 }

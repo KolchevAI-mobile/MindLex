@@ -1,8 +1,9 @@
 package com.example.mindlex.data.local.mapper
 
 import com.example.mindlex.data.local.entity.WordEntity
-import com.example.mindlex.domain.model.Definition
+import com.example.mindlex.data.remote.api.models.Definition
 import com.example.mindlex.domain.model.Word
+import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -16,30 +17,41 @@ object WordLocalMapper {
         val definitions: List<Definition> =
             json.decodeFromString(entity.definitions)
 
+        // Берём первое определение как пример или объединяем все
+        val exampleText = definitions.firstOrNull()?.definition 
+            ?: definitions.firstOrNull()?.example 
+            ?: ""
+
         return Word(
             id = entity.id,
-            word = entity.word,
-            translation = entity.translation,
+            wordForeign = entity.word,
+            wordNative = entity.translation ?: "",
+            targetLanguage = "en", // Значение по умолчанию, можно получить из данных
+            example = exampleText.takeIf { it.isNotEmpty() },
             phonetic = entity.phonetic,
             partOfSpeech = entity.partOfSpeech,
-            definitions = definitions,
-            createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt
+            category = "general"
         )
     }
 
     fun fromDomain(word: Word): WordEntity {
-        val definitionsJson: String = json.encodeToString(word.definitions)
+        val definition = Definition(
+            definition = word.example ?: "",
+            example = word.example,
+            synonyms = emptyList(),
+            antonyms = emptyList()
+        )
+        val definitionsJson: String = json.encodeToString(listOf(definition))
 
         return WordEntity(
             id = word.id,
-            word = word.word,
-            translation = word.translation,
+            word = word.wordForeign,
+            translation = word.wordNative,
             phonetic = word.phonetic,
             partOfSpeech = word.partOfSpeech,
             definitions = definitionsJson,
-            createdAt = word.createdAt,
-            updatedAt = word.updatedAt
+            createdAt = Clock.System.now(),
+            updatedAt = Clock.System.now()
         )
     }
 }

@@ -6,6 +6,7 @@ import com.example.mindlex.data.local.LocalDatabase
 import com.example.mindlex.data.local.dao.ProgressDao
 import com.example.mindlex.data.local.dao.VocabularyDao
 import com.example.mindlex.data.local.dao.WordDao
+import com.example.mindlex.data.local.dao.WordProgressDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,4 +40,7 @@ object DatabaseModule {
 
     @Provides
     fun provideVocabularyDao(database: LocalDatabase): VocabularyDao = database.vocabularyDao()
+
+    @Provides
+    fun provideWordProgressDao(database: LocalDatabase): WordProgressDao = database.wordProgressDao()
 }

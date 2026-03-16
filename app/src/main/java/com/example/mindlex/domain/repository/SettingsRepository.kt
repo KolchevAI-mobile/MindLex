@@ -31,4 +31,14 @@ interface SettingsRepository {
     fun getUserName(): Flow<String>
 
     suspend fun setUserName(name: String)
+
+    /**
+     * Проверяет, показывался ли туториал для Active Recall.
+     */
+    fun isActiveRecallTutorialShown(): Flow<Boolean>
+
+    /**
+     * Отмечает, что туториал для Active Recall был показан.
+     */
+    suspend fun setActiveRecallTutorialShown(shown: Boolean)
 }

@@ -13,4 +13,5 @@ object PreferencesKeys {
     val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
     val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     val USER_NAME = stringPreferencesKey("user_name")
+    val ACTIVE_RECALL_TUTORIAL_SHOWN = booleanPreferencesKey("active_recall_tutorial_shown")
 }
