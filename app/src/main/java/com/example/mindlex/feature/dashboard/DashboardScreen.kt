@@ -36,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -126,16 +125,6 @@ fun DashboardScreen(
                                 value = uiState.currentStreak.toString(),
                                 label = "Серия дней",
                                 icon = "🔥"
-                            )
-                        }
-
-                        if (uiState.rushBestScore > 0 || uiState.rushMaxCombo > 0) {
-                            Text(
-                                text = "⚡ Спринт: рекорд ${uiState.rushBestScore} очков · комбо ${uiState.rushMaxCombo}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center
                             )
                         }
 
