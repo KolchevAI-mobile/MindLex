@@ -27,7 +27,10 @@ data class SupabaseVocabularyDto(
     val phonetic_es: String? = null,
     @SerialName("part_of_speech")
     val partOfSpeech: String? = null,
-    val category: String? = null
+    val category: String? = null,
+    /** Синонимы/альтернативы на английском (таблица words), через запятую или ; */
+    @SerialName("synonyms_en")
+    val synonymsEn: String? = null
 ) {
 
     /** Конвертирует в Room entity для заданного языка обучения. */
@@ -58,6 +61,11 @@ data class SupabaseVocabularyDto(
             else -> phonetic_en
         }
 
+        val synonymsStored = when (targetLang) {
+            "en" -> synonymsEn
+            else -> null
+        }
+
         return VocabularyEntity(
             id = id,
             targetLanguage = targetLang,
@@ -67,6 +75,7 @@ data class SupabaseVocabularyDto(
             phonetic = phonetic,
             partOfSpeech = partOfSpeech,
             category = category ?: "general",
+            synonymsForeign = synonymsStored,
             lastAccessed = now
         )
     }

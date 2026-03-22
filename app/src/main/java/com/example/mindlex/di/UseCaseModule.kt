@@ -6,9 +6,11 @@ import com.example.mindlex.domain.repository.VocabularyRepository
 import com.example.mindlex.domain.repository.WordProgressRepository
 import com.example.mindlex.domain.usecase.CalculateNextReview
 import com.example.mindlex.domain.usecase.EvaluateAnswer
+import com.example.mindlex.domain.usecase.CalculateRushScore
 import com.example.mindlex.domain.usecase.GetLearningWords
 import com.example.mindlex.domain.usecase.GetNextClozeExercise
 import com.example.mindlex.domain.usecase.GetNextWordForPractice
+import com.example.mindlex.domain.usecase.GetRandomWordForRush
 import com.example.mindlex.domain.usecase.UpdateWordProgress
 import dagger.Module
 import dagger.Provides
@@ -55,6 +57,21 @@ object UseCaseModule {
         clozeRepository: ClozeRepository
     ): GetNextClozeExercise {
         return GetNextClozeExercise(clozeRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetRandomWordForRush(
+        vocabularyRepository: VocabularyRepository,
+        settingsRepository: SettingsRepository
+    ): GetRandomWordForRush {
+        return GetRandomWordForRush(vocabularyRepository, settingsRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCalculateRushScore(): CalculateRushScore {
+        return CalculateRushScore()
     }
 
     @Provides

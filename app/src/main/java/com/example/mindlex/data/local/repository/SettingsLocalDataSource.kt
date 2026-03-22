@@ -94,4 +94,40 @@ class SettingsLocalDataSource @Inject constructor(
             prefs[PreferencesKeys.CLOZE_TIMER_SECONDS] = seconds
         }
     }
+
+    fun getRushSessionSeconds(): Flow<Int> {
+        return dataStore.data.map { prefs ->
+            prefs[PreferencesKeys.RUSH_SESSION_SECONDS] ?: 90
+        }
+    }
+
+    suspend fun setRushSessionSeconds(seconds: Int) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.RUSH_SESSION_SECONDS] = seconds
+        }
+    }
+
+    fun getRushBestScore(): Flow<Int> {
+        return dataStore.data.map { prefs ->
+            prefs[PreferencesKeys.RUSH_BEST_SCORE] ?: 0
+        }
+    }
+
+    suspend fun setRushBestScore(score: Int) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.RUSH_BEST_SCORE] = score
+        }
+    }
+
+    fun getRushMaxComboRecord(): Flow<Int> {
+        return dataStore.data.map { prefs ->
+            prefs[PreferencesKeys.RUSH_MAX_COMBO_RECORD] ?: 0
+        }
+    }
+
+    suspend fun setRushMaxComboRecord(combo: Int) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.RUSH_MAX_COMBO_RECORD] = combo
+        }
+    }
 }

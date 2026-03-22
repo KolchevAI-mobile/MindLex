@@ -9,6 +9,8 @@ data class Vocabulary(
     val example: String?,
     val phonetic: String?,
     val partOfSpeech: String?,
-    val category: String
+    val category: String,
+    /** Разобранные синонимы на языке обучения (из synonyms_en и т.п.). */
+    val synonymsForeign: List<String> = emptyList()
 )
 

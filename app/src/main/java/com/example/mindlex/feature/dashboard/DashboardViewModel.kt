@@ -20,20 +20,27 @@ class DashboardViewModel @Inject constructor(
         val selectedLanguage: String = "en",
         val wordsLearned: Int = 0,
         val currentStreak: Int = 0,
-        val dailyProgress: Int = 0
+        val dailyProgress: Int = 0,
+        /** Рекорд спринта (очки и серия) для блока на главной. */
+        val rushBestScore: Int = 0,
+        val rushMaxCombo: Int = 0
     )
 
     val uiState: StateFlow<UiState> = combine(
         settingsRepository.getUserName(),
         settingsRepository.getSelectedLanguage(),
-        settingsRepository.getDailyGoal()
-    ) { userName, language, dailyGoal ->
+        settingsRepository.getDailyGoal(),
+        settingsRepository.getRushBestScore(),
+        settingsRepository.getRushMaxComboRecord()
+    ) { userName, language, dailyGoal, rushBest, rushCombo ->
         UiState(
             userName = userName,
             selectedLanguage = language,
             wordsLearned = 0, // TODO: Get from progress repository
             currentStreak = 0, // TODO: Get from progress repository
-            dailyProgress = 0  // TODO: Calculate based on daily goal
+            dailyProgress = 0, // TODO: Calculate based on daily goal
+            rushBestScore = rushBest,
+            rushMaxCombo = rushCombo
         )
     }.stateIn(
         viewModelScope,

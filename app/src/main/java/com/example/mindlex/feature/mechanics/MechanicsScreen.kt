@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +33,7 @@ import kotlinx.coroutines.launch
 enum class MechanicType {
     ACTIVE_RECALL,
     CLOZE,
+    RUSH,
     FLASHCARDS,
     LISTENING
 }
@@ -111,17 +113,13 @@ fun MechanicsScreen(
                 }
             )
 
-            // 3. Карточка "Timed Translation Rush" (скоро будет)
+            // 3. Спринт на скорость (Timed Translation Rush)
             MechanicCard(
-                title = "Timed Translation Rush",
-                description = "Перевод на скорость",
-                icon = Icons.Default.Memory,
-                status = MechanicStatus.COMING_SOON,
-                onClick = { 
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Скоро будет доступно")
-                    }
-                }
+                title = "Спринт на скорость",
+                description = "Переведи максимум слов за отведённое время",
+                icon = Icons.Default.Timer,
+                status = MechanicStatus.AVAILABLE,
+                onClick = { onMechanicSelected(MechanicType.RUSH) }
             )
 
             // 4. Карточка «Контекстный пропуск» (contextual cloze)

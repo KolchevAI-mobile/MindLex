@@ -16,4 +16,8 @@ object PreferencesKeys {
     val ACTIVE_RECALL_TUTORIAL_SHOWN = booleanPreferencesKey("active_recall_tutorial_shown")
     /** Длительность таймера contextual cloze, сек (рекомендуется 30–45). */
     val CLOZE_TIMER_SECONDS = intPreferencesKey("cloze_timer_seconds")
+    /** Длительность спринта «перевод на скорость», сек (60–90). */
+    val RUSH_SESSION_SECONDS = intPreferencesKey("rush_session_seconds")
+    val RUSH_BEST_SCORE = intPreferencesKey("rush_best_score")
+    val RUSH_MAX_COMBO_RECORD = intPreferencesKey("rush_max_combo_record")
 }

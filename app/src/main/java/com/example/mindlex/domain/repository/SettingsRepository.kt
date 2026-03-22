@@ -46,4 +46,17 @@ interface SettingsRepository {
     fun getClozeTimerSeconds(): Flow<Int>
 
     suspend fun setClozeTimerSeconds(seconds: Int)
+
+    /** Длительность одной сессии Rush (секунды). */
+    fun getRushSessionSeconds(): Flow<Int>
+
+    suspend fun setRushSessionSeconds(seconds: Int)
+
+    fun getRushBestScore(): Flow<Int>
+
+    suspend fun setRushBestScore(score: Int)
+
+    fun getRushMaxComboRecord(): Flow<Int>
+
+    suspend fun setRushMaxComboRecord(combo: Int)
 }

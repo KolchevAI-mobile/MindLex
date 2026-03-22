@@ -57,4 +57,25 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setClozeTimerSeconds(seconds: Int) {
         localDataSource.setClozeTimerSeconds(seconds)
     }
+
+    override fun getRushSessionSeconds(): Flow<Int> =
+        localDataSource.getRushSessionSeconds()
+
+    override suspend fun setRushSessionSeconds(seconds: Int) {
+        localDataSource.setRushSessionSeconds(seconds)
+    }
+
+    override fun getRushBestScore(): Flow<Int> =
+        localDataSource.getRushBestScore()
+
+    override suspend fun setRushBestScore(score: Int) {
+        localDataSource.setRushBestScore(score)
+    }
+
+    override fun getRushMaxComboRecord(): Flow<Int> =
+        localDataSource.getRushMaxComboRecord()
+
+    override suspend fun setRushMaxComboRecord(combo: Int) {
+        localDataSource.setRushMaxComboRecord(combo)
+    }
 }

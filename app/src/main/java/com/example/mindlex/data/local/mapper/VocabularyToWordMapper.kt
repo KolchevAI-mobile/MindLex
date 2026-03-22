@@ -16,6 +16,7 @@ object VocabularyToWordMapper {
             id = vocabulary.id,
             wordForeign = vocabulary.word,
             wordNative = vocabulary.translation,
+            alternativeTranslations = vocabulary.synonymsForeign,
             targetLanguage = vocabulary.targetLanguage,
             example = vocabulary.example,
             phonetic = vocabulary.phonetic,

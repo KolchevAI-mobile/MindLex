@@ -17,6 +17,8 @@ import com.example.mindlex.feature.active_recall.ActiveRecallDestinations
 import com.example.mindlex.feature.active_recall.activeRecallGraph
 import com.example.mindlex.feature.cloze.ClozeDestinations
 import com.example.mindlex.feature.cloze.clozeGraph
+import com.example.mindlex.feature.rush.RushDestinations
+import com.example.mindlex.feature.rush.rushGraph
 import com.example.mindlex.feature.dashboard.DashboardDestinations
 import com.example.mindlex.feature.dashboard.dashboardGraph
 import com.example.mindlex.feature.mechanics.MechanicType
@@ -112,6 +114,9 @@ fun MindLexAppNavHost(
                     MechanicType.CLOZE -> {
                         navController.navigate(ClozeDestinations.ROOT)
                     }
+                    MechanicType.RUSH -> {
+                        navController.navigate(RushDestinations.ROOT)
+                    }
                     else -> {
                         // Другие механики пока не реализованы
                     }
@@ -126,6 +131,12 @@ fun MindLexAppNavHost(
         )
 
         clozeGraph(
+            onBackClick = {
+                navController.popBackStack()
+            }
+        )
+
+        rushGraph(
             onBackClick = {
                 navController.popBackStack()
             }

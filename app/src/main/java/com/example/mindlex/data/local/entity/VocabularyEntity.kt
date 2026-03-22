@@ -23,6 +23,8 @@ data class VocabularyEntity(
     val phonetic: String?,
     val partOfSpeech: String?,
     val category: String,
+    /** Сырые синонимы на целевом языке (строка из Supabase). */
+    val synonymsForeign: String? = null,
     val lastAccessed: Instant
 )
 
@@ -36,6 +38,14 @@ fun VocabularyEntity.toDomain(): Vocabulary =
         example = example,
         phonetic = phonetic,
         partOfSpeech = partOfSpeech,
-        category = category
+        category = category,
+        synonymsForeign = synonymsForeign.parseSynonymTokens()
     )
+
+private fun String?.parseSynonymTokens(): List<String> {
+    if (this.isNullOrBlank()) return emptyList()
+    return split(',', ';')
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+}
 
