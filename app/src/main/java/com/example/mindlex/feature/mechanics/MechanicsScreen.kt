@@ -7,10 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +31,7 @@ import kotlinx.coroutines.launch
  */
 enum class MechanicType {
     ACTIVE_RECALL,
+    CLOZE,
     FLASHCARDS,
     LISTENING
 }
@@ -93,18 +91,18 @@ fun MechanicsScreen(
 
             // 1. Карточка "Активное вспоминание" (доступна)
             MechanicCard(
-                title = "Активное вспоминание",
+                title = "Active Recall",
                 description = "Вводите слово по переводу. Эффективно для запоминания.",
                 icon = Icons.Default.Memory,
                 status = MechanicStatus.AVAILABLE,
                 onClick = { onMechanicSelected(MechanicType.ACTIVE_RECALL) }
             )
 
-            // 2. Карточка "Распознавание" (скоро будет)
+            // 2. Карточка "Synonym Chain" (скоро будет)
             MechanicCard(
-                title = "Распознавание",
-                description = "Распознавайте слова по контексту и использованию в предложениях.",
-                icon = Icons.Default.Casino,
+                title = "Synonym Chain",
+                description = "Цепочка синонимов",
+                icon = Icons.Default.Memory,
                 status = MechanicStatus.COMING_SOON,
                 onClick = { 
                     scope.launch {
@@ -113,11 +111,11 @@ fun MechanicsScreen(
                 }
             )
 
-            // 3. Карточка "Spaced Repetition Engine" (скоро будет)
+            // 3. Карточка "Timed Translation Rush" (скоро будет)
             MechanicCard(
-                title = "Spaced Repetition Engine",
-                description = "Интеллектуальная система повторения с адаптивными интервалами.",
-                icon = Icons.Default.Build,
+                title = "Timed Translation Rush",
+                description = "Перевод на скорость",
+                icon = Icons.Default.Memory,
                 status = MechanicStatus.COMING_SOON,
                 onClick = { 
                     scope.launch {
@@ -126,17 +124,13 @@ fun MechanicsScreen(
                 }
             )
 
-            // 4. Карточка "Персонализация" (скоро будет)
+            // 4. Карточка «Контекстный пропуск» (contextual cloze)
             MechanicCard(
-                title = "Персонализация",
-                description = "Настройте обучение под свой стиль и темп.",
-                icon = Icons.Default.Person,
-                status = MechanicStatus.COMING_SOON,
-                onClick = { 
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Скоро будет доступно")
-                    }
-                }
+                title = "Контекстный пропуск",
+                description = "Заполните пропуск в предложении по смыслу",
+                icon = Icons.Default.Memory,
+                status = MechanicStatus.AVAILABLE,
+                onClick = { onMechanicSelected(MechanicType.CLOZE) }
             )
         }
     }

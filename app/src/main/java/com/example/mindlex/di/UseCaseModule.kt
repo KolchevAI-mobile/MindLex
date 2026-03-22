@@ -1,11 +1,13 @@
 package com.example.mindlex.di
 
+import com.example.mindlex.domain.repository.ClozeRepository
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.repository.VocabularyRepository
 import com.example.mindlex.domain.repository.WordProgressRepository
 import com.example.mindlex.domain.usecase.CalculateNextReview
 import com.example.mindlex.domain.usecase.EvaluateAnswer
 import com.example.mindlex.domain.usecase.GetLearningWords
+import com.example.mindlex.domain.usecase.GetNextClozeExercise
 import com.example.mindlex.domain.usecase.GetNextWordForPractice
 import com.example.mindlex.domain.usecase.UpdateWordProgress
 import dagger.Module
@@ -45,6 +47,14 @@ object UseCaseModule {
             progressRepository = progressRepository,
             settingsRepository = settingsRepository
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetNextClozeExercise(
+        clozeRepository: ClozeRepository
+    ): GetNextClozeExercise {
+        return GetNextClozeExercise(clozeRepository)
     }
 
     @Provides

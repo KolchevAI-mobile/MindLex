@@ -41,4 +41,9 @@ interface SettingsRepository {
      * Отмечает, что туториал для Active Recall был показан.
      */
     suspend fun setActiveRecallTutorialShown(shown: Boolean)
+
+    /** Длительность таймера для механики «Контекстный пропуск» (секунды). */
+    fun getClozeTimerSeconds(): Flow<Int>
+
+    suspend fun setClozeTimerSeconds(seconds: Int)
 }

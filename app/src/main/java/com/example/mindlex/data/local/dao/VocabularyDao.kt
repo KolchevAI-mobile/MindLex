@@ -38,6 +38,11 @@ interface VocabularyDao {
         limit: Int
     ): Flow<List<VocabularyEntity>>
 
+    @Query(
+        "SELECT * FROM vocabulary_cache WHERE targetLanguage = :lang AND LOWER(word) = LOWER(:w) LIMIT 1"
+    )
+    suspend fun findByWordIgnoreCase(lang: String, w: String): VocabularyEntity?
+
     @Query("UPDATE vocabulary_cache SET lastAccessed = :now WHERE id IN (:ids)")
     suspend fun updateLastAccessed(
         ids: List<String>,

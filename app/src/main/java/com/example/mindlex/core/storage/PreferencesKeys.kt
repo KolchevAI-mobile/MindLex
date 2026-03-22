@@ -14,4 +14,6 @@ object PreferencesKeys {
     val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     val USER_NAME = stringPreferencesKey("user_name")
     val ACTIVE_RECALL_TUTORIAL_SHOWN = booleanPreferencesKey("active_recall_tutorial_shown")
+    /** Длительность таймера contextual cloze, сек (рекомендуется 30–45). */
+    val CLOZE_TIMER_SECONDS = intPreferencesKey("cloze_timer_seconds")
 }

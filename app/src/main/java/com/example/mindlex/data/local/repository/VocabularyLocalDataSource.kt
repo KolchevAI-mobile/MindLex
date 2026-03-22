@@ -44,6 +44,14 @@ class VocabularyLocalDataSource @Inject constructor(
             }
     }
 
+    /** Поиск слова в кэше по форме на целевом языке (для связи cloze → WordProgress). */
+    suspend fun findByForeignWord(lang: String, foreignWord: String): Vocabulary? =
+        withContext(Dispatchers.IO) {
+            val trimmed = foreignWord.trim()
+            if (trimmed.isEmpty()) return@withContext null
+            dao.findByWordIgnoreCase(lang, trimmed)?.toDomain()
+        }
+
     /** Кэширует слова и применяет LRU стратегию. */
     suspend fun cacheWords(words: List<VocabularyEntity>) {
         if (words.isEmpty()) {

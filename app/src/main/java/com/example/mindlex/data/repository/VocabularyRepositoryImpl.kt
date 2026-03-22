@@ -93,5 +93,10 @@ class VocabularyRepositoryImpl @Inject constructor(
                 }
             }
     }.flowOn(Dispatchers.IO)
+
+    override suspend fun findVocabularyByForeignWord(foreignWord: String): Vocabulary? {
+        val lang = settingsRepository.getSelectedLanguage().first()
+        return localDataSource.findByForeignWord(lang, foreignWord)
+    }
 }
 

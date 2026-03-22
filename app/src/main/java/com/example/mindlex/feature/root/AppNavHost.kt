@@ -15,6 +15,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.example.mindlex.feature.active_recall.ActiveRecallDestinations
 import com.example.mindlex.feature.active_recall.activeRecallGraph
+import com.example.mindlex.feature.cloze.ClozeDestinations
+import com.example.mindlex.feature.cloze.clozeGraph
 import com.example.mindlex.feature.dashboard.DashboardDestinations
 import com.example.mindlex.feature.dashboard.dashboardGraph
 import com.example.mindlex.feature.mechanics.MechanicType
@@ -107,6 +109,9 @@ fun MindLexAppNavHost(
                     MechanicType.ACTIVE_RECALL -> {
                         navController.navigate(ActiveRecallDestinations.ROOT)
                     }
+                    MechanicType.CLOZE -> {
+                        navController.navigate(ClozeDestinations.ROOT)
+                    }
                     else -> {
                         // Другие механики пока не реализованы
                     }
@@ -115,6 +120,12 @@ fun MindLexAppNavHost(
         )
 
         activeRecallGraph(
+            onBackClick = {
+                navController.popBackStack()
+            }
+        )
+
+        clozeGraph(
             onBackClick = {
                 navController.popBackStack()
             }

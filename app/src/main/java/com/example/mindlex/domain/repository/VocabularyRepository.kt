@@ -14,4 +14,7 @@ interface VocabularyRepository {
         category: String,
         limit: Int
     ): Flow<Result<List<Vocabulary>>>
+
+    /** Точное совпадение слова на языке обучения (из кэша Room). */
+    suspend fun findVocabularyByForeignWord(foreignWord: String): Vocabulary?
 }

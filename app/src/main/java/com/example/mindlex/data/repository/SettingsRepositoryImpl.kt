@@ -50,4 +50,11 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setActiveRecallTutorialShown(shown: Boolean) {
         localDataSource.setActiveRecallTutorialShown(shown)
     }
+
+    override fun getClozeTimerSeconds(): Flow<Int> =
+        localDataSource.getClozeTimerSeconds()
+
+    override suspend fun setClozeTimerSeconds(seconds: Int) {
+        localDataSource.setClozeTimerSeconds(seconds)
+    }
 }

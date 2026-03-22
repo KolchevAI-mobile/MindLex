@@ -8,10 +8,13 @@ import com.example.mindlex.data.local.repository.SettingsLocalDataSource
 import com.example.mindlex.data.local.repository.VocabularyLocalDataSource
 import com.example.mindlex.data.local.repository.WordLocalDataSource
 import com.example.mindlex.data.repository.WordProgressRepositoryImpl
+import com.example.mindlex.data.remote.supabase.ClozeRemoteDataSource
 import com.example.mindlex.data.remote.supabase.SupabaseVocabularyRemoteDataSource
+import com.example.mindlex.data.repository.ClozeRepositoryImpl
 import com.example.mindlex.data.repository.SettingsRepositoryImpl
 import com.example.mindlex.data.repository.VocabularyRepositoryImpl
 import com.example.mindlex.data.repository.WordRepositoryImpl
+import com.example.mindlex.domain.repository.ClozeRepository
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.repository.VocabularyRepository
 import com.example.mindlex.domain.repository.WordProgressRepository
@@ -50,6 +53,17 @@ object RepositoryModule {
             localDataSource = localDataSource,
             settingsRepository = settingsRepository
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideClozeRepository(
+        supabaseClient: io.github.jan.supabase.SupabaseClient,
+        settingsRepository: SettingsRepository,
+        vocabularyRepository: VocabularyRepository
+    ): ClozeRepository {
+        val remote = ClozeRemoteDataSource(supabaseClient)
+        return ClozeRepositoryImpl(remote, settingsRepository, vocabularyRepository)
     }
 
     @Provides

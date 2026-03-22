@@ -82,4 +82,16 @@ class SettingsLocalDataSource @Inject constructor(
             prefs[PreferencesKeys.ACTIVE_RECALL_TUTORIAL_SHOWN] = shown
         }
     }
+
+    fun getClozeTimerSeconds(): Flow<Int> {
+        return dataStore.data.map { prefs ->
+            prefs[PreferencesKeys.CLOZE_TIMER_SECONDS] ?: 35
+        }
+    }
+
+    suspend fun setClozeTimerSeconds(seconds: Int) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.CLOZE_TIMER_SECONDS] = seconds
+        }
+    }
 }
