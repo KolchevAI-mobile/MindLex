@@ -78,4 +78,18 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setRushMaxComboRecord(combo: Int) {
         localDataSource.setRushMaxComboRecord(combo)
     }
+
+    override fun getSynonymChainsCompleted(): Flow<Int> =
+        localDataSource.getSynonymChainsCompleted()
+
+    override suspend fun setSynonymChainsCompleted(value: Int) {
+        localDataSource.setSynonymChainsCompleted(value)
+    }
+
+    override fun getSynonymChainAvgLength(): Flow<Double> =
+        localDataSource.getSynonymChainAvgLength()
+
+    override suspend fun setSynonymChainAvgLength(value: Double) {
+        localDataSource.setSynonymChainAvgLength(value)
+    }
 }

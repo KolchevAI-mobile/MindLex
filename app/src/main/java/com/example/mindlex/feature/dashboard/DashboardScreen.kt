@@ -128,6 +128,22 @@ fun DashboardScreen(
                             )
                         }
 
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            StatItem(
+                                value = uiState.synonymChainsCompleted.toString(),
+                                label = "Собрано цепочек",
+                                icon = "🔗"
+                            )
+                            StatItem(
+                                value = String.format("%.1f", uiState.synonymChainAvgLength),
+                                label = "Средн. длина цепи",
+                                icon = "🧠"
+                            )
+                        }
+
                         // Progress Section
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,

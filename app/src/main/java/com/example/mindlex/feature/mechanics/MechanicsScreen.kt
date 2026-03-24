@@ -14,18 +14,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.mindlex.feature.mechanics.components.MechanicCard
-import kotlinx.coroutines.launch
 
 /**
  * Типы механик обучения.
@@ -34,6 +29,7 @@ enum class MechanicType {
     ACTIVE_RECALL,
     CLOZE,
     RUSH,
+    SYNONYM_CHAIN,
     FLASHCARDS,
     LISTENING
 }
@@ -58,11 +54,7 @@ fun MechanicsScreen(
     onBackClick: () -> Unit,
     onMechanicSelected: (MechanicType) -> Unit
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Режимы обучения") },
@@ -100,31 +92,27 @@ fun MechanicsScreen(
                 onClick = { onMechanicSelected(MechanicType.ACTIVE_RECALL) }
             )
 
-            // 2. Карточка "Synonym Chain" (скоро будет)
+            // 2. Карточка "Synonym Chain"
             MechanicCard(
                 title = "Synonym Chain",
                 description = "Цепочка синонимов",
                 icon = Icons.Default.Memory,
-                status = MechanicStatus.COMING_SOON,
-                onClick = { 
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Скоро будет доступно")
-                    }
-                }
+                status = MechanicStatus.AVAILABLE,
+                onClick = { onMechanicSelected(MechanicType.SYNONYM_CHAIN) }
             )
 
             // 3. Спринт на скорость (Timed Translation Rush)
             MechanicCard(
-                title = "Спринт на скорость",
+                title = "Timed Translation Rush",
                 description = "Переведи максимум слов за отведённое время",
-                icon = Icons.Default.Timer,
+                icon = Icons.Default.Memory,
                 status = MechanicStatus.AVAILABLE,
                 onClick = { onMechanicSelected(MechanicType.RUSH) }
             )
 
             // 4. Карточка «Контекстный пропуск» (contextual cloze)
             MechanicCard(
-                title = "Контекстный пропуск",
+                title = "Contextual cloze",
                 description = "Заполните пропуск в предложении по смыслу",
                 icon = Icons.Default.Memory,
                 status = MechanicStatus.AVAILABLE,

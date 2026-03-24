@@ -20,4 +20,7 @@ object PreferencesKeys {
     val RUSH_SESSION_SECONDS = intPreferencesKey("rush_session_seconds")
     val RUSH_BEST_SCORE = intPreferencesKey("rush_best_score")
     val RUSH_MAX_COMBO_RECORD = intPreferencesKey("rush_max_combo_record")
+    val SYNONYM_CHAINS_COMPLETED = intPreferencesKey("synonym_chains_completed")
+    /** Средняя длина цепочки в сотых (например, 2.67 -> 267). */
+    val SYNONYM_CHAIN_AVG_LENGTH_X100 = intPreferencesKey("synonym_chain_avg_length_x100")
 }

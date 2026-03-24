@@ -59,4 +59,12 @@ interface SettingsRepository {
     fun getRushMaxComboRecord(): Flow<Int>
 
     suspend fun setRushMaxComboRecord(combo: Int)
+
+    fun getSynonymChainsCompleted(): Flow<Int>
+
+    suspend fun setSynonymChainsCompleted(value: Int)
+
+    fun getSynonymChainAvgLength(): Flow<Double>
+
+    suspend fun setSynonymChainAvgLength(value: Double)
 }

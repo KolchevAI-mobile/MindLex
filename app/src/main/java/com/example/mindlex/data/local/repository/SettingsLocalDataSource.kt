@@ -130,4 +130,29 @@ class SettingsLocalDataSource @Inject constructor(
             prefs[PreferencesKeys.RUSH_MAX_COMBO_RECORD] = combo
         }
     }
+
+    fun getSynonymChainsCompleted(): Flow<Int> {
+        return dataStore.data.map { prefs ->
+            prefs[PreferencesKeys.SYNONYM_CHAINS_COMPLETED] ?: 0
+        }
+    }
+
+    suspend fun setSynonymChainsCompleted(value: Int) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.SYNONYM_CHAINS_COMPLETED] = value
+        }
+    }
+
+    fun getSynonymChainAvgLength(): Flow<Double> {
+        return dataStore.data.map { prefs ->
+            val encoded = prefs[PreferencesKeys.SYNONYM_CHAIN_AVG_LENGTH_X100] ?: 0
+            encoded / 100.0
+        }
+    }
+
+    suspend fun setSynonymChainAvgLength(value: Double) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.SYNONYM_CHAIN_AVG_LENGTH_X100] = (value * 100).toInt()
+        }
+    }
 }

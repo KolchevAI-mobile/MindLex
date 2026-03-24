@@ -28,6 +28,8 @@ import com.example.mindlex.feature.onboarding.OnboardingDestinations
 import com.example.mindlex.feature.onboarding.onboardingGraph
 import com.example.mindlex.feature.settings.SettingsDestinations
 import com.example.mindlex.feature.settings.settingsGraph
+import com.example.mindlex.feature.synonym_chain.SynonymChainDestinations
+import com.example.mindlex.feature.synonym_chain.synonymChainGraph
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.ViewModel
@@ -117,6 +119,9 @@ fun MindLexAppNavHost(
                     MechanicType.RUSH -> {
                         navController.navigate(RushDestinations.ROOT)
                     }
+                    MechanicType.SYNONYM_CHAIN -> {
+                        navController.navigate(SynonymChainDestinations.ROOT)
+                    }
                     else -> {
                         // Другие механики пока не реализованы
                     }
@@ -137,6 +142,12 @@ fun MindLexAppNavHost(
         )
 
         rushGraph(
+            onBackClick = {
+                navController.popBackStack()
+            }
+        )
+
+        synonymChainGraph(
             onBackClick = {
                 navController.popBackStack()
             }

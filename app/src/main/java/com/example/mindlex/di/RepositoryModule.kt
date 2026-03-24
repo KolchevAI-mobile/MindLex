@@ -9,13 +9,16 @@ import com.example.mindlex.data.local.repository.VocabularyLocalDataSource
 import com.example.mindlex.data.local.repository.WordLocalDataSource
 import com.example.mindlex.data.repository.WordProgressRepositoryImpl
 import com.example.mindlex.data.remote.supabase.ClozeRemoteDataSource
+import com.example.mindlex.data.remote.supabase.SynonymChainRemoteDataSource
 import com.example.mindlex.data.remote.supabase.SupabaseVocabularyRemoteDataSource
 import com.example.mindlex.data.repository.ClozeRepositoryImpl
 import com.example.mindlex.data.repository.SettingsRepositoryImpl
+import com.example.mindlex.data.repository.SynonymChainRepositoryImpl
 import com.example.mindlex.data.repository.VocabularyRepositoryImpl
 import com.example.mindlex.data.repository.WordRepositoryImpl
 import com.example.mindlex.domain.repository.ClozeRepository
 import com.example.mindlex.domain.repository.SettingsRepository
+import com.example.mindlex.domain.repository.SynonymChainRepository
 import com.example.mindlex.domain.repository.VocabularyRepository
 import com.example.mindlex.domain.repository.WordProgressRepository
 import com.example.mindlex.domain.repository.WordRepository
@@ -81,5 +84,14 @@ object RepositoryModule {
         wordRepository: WordRepository
     ): WordProgressRepository {
         return WordProgressRepositoryImpl(wordProgressDao, wordRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSynonymChainRepository(
+        supabaseClient: io.github.jan.supabase.SupabaseClient
+    ): SynonymChainRepository {
+        val remote = SynonymChainRemoteDataSource(supabaseClient)
+        return SynonymChainRepositoryImpl(remote)
     }
 }
