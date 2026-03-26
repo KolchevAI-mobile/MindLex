@@ -23,4 +23,7 @@ object PreferencesKeys {
     val SYNONYM_CHAINS_COMPLETED = intPreferencesKey("synonym_chains_completed")
     /** Средняя длина цепочки в сотых (например, 2.67 -> 267). */
     val SYNONYM_CHAIN_AVG_LENGTH_X100 = intPreferencesKey("synonym_chain_avg_length_x100")
+    val CURRENT_STREAK = intPreferencesKey("current_streak")
+    val LAST_STUDY_DATE = stringPreferencesKey("last_study_date")
+    val PREFERRED_STUDY_TIME = stringPreferencesKey("preferred_study_time")
 }

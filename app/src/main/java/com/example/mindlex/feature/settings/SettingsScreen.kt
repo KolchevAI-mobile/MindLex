@@ -1,5 +1,6 @@
 package com.example.mindlex.feature.settings
 
+import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +31,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
@@ -55,7 +57,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -185,15 +189,63 @@ fun SettingsScreen(
                 title = "Уведомления",
                 description = "Получать напоминания об учёбе"
             ) {
-                NotificationToggle(
-                    enabled = uiState.notificationsEnabled,
-                    onToggle = viewModel::onNotificationsToggle
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    NotificationToggle(
+                        enabled = uiState.notificationsEnabled,
+                        onToggle = viewModel::onNotificationsToggle
+                    )
+                    PreferredStudyTimePicker(
+                        time = uiState.preferredStudyTime,
+                        onTimeSelected = viewModel::onPreferredStudyTimeChanged
+                    )
+                    StudyScheduleRecommendation(
+                        recommendedTimes = viewModel.getRecommendedSessionTimes(
+                            preferred = uiState.preferredStudyTime,
+                            dailyGoal = uiState.dailyGoal
+                        )
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
+}
+
+@Composable
+private fun PreferredStudyTimePicker(
+    time: LocalTime,
+    onTimeSelected: (LocalTime) -> Unit
+) {
+    val context = LocalContext.current
+    OutlinedButton(
+        onClick = {
+            TimePickerDialog(
+                context,
+                { _, hour, minute ->
+                    onTimeSelected(LocalTime(hour, minute, 0))
+                },
+                time.hour,
+                time.minute,
+                true
+            ).show()
+        },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text("Основное время занятия: ${"%02d:%02d".format(time.hour, time.minute)}")
+    }
+}
+
+@Composable
+private fun StudyScheduleRecommendation(
+    recommendedTimes: List<LocalTime>
+) {
+    val label = recommendedTimes.joinToString(", ") { "%02d:%02d".format(it.hour, it.minute) }
+    Text(
+        text = "Эффективно заниматься в: $label",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
 }
 
 @Composable

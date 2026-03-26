@@ -29,6 +29,8 @@ data class WordProgressEntity(
     val wordId: String,
     val status: String,
     val level: Int,
+    val easeFactor: Double = 2.5,
+    val intervalDays: Int = 0,
     val nextReviewAt: Instant,
     val lastReviewedAt: Instant? = null,
     val correctCount: Int = 0,

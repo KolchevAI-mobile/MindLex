@@ -8,7 +8,6 @@ import com.example.mindlex.domain.model.WordStatus
 import com.example.mindlex.domain.repository.WordProgressRepository
 import com.example.mindlex.domain.repository.WordRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
 import javax.inject.Inject
@@ -47,6 +46,13 @@ class WordProgressRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun observeKnownWordsCount(): Flow<Int> = wordProgressDao.observeKnownWordsCount()
+
+    override fun observeReviewedWordsCountBetween(start: Instant, end: Instant): Flow<Int> =
+        wordProgressDao.observeReviewedWordsCountBetween(start, end)
+
+    override suspend fun countDueReviews(now: Instant): Int = wordProgressDao.countDueReviews(now)
+
     override suspend fun getWordById(wordId: String): Word? {
         return wordRepository.getWordById(wordId)
     }
@@ -60,6 +66,8 @@ class WordProgressRepositoryImpl @Inject constructor(
             wordId = this.wordId,
             status = WordStatus.valueOf(this.status),
             level = this.level,
+            easeFactor = this.easeFactor,
+            intervalDays = this.intervalDays,
             nextReviewAt = this.nextReviewAt,
             lastReviewedAt = this.lastReviewedAt,
             correctCount = this.correctCount,
@@ -78,6 +86,8 @@ class WordProgressRepositoryImpl @Inject constructor(
             wordId = this.wordId,
             status = this.status.name,
             level = this.level,
+            easeFactor = this.easeFactor,
+            intervalDays = this.intervalDays,
             nextReviewAt = this.nextReviewAt,
             lastReviewedAt = this.lastReviewedAt,
             correctCount = this.correctCount,

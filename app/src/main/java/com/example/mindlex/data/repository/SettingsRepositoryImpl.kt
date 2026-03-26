@@ -4,6 +4,7 @@ import com.example.mindlex.data.local.repository.SettingsLocalDataSource
 import com.example.mindlex.domain.repository.SettingsRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.datetime.LocalTime
 
 class SettingsRepositoryImpl @Inject constructor(
     private val localDataSource: SettingsLocalDataSource
@@ -91,5 +92,26 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setSynonymChainAvgLength(value: Double) {
         localDataSource.setSynonymChainAvgLength(value)
+    }
+
+    override fun getCurrentStreak(): Flow<Int> =
+        localDataSource.getCurrentStreak()
+
+    override suspend fun setCurrentStreak(value: Int) {
+        localDataSource.setCurrentStreak(value)
+    }
+
+    override fun getLastStudyDate(): Flow<String?> =
+        localDataSource.getLastStudyDate()
+
+    override suspend fun setLastStudyDate(value: String) {
+        localDataSource.setLastStudyDate(value)
+    }
+
+    override fun getPreferredStudyTime(): Flow<LocalTime> =
+        localDataSource.getPreferredStudyTime()
+
+    override suspend fun setPreferredStudyTime(value: LocalTime) {
+        localDataSource.setPreferredStudyTime(value)
     }
 }

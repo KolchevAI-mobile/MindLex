@@ -10,6 +10,8 @@ data class WordProgress(
     val wordId: String,
     val status: WordStatus,
     val level: Int,
+    val easeFactor: Double,
+    val intervalDays: Int,
     val nextReviewAt: Instant,
     val lastReviewedAt: Instant?,
     val correctCount: Int,

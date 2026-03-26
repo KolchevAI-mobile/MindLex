@@ -2,20 +2,24 @@ package com.example.mindlex.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mindlex.core.notifications.StudyNotificationScheduler
 import com.example.mindlex.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.datetime.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val scheduler: StudyNotificationScheduler
 ) : ViewModel() {
 
     data class UiState(
@@ -24,24 +28,35 @@ class SettingsViewModel @Inject constructor(
         val selectedCategory: String = "general",
         val dailyGoal: Int = 10,
         val notificationsEnabled: Boolean = true,
+        val preferredStudyTime: LocalTime = LocalTime(15, 0, 0),
         val isLoading: Boolean = false,
         val saveMessage: String? = null
     )
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = combine(
-        settingsRepository.getUserName(),
-        settingsRepository.getSelectedLanguage(),
-        settingsRepository.getSelectedCategory(),
-        settingsRepository.getDailyGoal(),
-        settingsRepository.isNotificationsEnabled()
-    ) { userName, language, category, goal, notifications ->
+        combine(
+            settingsRepository.getUserName(),
+            settingsRepository.getSelectedLanguage(),
+            settingsRepository.getSelectedCategory()
+        ) { userName, language, category ->
+            Triple(userName, language, category)
+        },
+        combine(
+            settingsRepository.getDailyGoal(),
+            settingsRepository.isNotificationsEnabled(),
+            settingsRepository.getPreferredStudyTime()
+        ) { goal, notifications, preferredTime ->
+            Triple(goal, notifications, preferredTime)
+        }
+    ) { profile, preferences ->
         UiState(
-            userName = userName,
-            selectedLanguage = language,
-            selectedCategory = category,
-            dailyGoal = goal,
-            notificationsEnabled = notifications,
+            userName = profile.first,
+            selectedLanguage = profile.second,
+            selectedCategory = profile.third,
+            dailyGoal = preferences.first,
+            notificationsEnabled = preferences.second,
+            preferredStudyTime = preferences.third,
             isLoading = false,
             saveMessage = null
         )
@@ -71,6 +86,7 @@ class SettingsViewModel @Inject constructor(
     fun onDailyGoalChanged(goal: Int) {
         viewModelScope.launch {
             settingsRepository.setDailyGoal(goal)
+            rescheduleNotifications()
             showSaveMessage("Цель: $goal слов/день")
         }
     }
@@ -78,8 +94,21 @@ class SettingsViewModel @Inject constructor(
     fun onNotificationsToggle(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setNotificationsEnabled(enabled)
+            rescheduleNotifications()
             showSaveMessage(if (enabled) "Уведомления включены" else "Уведомления выключены")
         }
+    }
+
+    fun onPreferredStudyTimeChanged(time: LocalTime) {
+        viewModelScope.launch {
+            settingsRepository.setPreferredStudyTime(time)
+            rescheduleNotifications()
+            showSaveMessage("Время обучения: ${formatTime(time)}")
+        }
+    }
+
+    fun getRecommendedSessionTimes(preferred: LocalTime, dailyGoal: Int): List<LocalTime> {
+        return scheduler.recommendedSessionTimes(preferred, dailyGoal)
     }
 
     private fun showSaveMessage(message: String) {
@@ -92,6 +121,18 @@ class SettingsViewModel @Inject constructor(
 
     fun clearSaveMessage() {
         _uiState.value = _uiState.value.copy(saveMessage = null)
+    }
+
+    private suspend fun rescheduleNotifications() {
+        scheduler.rescheduleDailyNotifications(
+            notificationsEnabled = settingsRepository.isNotificationsEnabled().firstOrNull() == true,
+            preferredStudyTime = settingsRepository.getPreferredStudyTime().firstOrNull() ?: LocalTime(15, 0, 0),
+            dailyGoal = settingsRepository.getDailyGoal().firstOrNull() ?: 10
+        )
+    }
+
+    private fun formatTime(time: LocalTime): String {
+        return "%02d:%02d".format(time.hour, time.minute)
     }
 }
 

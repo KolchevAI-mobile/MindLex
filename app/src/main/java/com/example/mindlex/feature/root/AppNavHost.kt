@@ -30,6 +30,8 @@ import com.example.mindlex.feature.settings.SettingsDestinations
 import com.example.mindlex.feature.settings.settingsGraph
 import com.example.mindlex.feature.synonym_chain.SynonymChainDestinations
 import com.example.mindlex.feature.synonym_chain.synonymChainGraph
+import com.example.mindlex.core.notifications.StudyNotificationScheduler
+import com.example.mindlex.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.ViewModel
@@ -42,7 +44,9 @@ import com.example.mindlex.domain.usecase.IsOnboardingCompleted
 
 @HiltViewModel
 class RootViewModel @Inject constructor(
-    private val isOnboardingCompleted: IsOnboardingCompleted
+    private val isOnboardingCompleted: IsOnboardingCompleted,
+    private val settingsRepository: SettingsRepository,
+    private val scheduler: StudyNotificationScheduler
 ) : ViewModel() {
 
     private val _startDestination = MutableStateFlow<String?>(null)
@@ -56,6 +60,13 @@ class RootViewModel @Inject constructor(
             } else {
                 OnboardingDestinations.ROOT
             }
+        }
+        viewModelScope.launch {
+            scheduler.rescheduleDailyNotifications(
+                notificationsEnabled = settingsRepository.isNotificationsEnabled().first(),
+                preferredStudyTime = settingsRepository.getPreferredStudyTime().first(),
+                dailyGoal = settingsRepository.getDailyGoal().first()
+            )
         }
     }
 }

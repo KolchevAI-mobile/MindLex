@@ -35,6 +35,12 @@ interface WordProgressRepository {
      */
     fun getLearningWords(limit: Int): Flow<List<WordProgress>>
 
+    fun observeKnownWordsCount(): Flow<Int>
+
+    fun observeReviewedWordsCountBetween(start: Instant, end: Instant): Flow<Int>
+
+    suspend fun countDueReviews(now: Instant): Int
+
     /**
      * Получает слово по ID из словаря.
      */

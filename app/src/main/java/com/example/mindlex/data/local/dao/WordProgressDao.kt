@@ -43,4 +43,13 @@ interface WordProgressDao {
      */
     @Query("SELECT * FROM word_progress WHERE status = 'LEARNING' LIMIT :limit")
     fun getLearningWords(limit: Int): Flow<List<WordProgressEntity>>
+
+    @Query("SELECT COUNT(*) FROM word_progress WHERE status = 'KNOWN'")
+    fun observeKnownWordsCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM word_progress WHERE lastReviewedAt BETWEEN :start AND :end")
+    fun observeReviewedWordsCountBetween(start: Instant, end: Instant): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM word_progress WHERE nextReviewAt <= :now")
+    suspend fun countDueReviews(now: Instant): Int
 }

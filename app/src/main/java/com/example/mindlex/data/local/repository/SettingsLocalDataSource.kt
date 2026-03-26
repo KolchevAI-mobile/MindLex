@@ -7,6 +7,7 @@ import com.example.mindlex.core.storage.PreferencesKeys
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.datetime.LocalTime
 
 class SettingsLocalDataSource @Inject constructor(
     private val dataStore: DataStore<Preferences>
@@ -153,6 +154,43 @@ class SettingsLocalDataSource @Inject constructor(
     suspend fun setSynonymChainAvgLength(value: Double) {
         dataStore.edit { prefs ->
             prefs[PreferencesKeys.SYNONYM_CHAIN_AVG_LENGTH_X100] = (value * 100).toInt()
+        }
+    }
+
+    fun getCurrentStreak(): Flow<Int> {
+        return dataStore.data.map { prefs ->
+            prefs[PreferencesKeys.CURRENT_STREAK] ?: 0
+        }
+    }
+
+    suspend fun setCurrentStreak(value: Int) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.CURRENT_STREAK] = value
+        }
+    }
+
+    fun getLastStudyDate(): Flow<String?> {
+        return dataStore.data.map { prefs ->
+            prefs[PreferencesKeys.LAST_STUDY_DATE]
+        }
+    }
+
+    suspend fun setLastStudyDate(value: String) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.LAST_STUDY_DATE] = value
+        }
+    }
+
+    fun getPreferredStudyTime(): Flow<LocalTime> {
+        return dataStore.data.map { prefs ->
+            val raw = prefs[PreferencesKeys.PREFERRED_STUDY_TIME] ?: "15:00:00"
+            runCatching { LocalTime.parse(raw) }.getOrElse { LocalTime(15, 0, 0) }
+        }
+    }
+
+    suspend fun setPreferredStudyTime(value: LocalTime) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.PREFERRED_STUDY_TIME] = value.toString()
         }
     }
 }

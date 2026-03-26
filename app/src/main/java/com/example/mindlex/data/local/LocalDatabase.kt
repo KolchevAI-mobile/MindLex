@@ -19,7 +19,7 @@ import com.example.mindlex.data.local.entity.WordProgressEntity
         VocabularyEntity::class,
         WordProgressEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(LocalTypeConverters::class)

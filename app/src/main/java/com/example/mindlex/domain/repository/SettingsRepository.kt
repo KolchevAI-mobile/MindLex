@@ -1,6 +1,7 @@
 package com.example.mindlex.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.datetime.LocalTime
 
 interface SettingsRepository {
 
@@ -67,4 +68,16 @@ interface SettingsRepository {
     fun getSynonymChainAvgLength(): Flow<Double>
 
     suspend fun setSynonymChainAvgLength(value: Double)
+
+    fun getCurrentStreak(): Flow<Int>
+
+    suspend fun setCurrentStreak(value: Int)
+
+    fun getLastStudyDate(): Flow<String?>
+
+    suspend fun setLastStudyDate(value: String)
+
+    fun getPreferredStudyTime(): Flow<LocalTime>
+
+    suspend fun setPreferredStudyTime(value: LocalTime)
 }

@@ -106,9 +106,11 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun provideUpdateWordProgress(
-        progressRepository: WordProgressRepository
+        progressRepository: WordProgressRepository,
+        settingsRepository: SettingsRepository,
+        calculateNextReview: CalculateNextReview
     ): UpdateWordProgress {
-        return UpdateWordProgress(progressRepository)
+        return UpdateWordProgress(progressRepository, settingsRepository, calculateNextReview)
     }
 }
 
