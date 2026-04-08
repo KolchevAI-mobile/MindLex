@@ -11,6 +11,8 @@ object PreferencesKeys {
     val SELECTED_CATEGORY = stringPreferencesKey("selected_category")
     val DAILY_GOAL = intPreferencesKey("daily_goal")
     val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
+    /** Последний известный результат runtime POST_NOTIFICATIONS (Android 13+). */
+    val POST_NOTIFICATIONS_GRANTED = booleanPreferencesKey("post_notifications_granted")
     val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     val USER_NAME = stringPreferencesKey("user_name")
     val ACTIVE_RECALL_TUTORIAL_SHOWN = booleanPreferencesKey("active_recall_tutorial_shown")

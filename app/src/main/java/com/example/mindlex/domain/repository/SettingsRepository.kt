@@ -29,6 +29,11 @@ interface SettingsRepository {
 
     suspend fun setNotificationsEnabled(enabled: Boolean)
 
+    /** Флаг runtime POST_NOTIFICATIONS (обновляется после диалога и при возврате в настройки). */
+    fun isPostNotificationsPermissionGranted(): Flow<Boolean>
+
+    suspend fun setPostNotificationsPermissionGranted(granted: Boolean)
+
     fun getUserName(): Flow<String>
 
     suspend fun setUserName(name: String)

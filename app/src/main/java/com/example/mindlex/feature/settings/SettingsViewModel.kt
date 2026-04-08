@@ -1,14 +1,17 @@
 package com.example.mindlex.feature.settings
 
+import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mindlex.core.notifications.StudyNotificationScheduler
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.usecase.CalculateRecommendedTimes
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
@@ -24,6 +27,10 @@ class SettingsViewModel @Inject constructor(
     private val calculateRecommendedTimes: CalculateRecommendedTimes
 ) : ViewModel() {
 
+    sealed interface NotificationPermissionUiEvent {
+        data object ShowRationaleSnackbar : NotificationPermissionUiEvent
+    }
+
     data class UiState(
         val userName: String = "",
         val selectedLanguage: String = "en",
@@ -35,8 +42,11 @@ class SettingsViewModel @Inject constructor(
         val saveMessage: String? = null
     )
 
-    private val _uiState = MutableStateFlow(UiState())
-    val uiState: StateFlow<UiState> = combine(
+    private val _notificationPermissionEvents =
+        MutableSharedFlow<NotificationPermissionUiEvent>(extraBufferCapacity = 1)
+    val notificationPermissionEvents = _notificationPermissionEvents.asSharedFlow()
+
+    private val settingsBaseFlow = combine(
         combine(
             settingsRepository.getUserName(),
             settingsRepository.getSelectedLanguage(),
@@ -62,6 +72,12 @@ class SettingsViewModel @Inject constructor(
             isLoading = false,
             saveMessage = null
         )
+    }
+
+    private val saveMessageFlow = MutableStateFlow<String?>(null)
+
+    val uiState: StateFlow<UiState> = combine(settingsBaseFlow, saveMessageFlow) { base, msg ->
+        base.copy(saveMessage = msg)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiState())
 
     fun onUserNameChange(name: String) {
@@ -93,11 +109,45 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun onNotificationsToggle(enabled: Boolean) {
+    /** Выключение уведомлений (переключатель в OFF). */
+    fun onNotificationsDisabledByUser() {
         viewModelScope.launch {
-            settingsRepository.setNotificationsEnabled(enabled)
+            settingsRepository.setNotificationsEnabled(false)
+            settingsRepository.setPostNotificationsPermissionGranted(false)
             rescheduleNotifications()
-            showSaveMessage(if (enabled) "Уведомления включены" else "Уведомления выключены")
+            showSaveMessage("Уведомления выключены")
+        }
+    }
+
+    /** После успешного runtime POST_NOTIFICATIONS или на API &lt; 33. */
+    fun onNotificationsEnabledByUser() {
+        viewModelScope.launch {
+            settingsRepository.setNotificationsEnabled(true)
+            settingsRepository.setPostNotificationsPermissionGranted(true)
+            rescheduleNotifications()
+            showSaveMessage("Уведомления включены")
+        }
+    }
+
+    fun onNotificationPermissionDenied() {
+        viewModelScope.launch {
+            settingsRepository.setNotificationsEnabled(false)
+            settingsRepository.setPostNotificationsPermissionGranted(false)
+            rescheduleNotifications()
+            _notificationPermissionEvents.emit(NotificationPermissionUiEvent.ShowRationaleSnackbar)
+        }
+    }
+
+    /**
+     * При возврате на экран настроек: синхронизация флага в DataStore и перепланирование
+     * (без принудительного выключения тумблера — намерение пользователя остаётся в prefs).
+     */
+    fun syncRuntimeNotificationPermission(runtimeGranted: Boolean) {
+        viewModelScope.launch {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                settingsRepository.setPostNotificationsPermissionGranted(runtimeGranted)
+            }
+            rescheduleNotifications()
         }
     }
 
@@ -113,15 +163,15 @@ class SettingsViewModel @Inject constructor(
         calculateRecommendedTimes(preferred, dailyGoal)
 
     private fun showSaveMessage(message: String) {
-        _uiState.value = _uiState.value.copy(saveMessage = message)
+        saveMessageFlow.value = message
         viewModelScope.launch {
             delay(2000)
-            _uiState.value = _uiState.value.copy(saveMessage = null)
+            saveMessageFlow.value = null
         }
     }
 
     fun clearSaveMessage() {
-        _uiState.value = _uiState.value.copy(saveMessage = null)
+        saveMessageFlow.value = null
     }
 
     private suspend fun rescheduleNotifications() {

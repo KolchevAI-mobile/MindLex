@@ -60,6 +60,18 @@ class SettingsLocalDataSource @Inject constructor(
         }
     }
 
+    fun isPostNotificationsPermissionGranted(): Flow<Boolean> {
+        return dataStore.data.map { prefs ->
+            prefs[PreferencesKeys.POST_NOTIFICATIONS_GRANTED] ?: false
+        }
+    }
+
+    suspend fun setPostNotificationsPermissionGranted(granted: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.POST_NOTIFICATIONS_GRANTED] = granted
+        }
+    }
+
     fun getUserName(): Flow<String> {
         return dataStore.data.map { prefs ->
             prefs[PreferencesKeys.USER_NAME] ?: ""

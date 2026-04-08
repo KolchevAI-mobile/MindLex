@@ -38,6 +38,13 @@ class SettingsRepositoryImpl @Inject constructor(
         localDataSource.setNotificationsEnabled(enabled)
     }
 
+    override fun isPostNotificationsPermissionGranted(): Flow<Boolean> =
+        localDataSource.isPostNotificationsPermissionGranted()
+
+    override suspend fun setPostNotificationsPermissionGranted(granted: Boolean) {
+        localDataSource.setPostNotificationsPermissionGranted(granted)
+    }
+
     override fun getUserName(): Flow<String> =
         localDataSource.getUserName()
 
