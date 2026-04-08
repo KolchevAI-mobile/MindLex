@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mindlex.core.notifications.StudyNotificationScheduler
 import com.example.mindlex.domain.repository.SettingsRepository
+import com.example.mindlex.domain.usecase.CalculateRecommendedTimes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val scheduler: StudyNotificationScheduler
+    private val scheduler: StudyNotificationScheduler,
+    private val calculateRecommendedTimes: CalculateRecommendedTimes
 ) : ViewModel() {
 
     data class UiState(
@@ -107,9 +109,8 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun getRecommendedSessionTimes(preferred: LocalTime, dailyGoal: Int): List<LocalTime> {
-        return scheduler.recommendedSessionTimes(preferred, dailyGoal)
-    }
+    fun getRecommendedSessionTimes(preferred: LocalTime, dailyGoal: Int): List<LocalTime> =
+        calculateRecommendedTimes(preferred, dailyGoal)
 
     private fun showSaveMessage(message: String) {
         _uiState.value = _uiState.value.copy(saveMessage = message)

@@ -6,6 +6,7 @@ import com.example.mindlex.domain.repository.SynonymChainRepository
 import com.example.mindlex.domain.repository.VocabularyRepository
 import com.example.mindlex.domain.repository.WordProgressRepository
 import com.example.mindlex.domain.usecase.CalculateNextReview
+import com.example.mindlex.domain.usecase.CalculateRecommendedTimes
 import com.example.mindlex.domain.usecase.EvaluateAnswer
 import com.example.mindlex.domain.usecase.CalculateRushScore
 import com.example.mindlex.domain.usecase.GetNextChainStep
@@ -101,6 +102,12 @@ object UseCaseModule {
     @Singleton
     fun provideCalculateNextReview(): CalculateNextReview {
         return CalculateNextReview()
+    }
+
+    @Provides
+    @Singleton
+    fun provideCalculateRecommendedTimes(): CalculateRecommendedTimes {
+        return CalculateRecommendedTimes()
     }
 
     @Provides

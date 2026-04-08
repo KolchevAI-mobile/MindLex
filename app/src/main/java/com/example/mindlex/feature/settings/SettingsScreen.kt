@@ -199,6 +199,7 @@ fun SettingsScreen(
                         onTimeSelected = viewModel::onPreferredStudyTimeChanged
                     )
                     StudyScheduleRecommendation(
+                        preferredTime = uiState.preferredStudyTime,
                         recommendedTimes = viewModel.getRecommendedSessionTimes(
                             preferred = uiState.preferredStudyTime,
                             dailyGoal = uiState.dailyGoal
@@ -238,14 +239,38 @@ private fun PreferredStudyTimePicker(
 
 @Composable
 private fun StudyScheduleRecommendation(
+    preferredTime: LocalTime,
     recommendedTimes: List<LocalTime>
 ) {
-    val label = recommendedTimes.joinToString(", ") { "%02d:%02d".format(it.hour, it.minute) }
-    Text(
-        text = "Эффективно заниматься в: $label",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
+    val algorithmExtraSlots = recommendedTimes.filterNot {
+        it.hour == preferredTime.hour && it.minute == preferredTime.minute
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = "💡 Рекомендуемое время",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Medium
+        )
+        if (algorithmExtraSlots.isEmpty()) {
+            Text(
+                text = "При вашей цели достаточно одной сессии в выбранное основное время.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            val label = algorithmExtraSlots.joinToString(" / ") { "%02d:%02d".format(it.hour, it.minute) }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "(расписание по вашей цели: ±4 ч от основного времени)",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
 }
 
 @Composable

@@ -37,6 +37,9 @@ interface WordProgressRepository {
 
     fun observeKnownWordsCount(): Flow<Int>
 
+    /** Сумма поля correctCount по всем словам (правильные ответы). */
+    fun observeTotalCorrectCount(): Flow<Int>
+
     fun observeReviewedWordsCountBetween(start: Instant, end: Instant): Flow<Int>
 
     suspend fun countDueReviews(now: Instant): Int

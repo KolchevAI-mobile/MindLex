@@ -48,6 +48,8 @@ class WordProgressRepositoryImpl @Inject constructor(
 
     override fun observeKnownWordsCount(): Flow<Int> = wordProgressDao.observeKnownWordsCount()
 
+    override fun observeTotalCorrectCount(): Flow<Int> = wordProgressDao.observeTotalCorrectCount()
+
     override fun observeReviewedWordsCountBetween(start: Instant, end: Instant): Flow<Int> =
         wordProgressDao.observeReviewedWordsCountBetween(start, end)
 

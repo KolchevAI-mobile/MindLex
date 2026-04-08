@@ -75,9 +75,9 @@ class DashboardViewModel @Inject constructor(
         combine(
             dashboardBaseFlow,
             settingsRepository.getSynonymChainAvgLength(),
-            progressRepository.observeKnownWordsCount()
-        ) { base, avgChainLength, knownWordsCount ->
-            Triple(base, avgChainLength, knownWordsCount)
+            progressRepository.observeTotalCorrectCount()
+        ) { base, avgChainLength, totalCorrectAnswers ->
+            Triple(base, avgChainLength, totalCorrectAnswers)
         },
         combine(
             progressRepository.observeReviewedWordsCountBetween(dayStart, dayEnd),
@@ -89,7 +89,7 @@ class DashboardViewModel @Inject constructor(
     ) { primary, secondary ->
         val base = primary.first
         val avgChainLength = primary.second
-        val knownWordsCount = primary.third
+        val wordsLearnedCount = primary.third
         val reviewedToday = secondary.first
         val storedStreak = secondary.second
         val lastStudyDateRaw = secondary.third
@@ -101,7 +101,7 @@ class DashboardViewModel @Inject constructor(
         UiState(
             userName = base.userName,
             selectedLanguage = base.selectedLanguage,
-            wordsLearned = knownWordsCount,
+            wordsLearned = wordsLearnedCount,
             currentStreak = currentStreak,
             dailyProgress = dailyProgress,
             rushBestScore = base.rushBestScore,
@@ -119,8 +119,11 @@ class DashboardViewModel @Inject constructor(
         val lastStudyDate = lastStudyDateRaw?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: return 0
         val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         val yesterday = today.minus(DatePeriod(days = 1))
+        // Серия актуальна, если занимались сегодня или вчера; иначе пропуск ≥2 дней — сброс отображения.
         return when {
-            lastStudyDate == today || lastStudyDate == yesterday -> storedStreak
+            lastStudyDate == today -> storedStreak
+            lastStudyDate == yesterday -> storedStreak
+            lastStudyDate < yesterday -> 0
             else -> 0
         }
     }

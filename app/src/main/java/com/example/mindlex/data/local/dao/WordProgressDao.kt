@@ -47,6 +47,9 @@ interface WordProgressDao {
     @Query("SELECT COUNT(*) FROM word_progress WHERE status = 'KNOWN'")
     fun observeKnownWordsCount(): Flow<Int>
 
+    @Query("SELECT COALESCE(SUM(correctCount), 0) FROM word_progress")
+    fun observeTotalCorrectCount(): Flow<Int>
+
     @Query("SELECT COUNT(*) FROM word_progress WHERE lastReviewedAt BETWEEN :start AND :end")
     fun observeReviewedWordsCountBetween(start: Instant, end: Instant): Flow<Int>
 
