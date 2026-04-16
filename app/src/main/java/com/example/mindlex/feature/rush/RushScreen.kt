@@ -2,46 +2,49 @@ package com.example.mindlex.feature.rush
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.mindlex.ui.components.MechanicSessionHeader
 
 private fun formatMmSs(seconds: Int): String {
     val m = seconds / 60
@@ -71,40 +74,51 @@ fun RushScreen(
         label = "comboPulse"
     )
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Спринт на скорость") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад"
-                        )
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding()
+    ) {
+        MechanicSessionHeader(
+            title = "Спринт на скорость",
+            onBackClick = onBackClick
+        )
+        Box(
             modifier = Modifier
-                .padding(padding)
+                .weight(1f)
+                .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.background,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.16f)
+                        )
+                    )
+                ),
         ) {
+            AnimatedContent(
+                targetState = Triple(uiState.isLoading, uiState.sessionFinished, uiState.loadError != null),
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "rushStateChange"
+            ) {
             when {
                 uiState.loadError != null && !uiState.sessionFinished -> {
-                    Spacer(modifier = Modifier.height(48.dp))
-                    Text(
-                        text = uiState.loadError ?: "",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { viewModel.retryLoad() }) {
-                        Text("Повторить")
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = uiState.loadError ?: "",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = { viewModel.retryLoad() }) {
+                            Text("Повторить")
+                        }
                     }
                 }
 
@@ -132,115 +146,121 @@ fun RushScreen(
                 }
 
                 else -> {
-                    // Крупный таймер сессии
-                    Text(
-                        text = "⏱ ${formatMmSs(uiState.timerSecondsRemaining)} / ${formatMmSs(uiState.timerTotalSeconds)}",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LinearProgressIndicator(
-                        progress = {
-                            if (uiState.timerTotalSeconds > 0) {
-                                uiState.timerSecondsRemaining.toFloat() / uiState.timerTotalSeconds
-                            } else 0f
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    val multLabel = if (mult % 1.0 == 0.0) mult.toInt().toString() else "%.1f".format(mult)
-                    Text(
-                        text = "🔥 Комбо: x$multLabel (${uiState.comboStreak} подряд)",
-                        modifier = Modifier.scale(comboScale),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = "📊 Счёт: ${uiState.score} очков",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    uiState.currentWord?.let { word ->
-                        Card(
-                            modifier = Modifier
-                                .widthIn(max = 440.dp)
-                                .fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Column(
-                                modifier = Modifier.padding(20.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = word.wordNative,
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    textAlign = TextAlign.Center
-                                )
+                            Text(
+                                text = "⏱ ${formatMmSs(uiState.timerSecondsRemaining)} / ${formatMmSs(uiState.timerTotalSeconds)}",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            LinearProgressIndicator(
+                                progress = {
+                                    if (uiState.timerTotalSeconds > 0) {
+                                        uiState.timerSecondsRemaining.toFloat() / uiState.timerTotalSeconds
+                                    } else 0f
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            val multLabel =
+                                if (mult % 1.0 == 0.0) mult.toInt().toString() else "%.1f".format(mult)
+                            Text(
+                                text = "🔥 Комбо: x$multLabel (${uiState.comboStreak} подряд)",
+                                modifier = Modifier.scale(comboScale),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = "📊 Счёт: ${uiState.score} очков",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            uiState.currentWord?.let { word ->
+                                Card(
+                                    modifier = Modifier
+                                        .widthIn(max = 440.dp)
+                                        .fillMaxWidth(),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                                    )
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(20.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = word.wordNative,
+                                            style = MaterialTheme.typography.headlineSmall,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
                             }
+                            OutlinedTextField(
+                                value = uiState.userInput,
+                                onValueChange = viewModel::onUserInputChanged,
+                                label = { Text("Перевод") },
+                                modifier = Modifier
+                                    .widthIn(max = 440.dp)
+                                    .fillMaxWidth(),
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    focusedLabelColor = MaterialTheme.colorScheme.primary
+                                ),
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                keyboardActions = KeyboardActions(
+                                    onDone = { viewModel.submitAnswer() }
+                                )
+                            )
+                            Button(
+                                onClick = { viewModel.submitAnswer() },
+                                modifier = Modifier
+                                    .widthIn(max = 440.dp)
+                                    .fillMaxWidth()
+                                    .height(48.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                enabled = uiState.userInput.isNotBlank()
+                            ) {
+                                Text("Ответить")
+                            }
+                            OutlinedButton(
+                                onClick = { viewModel.skipWord() },
+                                modifier = Modifier
+                                    .widthIn(max = 440.dp)
+                                    .fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("Пропустить")
+                            }
+                            Text(
+                                text = "Правильно: ${uiState.correctCount}   ·   Ошибки: ${uiState.incorrectCount}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    OutlinedTextField(
-                        value = uiState.userInput,
-                        onValueChange = viewModel::onUserInputChanged,
-                        label = { Text("Перевод") },
-                        modifier = Modifier
-                            .widthIn(max = 440.dp)
-                            .fillMaxWidth(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            focusedLabelColor = MaterialTheme.colorScheme.primary
-                        ),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(
-                            onDone = { viewModel.submitAnswer() }
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Button(
-                        onClick = { viewModel.submitAnswer() },
-                        modifier = Modifier
-                            .widthIn(max = 440.dp)
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        enabled = uiState.userInput.isNotBlank()
-                    ) {
-                        Text("Ответить")
-                    }
-
-                    OutlinedButton(
-                        onClick = { viewModel.skipWord() },
-                        modifier = Modifier
-                            .widthIn(max = 440.dp)
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Пропустить")
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        text = "Правильно: ${uiState.correctCount}   ·   Ошибки: ${uiState.incorrectCount}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
+            }
             }
         }
     }

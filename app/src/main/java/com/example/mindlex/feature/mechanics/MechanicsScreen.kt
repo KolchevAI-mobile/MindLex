@@ -1,25 +1,34 @@
 package com.example.mindlex.feature.mechanics
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.mindlex.ui.components.MechanicSessionHeader
 import com.example.mindlex.feature.mechanics.components.MechanicCard
 
 /**
@@ -54,70 +63,84 @@ fun MechanicsScreen(
     onBackClick: () -> Unit,
     onMechanicSelected: (MechanicType) -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Режимы обучения") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад"
+    val scroll = rememberScrollState()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding()
+    ) {
+        MechanicSessionHeader(
+            title = "Режимы обучения",
+            onBackClick = onBackClick
+        )
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.background,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.22f)
+                        )
+                    )
+                )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scroll)
+                    .padding(16.dp)
+                    .padding(bottom = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Выберите режим обучения",
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        MechanicCard(
+                            title = "Активное вспоминание",
+                            description = "Вводите слово по переводу и закрепляйте долговременную память.",
+                            icon = Icons.Default.Memory,
+                            status = MechanicStatus.AVAILABLE,
+                            onClick = { onMechanicSelected(MechanicType.ACTIVE_RECALL) }
+                        )
+
+                        MechanicCard(
+                            title = "Цепочка синонимов",
+                            description = "Собирайте смысловые связи и прокачивайте словарную гибкость.",
+                            icon = Icons.Default.Psychology,
+                            status = MechanicStatus.AVAILABLE,
+                            onClick = { onMechanicSelected(MechanicType.SYNONYM_CHAIN) }
+                        )
+
+                        MechanicCard(
+                            title = "Спринт на скорость",
+                            description = "Переведите максимум слов за ограниченное время.",
+                            icon = Icons.Default.Bolt,
+                            status = MechanicStatus.AVAILABLE,
+                            onClick = { onMechanicSelected(MechanicType.RUSH) }
+                        )
+
+                        MechanicCard(
+                            title = "Контекстный пропуск",
+                            description = "Заполните пропуск в предложении, опираясь на контекст.",
+                            icon = Icons.Default.Timer,
+                            status = MechanicStatus.AVAILABLE,
+                            onClick = { onMechanicSelected(MechanicType.CLOZE) }
                         )
                     }
                 }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .padding(16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = "Выберите режим обучения",
-                style = MaterialTheme.typography.headlineSmall,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // 1. Карточка "Активное вспоминание" (доступна)
-            MechanicCard(
-                title = "Active Recall",
-                description = "Вводите слово по переводу. Эффективно для запоминания.",
-                icon = Icons.Default.Memory,
-                status = MechanicStatus.AVAILABLE,
-                onClick = { onMechanicSelected(MechanicType.ACTIVE_RECALL) }
-            )
-
-            // 2. Карточка "Synonym Chain"
-            MechanicCard(
-                title = "Synonym Chain",
-                description = "Цепочка синонимов",
-                icon = Icons.Default.Memory,
-                status = MechanicStatus.AVAILABLE,
-                onClick = { onMechanicSelected(MechanicType.SYNONYM_CHAIN) }
-            )
-
-            // 3. Спринт на скорость (Timed Translation Rush)
-            MechanicCard(
-                title = "Timed Translation Rush",
-                description = "Переведи максимум слов за отведённое время",
-                icon = Icons.Default.Memory,
-                status = MechanicStatus.AVAILABLE,
-                onClick = { onMechanicSelected(MechanicType.RUSH) }
-            )
-
-            // 4. Карточка «Контекстный пропуск» (contextual cloze)
-            MechanicCard(
-                title = "Contextual cloze",
-                description = "Заполните пропуск в предложении по смыслу",
-                icon = Icons.Default.Memory,
-                status = MechanicStatus.AVAILABLE,
-                onClick = { onMechanicSelected(MechanicType.CLOZE) }
-            )
+            }
         }
     }
 }

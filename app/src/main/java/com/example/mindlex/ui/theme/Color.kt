@@ -2,24 +2,24 @@ package com.example.mindlex.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Green Primary
-val GreenPrimary = Color(0xFF2E7D32)
-val GreenPrimaryLight = Color(0xFF4CAF50)
-val GreenPrimaryDark = Color(0xFF1B5E20)
+// Primary brand (indigo)
+val GreenPrimary = Color(0xFF4F46E5)
+val GreenPrimaryLight = Color(0xFF818CF8)
+val GreenPrimaryDark = Color(0xFF312E81)
 
 // Background & Surface
-val BackgroundLight = Color(0xFFF5F5F5)
+val BackgroundLight = Color(0xFFF4F7FF)
 val SurfaceLight = Color(0xFFFFFFFF)
-val BackgroundDark = Color(0xFF121212)
-val SurfaceDark = Color(0xFF1E1E1E)
+val BackgroundDark = Color(0xFF0D1224)
+val SurfaceDark = Color(0xFF171E34)
 
 // Text
-val TextPrimaryLight = Color(0xFF000000)
-val TextSecondaryLight = Color(0xFF757575)
+val TextPrimaryLight = Color(0xFF111827)
+val TextSecondaryLight = Color(0xFF6B7280)
 val TextPrimaryDark = Color(0xFFFFFFFF)
-val TextSecondaryDark = Color(0xFFB0B0B0)
+val TextSecondaryDark = Color(0xFFB7C0D8)
 
 // Accent
-val GreenSecondary = Color(0xFF66BB6A)
-val GreenContainerLight = Color(0xFFC8E6C9)
-val GreenContainerDark = Color(0xFF1B5E20)
+val GreenSecondary = Color(0xFF0EA5A4)
+val GreenContainerLight = Color(0xFFE0E7FF)
+val GreenContainerDark = Color(0xFF252B49)

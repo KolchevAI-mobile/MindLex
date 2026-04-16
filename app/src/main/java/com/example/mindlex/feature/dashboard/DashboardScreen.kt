@@ -1,6 +1,11 @@
 package com.example.mindlex.feature.dashboard
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +19,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoGraph
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -36,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,9 +54,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 fun DashboardScreen(
     onOpenSettings: () -> Unit = {},
     onStartLearning: () -> Unit = {},
+    onQuickTraining: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val cardShape = RoundedCornerShape(24.dp)
 
     Scaffold(
         topBar = {
@@ -64,7 +74,8 @@ fun DashboardScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
+                    containerColor = Color.Transparent,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         },
@@ -72,34 +83,37 @@ fun DashboardScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.background,
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                            )
+                        )
+                    )
                     .padding(padding)
                     .padding(horizontal = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                // Welcome Section
-                Column {
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it / 3 })
+                ) {
                     Text(
-                        text = "Добро пожаловать,",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "${uiState.userName}!",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        text = "Рады видеть, ${uiState.userName}",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
-                // Stats Card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    shape = cardShape,
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surface
-                    )
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
                 ) {
                     Column(
                         modifier = Modifier
@@ -108,7 +122,7 @@ fun DashboardScreen(
                         verticalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
                         Text(
-                            text = "Статистика вашего прогресса",
+                            text = "Ваш прогресс",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -149,7 +163,13 @@ fun DashboardScreen(
                         // Progress Section
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                    shape = RoundedCornerShape(18.dp)
+                                )
+                                .padding(16.dp)
                         ) {
                             Text(
                                 text = "Прогресс сегодня",
@@ -187,6 +207,11 @@ fun DashboardScreen(
                                 containerColor = MaterialTheme.colorScheme.primary
                             )
                         ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayArrow,
+                                contentDescription = null
+                            )
+                            Spacer(modifier = Modifier.size(8.dp))
                             Text(
                                 text = "Учить новые слова",
                                 style = MaterialTheme.typography.titleSmall
@@ -197,21 +222,47 @@ fun DashboardScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Settings Link
-                TextButton(
-                    onClick = onOpenSettings,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = "Настройки",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    TextButton(
+                        onClick = onOpenSettings,
+                        modifier = Modifier
+                            .weight(1f)
+                            .border(
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = "Настройки",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                    TextButton(
+                        onClick = onQuickTraining,
+                        modifier = Modifier
+                            .weight(1f)
+                            .border(
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoGraph,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text("Тренировка")
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

@@ -13,6 +13,7 @@ object DashboardDestinations {
 fun NavGraphBuilder.dashboardGraph(
     onOpenSettings: () -> Unit,
     onStartLearning: () -> Unit,
+    onQuickTraining: () -> Unit,
     onBackFromLearning: () -> Unit
 ) {
     navigation(
@@ -22,7 +23,8 @@ fun NavGraphBuilder.dashboardGraph(
         composable(DashboardDestinations.DASHBOARD) {
             DashboardScreen(
                 onOpenSettings = onOpenSettings,
-                onStartLearning = onStartLearning
+                onStartLearning = onStartLearning,
+                onQuickTraining = onQuickTraining
             )
         }
         composable(DashboardDestinations.LEARNING) {

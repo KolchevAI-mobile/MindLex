@@ -1,5 +1,7 @@
 package com.example.mindlex.feature.mechanics.components
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,17 +43,27 @@ fun MechanicCard(
 ) {
     val isAvailable = status == MechanicStatus.AVAILABLE
     val containerColor = if (isAvailable) {
-        MaterialTheme.colorScheme.primaryContainer
+        MaterialTheme.colorScheme.surface
     } else {
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
     }
 
     Card(
         onClick = onClick,
         enabled = isAvailable,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
         colors = CardDefaults.cardColors(
             containerColor = containerColor
+        ),
+        border = BorderStroke(
+            1.dp,
+            if (isAvailable) {
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
+            } else {
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+            }
         )
     ) {
         Row(
@@ -79,7 +91,8 @@ fun MechanicCard(
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = description,

@@ -110,6 +110,9 @@ fun MindLexAppNavHost(
             onStartLearning = {
                 navController.navigate(MechanicsDestinations.ROOT)
             },
+            onQuickTraining = {
+                navController.navigate(ActiveRecallDestinations.ROOT)
+            },
             onBackFromLearning = {
                 navController.popBackStack()
             }
