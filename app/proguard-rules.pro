@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Виджет и Hilt EntryPoint для RemoteViews
+-keep class com.example.mindlex.widget.StudyWidgetProvider { <init>(...); }
+-keep,allowobfuscation interface com.example.mindlex.widget.StudyWidgetEntryPoint

@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.mindlex.R
 import com.example.mindlex.feature.mechanics.components.MechanicCard
+import com.example.mindlex.ui.components.BookOpenDecorLayer
 import com.example.mindlex.ui.components.MechanicSessionHeader
 
 enum class MechanicType {
@@ -70,6 +71,7 @@ fun MechanicsScreen(
                     )
                 )
         ) {
+            BookOpenDecorLayer()
             Column(
                 modifier = Modifier
                     .fillMaxSize()

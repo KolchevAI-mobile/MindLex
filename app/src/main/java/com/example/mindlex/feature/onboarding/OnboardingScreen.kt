@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mindlex.R
+import com.example.mindlex.ui.components.BookOpenDecorLayer
 
 @Composable
 fun OnboardingScreen(
@@ -45,24 +46,29 @@ fun OnboardingScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         val scroll = rememberScrollState()
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+        ) {
+            BookOpenDecorLayer()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.background,
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+                            )
                         )
                     )
-                )
-                .verticalScroll(scroll)
-                .padding(horizontal = 24.dp)
-                .padding(top = 28.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.Start
-        ) {
+                    .verticalScroll(scroll)
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 28.dp, bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
                 AnimatedVisibility(
                     visible = true,
                     enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
@@ -186,6 +192,7 @@ fun OnboardingScreen(
                 ) {
                     Text(stringResource(R.string.onboarding_start))
                 }
+            }
         }
     }
 }

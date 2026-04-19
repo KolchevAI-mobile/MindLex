@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -41,6 +42,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.example.mindlex.feature.settings.components.SettingsHomeBody
+import com.example.mindlex.ui.components.BookOpenDecorLayer
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -124,23 +126,29 @@ fun SettingsScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        SettingsHomeBody(
-            uiState = uiState,
-            viewModel = viewModel,
-            notificationPermissionLauncher = notificationPermissionLauncher,
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+        ) {
+            BookOpenDecorLayer()
+            SettingsHomeBody(
+                uiState = uiState,
+                viewModel = viewModel,
+                notificationPermissionLauncher = notificationPermissionLauncher,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.background,
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+                            )
                         )
                     )
-                )
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-        )
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            )
+        }
     }
 }

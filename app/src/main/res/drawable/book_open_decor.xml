@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Белая маска под единый tint (Compose / виджет). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="360dp"
+    android:height="360dp"
+    android:viewportWidth="240"
+    android:viewportHeight="260">
+    <!-- Основание: широкий разворот на «столе» -->
+    <path
+        android:fillColor="@color/book_decor_mask"
+        android:pathData="M120,232 C72,238 28,248 14,258 L226,258 C212,248 168,238 120,232 Z" />
+    <!-- Левая страница: шире внизу, выпуклая внешняя грань -->
+    <path
+        android:fillColor="@color/book_decor_mask"
+        android:pathData="M120,64 C72,70 26,108 16,172 C10,204 14,236 32,252 L120,242 L120,64 Z" />
+    <!-- Правая страница -->
+    <path
+        android:fillColor="@color/book_decor_mask"
+        android:pathData="M120,64 C168,70 214,108 224,172 C230,204 226,236 208,252 L120,242 L120,64 Z" />
+    <!-- Просвет между страницами -->
+    <path
+        android:fillColor="@color/book_decor_mask"
+        android:fillAlpha="0.4"
+        android:pathData="M108,70 L132,70 L126,238 L114,238 Z" />
+    <!-- Переплёт сверху -->
+    <path
+        android:fillColor="@color/book_decor_mask"
+        android:fillAlpha="0.42"
+        android:pathData="M120,48 C86,52 52,66 38,88 C70,68 98,60 120,62 C142,60 170,68 202,88 C188,66 154,52 120,48 Z" />
+</vector>

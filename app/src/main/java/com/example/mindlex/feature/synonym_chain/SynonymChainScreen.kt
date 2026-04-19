@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mindlex.R
+import com.example.mindlex.ui.components.BookOpenDecorLayer
 import com.example.mindlex.ui.components.MechanicSessionHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,6 +81,7 @@ fun SynonymChainScreen(
                     )
                 ),
         ) {
+            BookOpenDecorLayer()
             AnimatedContent(
                 targetState = Triple(uiState.isLoading, uiState.chainCompleted, uiState.loadError != null),
                 transitionSpec = { fadeIn() togetherWith fadeOut() },

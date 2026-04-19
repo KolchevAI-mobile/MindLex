@@ -7,4 +7,14 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="book_decor_mask">#FFFFFFFF</color>
+    <!-- Виджет: светлая тема — ровная «карточка» -->
+    <color name="widget_bg_surface">#FFFDFEFF</color>
+    <color name="widget_bg_border">#1E4F46E5</color>
+    <color name="widget_text_caption">#FF6366F1</color>
+    <color name="widget_text_title">#FF111827</color>
+    <color name="widget_text_subtitle">#FF4B5563</color>
+    <color name="widget_progress_track">#1F4F46E5</color>
+    <color name="widget_progress_fill">#FF4F46E5</color>
 </resources>

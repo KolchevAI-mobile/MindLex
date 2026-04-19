@@ -2,6 +2,16 @@
 <resources>
     <string name="app_name">MindLex</string>
 
+    <string name="widget_brand">MindLex</string>
+    <string name="widget_caption">MindLex · занятия</string>
+    <string name="widget_description">Следующее занятие и прогресс дня</string>
+    <string name="widget_countdown_title">До следующего занятия</string>
+    <string name="widget_countdown_subtitle">Сессия в %1$s · %2$s</string>
+    <string name="widget_study_now_title">Пора заниматься</string>
+    <string name="widget_study_now_subtitle">Сегодня по плану: %1$d из %2$d слов</string>
+    <string name="widget_well_done_title">Хорошо поработали!</string>
+    <string name="widget_well_done_subtitle">Цель на сегодня выполнена</string>
+
     <string name="cd_back">Назад</string>
     <string name="cd_notifications">Уведомления</string>
     <string name="cd_hint">Показать подсказку</string>

@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.mindlex.feature.root.MindLexAppNavHost
 import com.example.mindlex.ui.theme.MindLexTheme
+import com.example.mindlex.widget.StudyWidgetUpdater
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -32,5 +33,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        StudyWidgetUpdater.requestUpdateAll(this)
     }
 }

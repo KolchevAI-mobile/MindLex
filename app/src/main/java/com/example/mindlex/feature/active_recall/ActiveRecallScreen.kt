@@ -1,8 +1,8 @@
 package com.example.mindlex.feature.active_recall
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -53,6 +53,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mindlex.R
+import com.example.mindlex.ui.components.BookOpenDecorLayer
 import com.example.mindlex.ui.components.MechanicSessionHeader
 import com.example.mindlex.feature.active_recall.components.FeedbackCard
 import com.example.mindlex.feature.active_recall.components.HintUsedFeedbackCard
@@ -94,6 +95,7 @@ fun ActiveRecallScreen(
                     )
                 )
         ) {
+            BookOpenDecorLayer()
             AnimatedContent(
                 targetState = Triple(uiState.isLoading, uiState.sessionComplete, uiState.feedback != null),
                 transitionSpec = { fadeIn() togetherWith fadeOut() },

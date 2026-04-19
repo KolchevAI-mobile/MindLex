@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mindlex.R
+import com.example.mindlex.ui.components.BookOpenDecorLayer
 import com.example.mindlex.ui.components.MechanicSessionHeader
 import com.example.mindlex.feature.active_recall.components.SessionCompleteScreen
 
@@ -102,6 +103,7 @@ fun ClozeScreen(
                     )
                 ),
         ) {
+            BookOpenDecorLayer()
             AnimatedContent(
                 targetState = Triple(uiState.isLoading, uiState.sessionComplete, uiState.feedback != null),
                 transitionSpec = { fadeIn() togetherWith fadeOut() },

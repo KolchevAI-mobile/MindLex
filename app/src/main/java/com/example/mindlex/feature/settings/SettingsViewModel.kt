@@ -1,12 +1,15 @@
 package com.example.mindlex.feature.settings
 
+import android.content.Context
 import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mindlex.core.notifications.StudyNotificationScheduler
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.usecase.CalculateRecommendedTimes
+import com.example.mindlex.widget.StudyWidgetUpdater
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,7 +27,8 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val scheduler: StudyNotificationScheduler,
-    private val calculateRecommendedTimes: CalculateRecommendedTimes
+    private val calculateRecommendedTimes: CalculateRecommendedTimes,
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     sealed interface NotificationPermissionUiEvent {
@@ -180,6 +184,7 @@ class SettingsViewModel @Inject constructor(
             preferredStudyTime = settingsRepository.getPreferredStudyTime().firstOrNull() ?: LocalTime(15, 0, 0),
             dailyGoal = settingsRepository.getDailyGoal().firstOrNull() ?: 10
         )
+        StudyWidgetUpdater.requestUpdateAll(appContext)
     }
 
     private fun formatTime(time: LocalTime): String {

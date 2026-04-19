@@ -49,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mindlex.R
+import com.example.mindlex.ui.components.BookOpenDecorLayer
 import com.example.mindlex.ui.components.MechanicSessionHeader
 
 private fun formatMmSs(seconds: Int): String {
@@ -102,6 +103,7 @@ fun RushScreen(
                     )
                 ),
         ) {
+            BookOpenDecorLayer()
             AnimatedContent(
                 targetState = Triple(uiState.isLoading, uiState.sessionFinished, uiState.loadError != null),
                 transitionSpec = { fadeIn() togetherWith fadeOut() },

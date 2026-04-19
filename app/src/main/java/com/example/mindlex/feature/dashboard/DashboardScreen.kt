@@ -49,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mindlex.R
+import com.example.mindlex.ui.components.BookOpenDecorLayer
 
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,7 +83,7 @@ fun DashboardScreen(
             )
         },
         content = { padding ->
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
@@ -94,9 +95,13 @@ fun DashboardScreen(
                         )
                     )
                     .padding(padding)
-                    .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                    .padding(horizontal = 24.dp)
             ) {
+                BookOpenDecorLayer()
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
                 AnimatedVisibility(
                     visible = true,
                     enter = fadeIn() + slideInVertically(initialOffsetY = { it / 3 })
@@ -265,6 +270,7 @@ fun DashboardScreen(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
+            }
             }
         }
     )
