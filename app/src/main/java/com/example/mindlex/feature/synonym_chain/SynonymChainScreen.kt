@@ -37,13 +37,16 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.mindlex.R
 import com.example.mindlex.ui.components.MechanicSessionHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,7 +63,7 @@ fun SynonymChainScreen(
             .navigationBarsPadding()
     ) {
         MechanicSessionHeader(
-            title = "Цепочка синонимов",
+            title = stringResource(R.string.synonym_title),
             onBackClick = onBackClick
         )
         Box(
@@ -81,7 +84,8 @@ fun SynonymChainScreen(
                 targetState = Triple(uiState.isLoading, uiState.chainCompleted, uiState.loadError != null),
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
                 label = "synonymStateChange"
-            ) {
+            ) { targetState ->
+            key(targetState) {
             when {
                 uiState.isLoading && uiState.chainSession == null -> {
                     Column(
@@ -91,7 +95,7 @@ fun SynonymChainScreen(
                     ) {
                         CircularProgressIndicator()
                         Text(
-                            text = "Загрузка цепочки...",
+                            text = stringResource(R.string.synonym_loading_chain),
                             modifier = Modifier.padding(top = 12.dp),
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -112,7 +116,7 @@ fun SynonymChainScreen(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Button(onClick = { viewModel.continueWithNextChain() }) {
-                            Text("Повторить")
+                            Text(stringResource(R.string.common_retry))
                         }
                     }
                 }
@@ -146,7 +150,11 @@ fun SynonymChainScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 Text(
-                                    text = "Шаг ${uiState.progressInChain} из ${uiState.targetChainLength}",
+                                    text = stringResource(
+                                        R.string.synonym_step,
+                                        uiState.progressInChain,
+                                        uiState.targetChainLength
+                                    ),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -164,7 +172,7 @@ fun SynonymChainScreen(
                                         verticalArrangement = Arrangement.spacedBy(10.dp)
                                     ) {
                                         Text(
-                                            text = "Цепочка",
+                                            text = stringResource(R.string.synonym_chain_label),
                                             style = MaterialTheme.typography.labelMedium,
                                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
                                         )
@@ -175,14 +183,14 @@ fun SynonymChainScreen(
                                     }
                                 }
                                 Text(
-                                    text = "Синоним к слову «${session.targetWord}»",
+                                    text = stringResource(R.string.synonym_for_word, session.targetWord),
                                     style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier.fillMaxWidth()
                                 )
                                 OutlinedTextField(
                                     value = uiState.userInput,
                                     onValueChange = viewModel::onUserInputChanged,
-                                    label = { Text("Синоним") },
+                                    label = { Text(stringResource(R.string.synonym_field)) },
                                     singleLine = true,
                                     modifier = Modifier
                                         .widthIn(max = 480.dp)
@@ -207,18 +215,21 @@ fun SynonymChainScreen(
                                         onClick = { viewModel.showHint() },
                                         modifier = Modifier.weight(1f)
                                     ) {
-                                        Text("💡 Подсказка")
+                                        Text(stringResource(R.string.synonym_btn_hint))
                                     }
                                     OutlinedButton(
                                         onClick = { viewModel.skipCurrentWord() },
                                         modifier = Modifier.weight(1f)
                                     ) {
-                                        Text("⏭ Пропустить")
+                                        Text(stringResource(R.string.synonym_btn_skip))
                                     }
                                 }
                                 if (uiState.hintVisible && uiState.shownHints.isNotEmpty()) {
                                     Text(
-                                        text = "Варианты: ${uiState.shownHints.joinToString(", ")}",
+                                        text = stringResource(
+                                            R.string.synonym_options,
+                                            uiState.shownHints.joinToString(", ")
+                                        ),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -232,12 +243,13 @@ fun SynonymChainScreen(
                                         .height(48.dp),
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
-                                    Text("Проверить")
+                                    Text(stringResource(R.string.common_check))
                                 }
                             }
                         }
                     }
                 }
+            }
             }
             }
         }
@@ -259,7 +271,7 @@ private fun ChainCompletedContent(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "Цепочка собрана!",
+            text = stringResource(R.string.synonym_done_title),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary
         )
@@ -277,7 +289,7 @@ private fun ChainCompletedContent(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Итог",
+                    text = stringResource(R.string.synonym_done_result_label),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
                 )
@@ -285,11 +297,15 @@ private fun ChainCompletedContent(
             }
         }
         Text(
-            text = "Собрано цепочек: ${uiState.chainsCompletedSession}",
+            text = stringResource(R.string.synonym_done_chains, uiState.chainsCompletedSession),
             style = MaterialTheme.typography.bodyMedium
         )
         Text(
-            text = "Подсказок: ${uiState.hintsUsedSession}  •  Пропусков: ${uiState.skipCountSession}",
+            text = stringResource(
+                R.string.synonym_done_hints_skips,
+                uiState.hintsUsedSession,
+                uiState.skipCountSession
+            ),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -300,10 +316,10 @@ private fun ChainCompletedContent(
                 .fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Продолжить (ещё 3)")
+            Text(stringResource(R.string.synonym_done_continue))
         }
         TextButton(onClick = onFinish) {
-            Text("Завершить")
+            Text(stringResource(R.string.synonym_done_finish))
         }
     }
 }

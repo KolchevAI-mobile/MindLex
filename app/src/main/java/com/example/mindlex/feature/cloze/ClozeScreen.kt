@@ -37,14 +37,16 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.mindlex.R
 import com.example.mindlex.ui.components.MechanicSessionHeader
 import com.example.mindlex.feature.active_recall.components.SessionCompleteScreen
 
@@ -68,7 +70,7 @@ fun ClozeScreen(
             .navigationBarsPadding()
     ) {
         MechanicSessionHeader(
-            title = "Контекстный пропуск",
+            title = stringResource(R.string.cloze_title),
             onBackClick = onBackClick,
             subtitle = {
                 if (!uiState.sessionComplete && uiState.feedback == null && !uiState.isLoading &&
@@ -76,7 +78,10 @@ fun ClozeScreen(
                 ) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "⏱ ${formatTimer(uiState.timerSecondsRemaining)}",
+                        text = stringResource(
+                            R.string.cloze_timer,
+                            formatTimer(uiState.timerSecondsRemaining)
+                        ),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -101,7 +106,8 @@ fun ClozeScreen(
                 targetState = Triple(uiState.isLoading, uiState.sessionComplete, uiState.feedback != null),
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
                 label = "clozeStateChange"
-            ) {
+            ) { targetState ->
+            key(targetState) {
             when {
                 uiState.loadError != null && uiState.exercise == null -> {
                     Column(
@@ -117,7 +123,7 @@ fun ClozeScreen(
                             modifier = Modifier.padding(16.dp)
                         )
                         Button(onClick = { viewModel.retryLoad() }) {
-                            Text("Повторить")
+                            Text(stringResource(R.string.common_retry))
                         }
                     }
                 }
@@ -130,7 +136,7 @@ fun ClozeScreen(
                     ) {
                         CircularProgressIndicator()
                         Text(
-                            text = "Загрузка...",
+                            text = stringResource(R.string.common_loading),
                             modifier = Modifier.padding(top = 12.dp),
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -173,7 +179,11 @@ fun ClozeScreen(
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Text(
-                                text = "Упражнение ${uiState.currentIndex} из ${uiState.totalExercises}",
+                                text = stringResource(
+                                    R.string.cloze_exercise_progress,
+                                    uiState.currentIndex,
+                                    uiState.totalExercises
+                                ),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -195,7 +205,7 @@ fun ClozeScreen(
                                         verticalArrangement = Arrangement.spacedBy(14.dp)
                                     ) {
                                         Text(
-                                            text = "Вставьте пропуск",
+                                            text = stringResource(R.string.cloze_blank_hint),
                                             style = MaterialTheme.typography.labelMedium,
                                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
                                         )
@@ -206,7 +216,7 @@ fun ClozeScreen(
                                             textAlign = TextAlign.Start
                                         )
                                         Text(
-                                            text = "💡 ${exercise.hint}",
+                                            text = stringResource(R.string.cloze_hint, exercise.hint),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
                                         )
@@ -217,7 +227,7 @@ fun ClozeScreen(
                                 OutlinedTextField(
                                     value = uiState.userInput,
                                     onValueChange = viewModel::onUserInputChanged,
-                                    label = { Text("Введите слово") },
+                                    label = { Text(stringResource(R.string.cloze_field_word)) },
                                     modifier = Modifier
                                         .widthIn(max = 480.dp)
                                         .fillMaxWidth(),
@@ -242,7 +252,7 @@ fun ClozeScreen(
                                     shape = RoundedCornerShape(12.dp),
                                     enabled = uiState.userInput.isNotBlank()
                                 ) {
-                                    Text("Проверить")
+                                    Text(stringResource(R.string.common_check))
                                 }
                             }
                             uiState.feedback?.let { fb ->
@@ -256,6 +266,7 @@ fun ClozeScreen(
                         }
                     }
                 }
+            }
             }
             }
         }
@@ -303,7 +314,7 @@ private fun ClozeFeedbackCard(
                 },
                 contentDescription = null,
                 tint = when {
-                    ok -> Color(0xFF4CAF50)
+                    ok -> MaterialTheme.colorScheme.primary
                     feedback.timedOut -> MaterialTheme.colorScheme.onSurfaceVariant
                     else -> MaterialTheme.colorScheme.error
                 }
@@ -333,7 +344,7 @@ private fun ClozeFeedbackCard(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Продолжить")
+                Text(stringResource(R.string.cloze_continue))
             }
         }
     }

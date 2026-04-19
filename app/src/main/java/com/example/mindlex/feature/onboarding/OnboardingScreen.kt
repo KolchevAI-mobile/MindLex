@@ -16,11 +16,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.mindlex.R
 
 @Composable
 fun OnboardingScreen(
@@ -67,20 +69,20 @@ fun OnboardingScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.Start) {
                         Text(
-                            text = "MindLex",
+                            text = stringResource(R.string.onboarding_brand),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Добро пожаловать",
+                            text = stringResource(R.string.onboarding_welcome),
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onBackground,
                             textAlign = TextAlign.Start
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Настроим обучение за пару шагов",
+                            text = stringResource(R.string.onboarding_subtitle),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -90,7 +92,7 @@ fun OnboardingScreen(
                 OutlinedTextField(
                     value = uiState.userName,
                     onValueChange = viewModel::onNameChanged,
-                    label = { Text("Ваше имя") },
+                    label = { Text(stringResource(R.string.onboarding_name)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 56.dp),
@@ -118,7 +120,7 @@ fun OnboardingScreen(
                             .fillMaxWidth()
                             .heightIn(min = 56.dp)
                             .clickable { isLanguageMenuExpanded = true },
-                        label = { Text("Язык изучения") },
+                        label = { Text(stringResource(R.string.onboarding_language)) },
                         trailingIcon = {
                             Icon(
                                 imageVector = Icons.Default.KeyboardArrowDown,
@@ -182,7 +184,7 @@ fun OnboardingScreen(
                         .height(48.dp),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Text("Начать обучение")
+                    Text(stringResource(R.string.onboarding_start))
                 }
         }
     }

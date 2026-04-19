@@ -42,11 +42,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.mindlex.R
 
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,12 +65,12 @@ fun DashboardScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("MindLex") },
+                title = { Text(stringResource(R.string.dashboard_title)) },
                 actions = {
                     IconButton(onClick = { /* TODO: Notifications */ }) {
                         Icon(
                             imageVector = Icons.Default.Notifications,
-                            contentDescription = "Уведомления",
+                            contentDescription = stringResource(R.string.cd_notifications),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -100,7 +102,7 @@ fun DashboardScreen(
                     enter = fadeIn() + slideInVertically(initialOffsetY = { it / 3 })
                 ) {
                     Text(
-                        text = "Рады видеть, ${uiState.userName}",
+                        text = stringResource(R.string.dashboard_greeting, uiState.userName),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -122,24 +124,23 @@ fun DashboardScreen(
                         verticalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
                         Text(
-                            text = "Ваш прогресс",
+                            text = stringResource(R.string.dashboard_progress_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
                         )
 
-                        // Stats Row
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             StatItem(
                                 value = uiState.wordsLearned.toString(),
-                                label = "Выучено слов",
+                                label = stringResource(R.string.dashboard_stat_words_learned),
                                 icon = "📚"
                             )
                             StatItem(
                                 value = uiState.currentStreak.toString(),
-                                label = "Серия дней",
+                                label = stringResource(R.string.dashboard_stat_streak),
                                 icon = "🔥"
                             )
                         }
@@ -150,17 +151,16 @@ fun DashboardScreen(
                         ) {
                             StatItem(
                                 value = uiState.synonymChainsCompleted.toString(),
-                                label = "Собрано цепочек",
+                                label = stringResource(R.string.dashboard_stat_chains),
                                 icon = "🔗"
                             )
                             StatItem(
                                 value = String.format("%.1f", uiState.synonymChainAvgLength),
-                                label = "Средн. длина цепи",
+                                label = stringResource(R.string.dashboard_stat_chain_avg),
                                 icon = "🧠"
                             )
                         }
 
-                        // Progress Section
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier
@@ -172,7 +172,7 @@ fun DashboardScreen(
                                 .padding(16.dp)
                         ) {
                             Text(
-                                text = "Прогресс сегодня",
+                                text = stringResource(R.string.dashboard_today_progress),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -196,7 +196,6 @@ fun DashboardScreen(
                             }
                         }
 
-                        // Learn Button
                         Button(
                             onClick = onStartLearning,
                             modifier = Modifier
@@ -213,7 +212,7 @@ fun DashboardScreen(
                             )
                             Spacer(modifier = Modifier.size(8.dp))
                             Text(
-                                text = "Учить новые слова",
+                                text = stringResource(R.string.dashboard_learn_new),
                                 style = MaterialTheme.typography.titleSmall
                             )
                         }
@@ -242,7 +241,7 @@ fun DashboardScreen(
                         )
                         Spacer(modifier = Modifier.size(8.dp))
                         Text(
-                            text = "Настройки",
+                            text = stringResource(R.string.common_settings),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -261,7 +260,7 @@ fun DashboardScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.size(8.dp))
-                        Text("Тренировка")
+                        Text(stringResource(R.string.dashboard_training))
                     }
                 }
 

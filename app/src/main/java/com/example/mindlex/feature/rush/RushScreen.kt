@@ -37,8 +37,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +48,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.mindlex.R
 import com.example.mindlex.ui.components.MechanicSessionHeader
 
 private fun formatMmSs(seconds: Int): String {
@@ -54,7 +57,7 @@ private fun formatMmSs(seconds: Int): String {
     return "%02d:%02d".format(m, s)
 }
 
-/** Множитель очков для отображения (дублирует пороги [CalculateRushScore]). */
+/** Множитель очков для отображения (пороги совпадают с логикой начисления очков в спринте). */
 private fun comboMultiplierForStreak(streak: Int): Double = when {
     streak >= 20 -> 3.0
     streak >= 10 -> 2.0
@@ -82,7 +85,7 @@ fun RushScreen(
             .navigationBarsPadding()
     ) {
         MechanicSessionHeader(
-            title = "Спринт на скорость",
+            title = stringResource(R.string.rush_title),
             onBackClick = onBackClick
         )
         Box(
@@ -103,7 +106,8 @@ fun RushScreen(
                 targetState = Triple(uiState.isLoading, uiState.sessionFinished, uiState.loadError != null),
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
                 label = "rushStateChange"
-            ) {
+            ) { targetState ->
+            key(targetState) {
             when {
                 uiState.loadError != null && !uiState.sessionFinished -> {
                     Column(
@@ -119,7 +123,7 @@ fun RushScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(onClick = { viewModel.retryLoad() }) {
-                            Text("Повторить")
+                            Text(stringResource(R.string.common_retry))
                         }
                     }
                 }
@@ -132,7 +136,7 @@ fun RushScreen(
                     ) {
                         CircularProgressIndicator()
                         Text(
-                            "Загрузка...",
+                            stringResource(R.string.common_loading),
                             modifier = Modifier.padding(top = 12.dp),
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -163,8 +167,12 @@ fun RushScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text(
-                                text = "⏱ ${formatMmSs(uiState.timerSecondsRemaining)} / ${formatMmSs(uiState.timerTotalSeconds)}",
+                        Text(
+                            text = stringResource(
+                                R.string.rush_timer,
+                                formatMmSs(uiState.timerSecondsRemaining),
+                                formatMmSs(uiState.timerTotalSeconds)
+                            ),
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -180,14 +188,14 @@ fun RushScreen(
                             val multLabel =
                                 if (mult % 1.0 == 0.0) mult.toInt().toString() else "%.1f".format(mult)
                             Text(
-                                text = "🔥 Комбо: x$multLabel (${uiState.comboStreak} подряд)",
+                                text = stringResource(R.string.rush_combo, multLabel, uiState.comboStreak),
                                 modifier = Modifier.scale(comboScale),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Spacer(modifier = Modifier.height(10.dp))
                             Text(
-                                text = "📊 Счёт: ${uiState.score} очков",
+                                text = stringResource(R.string.rush_score, uiState.score),
                                 style = MaterialTheme.typography.titleMedium
                             )
                             uiState.currentWord?.let { word ->
@@ -206,7 +214,7 @@ fun RushScreen(
                                         horizontalAlignment = Alignment.Start
                                     ) {
                                         Text(
-                                            text = "Переведите",
+                                            text = stringResource(R.string.rush_translate_label),
                                             style = MaterialTheme.typography.labelMedium,
                                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
                                         )
@@ -223,7 +231,7 @@ fun RushScreen(
                             OutlinedTextField(
                                 value = uiState.userInput,
                                 onValueChange = viewModel::onUserInputChanged,
-                                label = { Text("Перевод") },
+                                label = { Text(stringResource(R.string.active_recall_field_translation)) },
                                 modifier = Modifier
                                     .widthIn(max = 440.dp)
                                     .fillMaxWidth(),
@@ -247,7 +255,7 @@ fun RushScreen(
                                 shape = RoundedCornerShape(12.dp),
                                 enabled = uiState.userInput.isNotBlank()
                             ) {
-                                Text("Ответить")
+                                Text(stringResource(R.string.common_answer))
                             }
                             OutlinedButton(
                                 onClick = { viewModel.skipWord() },
@@ -256,16 +264,21 @@ fun RushScreen(
                                     .fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text("Пропустить")
+                                Text(stringResource(R.string.common_skip))
                             }
                             Text(
-                                text = "Правильно: ${uiState.correctCount}   ·   Ошибки: ${uiState.incorrectCount}",
+                                text = stringResource(
+                                    R.string.rush_correct_errors,
+                                    uiState.correctCount,
+                                    uiState.incorrectCount
+                                ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                 }
+            }
             }
             }
         }
@@ -285,8 +298,8 @@ private fun RushResultsContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
-            text = "Спринт завершён!",
+                        Text(
+                            text = stringResource(R.string.rush_finished_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
@@ -304,20 +317,24 @@ private fun RushResultsContent(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("📊 Статистика", fontWeight = FontWeight.SemiBold)
-                Text("✅ Правильно: ${uiState.correctCount}")
-                Text("❌ Ошибки: ${uiState.incorrectCount}")
-                Text("⏭ Пропуски: ${uiState.skipCount}")
-                Text("🔥 Макс. комбо: x${uiState.sessionMaxCombo}")
-                Text("⏱ Слов/мин: ${uiState.wordsPerMinute}")
+                Text(stringResource(R.string.rush_stats), fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.rush_stat_correct, uiState.correctCount))
+                Text(stringResource(R.string.rush_stat_wrong, uiState.incorrectCount))
+                Text(stringResource(R.string.rush_stat_skips, uiState.skipCount))
+                Text(stringResource(R.string.rush_stat_max_combo, uiState.sessionMaxCombo))
+                Text(stringResource(R.string.rush_stat_wpm, uiState.wordsPerMinute))
                 Text(
-                    text = "🏆 Итоговый счёт: ${uiState.score}",
+                    text = stringResource(R.string.rush_stat_score, uiState.score),
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Рекорды: ${uiState.recordBestScore} очков · комбо ${uiState.recordMaxCombo}",
+                    text = stringResource(
+                        R.string.rush_stat_records,
+                        uiState.recordBestScore,
+                        uiState.recordMaxCombo
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -330,10 +347,10 @@ private fun RushResultsContent(
                 .fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Попробовать снова")
+            Text(stringResource(R.string.rush_play_again))
         }
         TextButton(onClick = onBack) {
-            Text("Вернуться к механикам")
+            Text(stringResource(R.string.rush_back_mechanics))
         }
     }
 }

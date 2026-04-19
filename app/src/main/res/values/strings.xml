@@ -1,3 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MindLex</string>
+
+    <string name="cd_back">Назад</string>
+    <string name="cd_notifications">Уведомления</string>
+    <string name="cd_hint">Показать подсказку</string>
+
+    <string name="common_loading">Загрузка…</string>
+    <string name="common_retry">Повторить</string>
+    <string name="common_continue">Продолжить</string>
+    <string name="common_next">Далее</string>
+    <string name="common_check">Проверить</string>
+    <string name="common_answer">Ответить</string>
+    <string name="common_skip">Пропустить</string>
+    <string name="common_settings">Настройки</string>
+
+    <string name="dashboard_title">MindLex</string>
+    <string name="dashboard_greeting">Рады видеть, %1$s</string>
+    <string name="dashboard_progress_title">Ваш прогресс</string>
+    <string name="dashboard_stat_words_learned">Выучено слов</string>
+    <string name="dashboard_stat_streak">Серия дней</string>
+    <string name="dashboard_stat_chains">Собрано цепочек</string>
+    <string name="dashboard_stat_chain_avg">Средн. длина цепи</string>
+    <string name="dashboard_today_progress">Прогресс сегодня</string>
+    <string name="dashboard_learn_new">Учить новые слова</string>
+    <string name="dashboard_training">Тренировка</string>
+
+    <string name="mechanics_header">Режимы обучения</string>
+    <string name="mechanics_subtitle">Выберите режим обучения</string>
+    <string name="mechanic_active_recall_title">Активное вспоминание</string>
+    <string name="mechanic_active_recall_desc">Вводите слово по переводу и закрепляйте долговременную память.</string>
+    <string name="mechanic_synonym_title">Цепочка синонимов</string>
+    <string name="mechanic_synonym_desc">Собирайте смысловые связи и прокачивайте словарную гибкость.</string>
+    <string name="mechanic_rush_title">Спринт на скорость</string>
+    <string name="mechanic_rush_desc">Переведите максимум слов за ограниченное время.</string>
+    <string name="mechanic_cloze_title">Контекстный пропуск</string>
+    <string name="mechanic_cloze_desc">Заполните пропуск в предложении, опираясь на контекст.</string>
+
+    <string name="active_recall_title">Активное вспоминание</string>
+    <string name="active_recall_loading">Загрузка…</string>
+    <string name="active_recall_word_progress">Слово %1$d из %2$d</string>
+    <string name="active_recall_label_cue">Слово для перевода</string>
+    <string name="active_recall_label_original">Оригинал</string>
+    <string name="active_recall_field_translation">Перевод</string>
+    <string name="active_recall_tutorial_title">Как это работает?</string>
+    <string name="active_recall_tutorial_step1">1. Вам покажется перевод слова на русском</string>
+    <string name="active_recall_tutorial_step2">2. Введите оригинал на иностранном языке</string>
+    <string name="active_recall_tutorial_step3">3. Нажмите «Проверить»</string>
+    <string name="active_recall_tutorial_step4">4. Система оценит ответ и запланирует повторение</string>
+    <string name="active_recall_tutorial_ok">Понятно</string>
+    <string name="active_recall_tutorial_skip">Пропустить</string>
+    <string name="active_recall_feedback_correct">Правильно!</string>
+    <string name="active_recall_feedback_wrong">Неправильно</string>
+    <string name="active_recall_feedback_correct_answer">Правильный ответ: %1$s</string>
+    <string name="active_recall_feedback_quality">Качество: %1$d/5</string>
+    <string name="active_recall_feedback_hint_title">Слово запомнено. Повторим позже.</string>
+
+    <string name="session_complete_title">Сессия завершена!</string>
+    <string name="session_complete_stats">📊 Результаты:</string>
+    <string name="session_complete_correct">✅ Правильно:</string>
+    <string name="session_complete_wrong">❌ Ошибки:</string>
+    <string name="session_complete_with_hint">💡 С подсказкой:</string>
+    <string name="session_complete_total">Всего:</string>
+    <string name="session_complete_total_words">%1$d слов</string>
+    <string name="session_complete_retry">Попробовать снова</string>
+    <string name="session_complete_back">Вернуться назад</string>
+
+    <string name="rush_title">Спринт на скорость</string>
+    <string name="rush_correct_errors">Правильно: %1$d   ·   Ошибки: %2$d</string>
+    <string name="rush_translate_label">Переведите</string>
+    <string name="rush_play_again">Попробовать снова</string>
+    <string name="rush_back_mechanics">Вернуться к механикам</string>
+    <string name="rush_finished_title">Спринт завершён!</string>
+    <string name="rush_stats">📊 Статистика</string>
+    <string name="rush_stat_correct">✅ Правильно: %1$d</string>
+    <string name="rush_stat_wrong">❌ Ошибки: %1$d</string>
+    <string name="rush_stat_skips">⏭ Пропуски: %1$d</string>
+    <string name="rush_stat_max_combo">🔥 Макс. комбо: x%1$d</string>
+    <string name="rush_stat_wpm">⏱ Слов/мин: %1$d</string>
+    <string name="rush_stat_score">🏆 Итоговый счёт: %1$d</string>
+    <string name="rush_stat_records">Рекорды: %1$d очков · комбо %2$d</string>
+    <string name="rush_combo">Комбо: x%1$s (%2$d подряд)</string>
+    <string name="rush_score">Счёт: %1$d очков</string>
+    <string name="rush_timer">%1$s / %2$s</string>
+
+    <string name="cloze_title">Контекстный пропуск</string>
+    <string name="cloze_timer">⏱ %1$s</string>
+    <string name="cloze_hint">💡 %1$s</string>
+    <string name="cloze_exercise_progress">Упражнение %1$d из %2$d</string>
+    <string name="cloze_blank_hint">Вставьте пропуск</string>
+    <string name="cloze_field_word">Введите слово</string>
+    <string name="cloze_continue">Продолжить</string>
+
+    <string name="synonym_title">Цепочка синонимов</string>
+    <string name="synonym_loading_chain">Загрузка цепочки…</string>
+    <string name="synonym_step">Шаг %1$d из %2$d</string>
+    <string name="synonym_chain_label">Цепочка</string>
+    <string name="synonym_for_word">Синоним к слову «%1$s»</string>
+    <string name="synonym_field">Синоним</string>
+    <string name="synonym_hint">Подсказка</string>
+    <string name="synonym_options">Варианты: %1$s</string>
+    <string name="synonym_done_title">Цепочка собрана!</string>
+    <string name="synonym_done_result_label">Итог</string>
+    <string name="synonym_done_chains">Собрано цепочек: %1$d</string>
+    <string name="synonym_done_hints_skips">Подсказок: %1$d  •  Пропусков: %2$d</string>
+    <string name="synonym_done_continue">Продолжить (ещё 3)</string>
+    <string name="synonym_done_finish">Завершить</string>
+
+    <string name="onboarding_brand">MindLex</string>
+    <string name="onboarding_welcome">Добро пожаловать</string>
+    <string name="onboarding_subtitle">Настроим обучение за пару шагов</string>
+    <string name="onboarding_name">Ваше имя</string>
+    <string name="onboarding_language">Язык изучения</string>
+    <string name="onboarding_start">Начать обучение</string>
+
+    <string name="learning_title">Учить слова</string>
+    <string name="learning_refresh">Обновить слова</string>
+    <string name="learning_empty">Слова не найдены. Попробуйте обновить или изменить язык/категорию.</string>
+
+    <string name="synonym_btn_hint">💡 Подсказка</string>
+    <string name="synonym_btn_skip">⏭ Пропустить</string>
 </resources>

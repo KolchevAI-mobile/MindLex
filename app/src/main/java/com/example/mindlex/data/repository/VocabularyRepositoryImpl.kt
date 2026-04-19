@@ -1,5 +1,6 @@
 package com.example.mindlex.data.repository
 
+import com.example.mindlex.core.constants.LearningDefaults
 import com.example.mindlex.data.local.entity.VocabularyEntity
 import com.example.mindlex.data.local.repository.VocabularyLocalDataSource
 import com.example.mindlex.data.remote.supabase.SupabaseVocabularyRemoteDataSource
@@ -64,7 +65,9 @@ class VocabularyRepositoryImpl @Inject constructor(
     ): Flow<Result<List<Vocabulary>>> = flow {
         val lang = settingsRepository.getSelectedLanguage().first()
         val cat = category.lowercase()
-        val poolLimit = (limit * 4).coerceAtLeast(40).coerceAtMost(400)
+        val poolLimit = (limit * LearningDefaults.ROOM_POOL_MULTIPLIER)
+            .coerceAtLeast(LearningDefaults.ROOM_POOL_MIN)
+            .coerceAtMost(LearningDefaults.ROOM_POOL_MAX)
         Timber.d("[VocabularyRepository] Запрос по категории: lang=$lang, category=$cat, limit=$limit")
 
         val cached = localDataSource.getWordsByCategory(lang, cat, poolLimit).first()

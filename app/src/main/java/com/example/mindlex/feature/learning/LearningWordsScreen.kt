@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -24,8 +24,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.mindlex.R
 import com.example.mindlex.domain.model.Vocabulary
 
 @Composable
@@ -38,12 +40,12 @@ fun LearningWordsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Учить слова") },
+                title = { Text(stringResource(R.string.learning_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Назад"
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.cd_back)
                         )
                     }
                 }
@@ -61,7 +63,7 @@ fun LearningWordsScreen(
                 onClick = { viewModel.loadWords() },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Обновить слова")
+                Text(text = stringResource(R.string.learning_refresh))
             }
 
             when {
@@ -97,7 +99,7 @@ private fun LearningWordsList(
 ) {
     if (words.isEmpty()) {
         Text(
-            text = "Слова не найдены. Попробуйте обновить или изменить язык/категорию.",
+            text = stringResource(R.string.learning_empty),
             style = MaterialTheme.typography.bodyMedium
         )
         return

@@ -1,16 +1,13 @@
 package com.example.mindlex.feature.mechanics
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -26,37 +23,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.mindlex.ui.components.MechanicSessionHeader
+import com.example.mindlex.R
 import com.example.mindlex.feature.mechanics.components.MechanicCard
+import com.example.mindlex.ui.components.MechanicSessionHeader
 
-/**
- * Типы механик обучения.
- */
 enum class MechanicType {
     ACTIVE_RECALL,
     CLOZE,
     RUSH,
-    SYNONYM_CHAIN,
-    FLASHCARDS,
-    LISTENING
+    SYNONYM_CHAIN
 }
 
-/**
- * Статус доступности механики.
- */
 enum class MechanicStatus {
-    AVAILABLE,
-    COMING_SOON
+    AVAILABLE
 }
 
-/**
- * Экран выбора режима обучения.
- *
- * @param onBackClick Callback для возврата назад
- * @param onMechanicSelected Callback при выборе механики
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MechanicsScreen(
@@ -70,7 +54,7 @@ fun MechanicsScreen(
             .navigationBarsPadding()
     ) {
         MechanicSessionHeader(
-            title = "Режимы обучения",
+            title = stringResource(R.string.mechanics_header),
             onBackClick = onBackClick
         )
         Box(
@@ -96,49 +80,44 @@ fun MechanicsScreen(
             ) {
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "Выберите режим обучения",
+                    text = stringResource(R.string.mechanics_subtitle),
                     style = MaterialTheme.typography.headlineSmall,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        MechanicCard(
-                            title = "Активное вспоминание",
-                            description = "Вводите слово по переводу и закрепляйте долговременную память.",
-                            icon = Icons.Default.Memory,
-                            status = MechanicStatus.AVAILABLE,
-                            onClick = { onMechanicSelected(MechanicType.ACTIVE_RECALL) }
-                        )
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    MechanicCard(
+                        title = stringResource(R.string.mechanic_active_recall_title),
+                        description = stringResource(R.string.mechanic_active_recall_desc),
+                        icon = Icons.Default.Memory,
+                        status = MechanicStatus.AVAILABLE,
+                        onClick = { onMechanicSelected(MechanicType.ACTIVE_RECALL) }
+                    )
 
-                        MechanicCard(
-                            title = "Цепочка синонимов",
-                            description = "Собирайте смысловые связи и прокачивайте словарную гибкость.",
-                            icon = Icons.Default.Psychology,
-                            status = MechanicStatus.AVAILABLE,
-                            onClick = { onMechanicSelected(MechanicType.SYNONYM_CHAIN) }
-                        )
+                    MechanicCard(
+                        title = stringResource(R.string.mechanic_synonym_title),
+                        description = stringResource(R.string.mechanic_synonym_desc),
+                        icon = Icons.Default.Psychology,
+                        status = MechanicStatus.AVAILABLE,
+                        onClick = { onMechanicSelected(MechanicType.SYNONYM_CHAIN) }
+                    )
 
-                        MechanicCard(
-                            title = "Спринт на скорость",
-                            description = "Переведите максимум слов за ограниченное время.",
-                            icon = Icons.Default.Bolt,
-                            status = MechanicStatus.AVAILABLE,
-                            onClick = { onMechanicSelected(MechanicType.RUSH) }
-                        )
+                    MechanicCard(
+                        title = stringResource(R.string.mechanic_rush_title),
+                        description = stringResource(R.string.mechanic_rush_desc),
+                        icon = Icons.Default.Bolt,
+                        status = MechanicStatus.AVAILABLE,
+                        onClick = { onMechanicSelected(MechanicType.RUSH) }
+                    )
 
-                        MechanicCard(
-                            title = "Контекстный пропуск",
-                            description = "Заполните пропуск в предложении, опираясь на контекст.",
-                            icon = Icons.Default.Timer,
-                            status = MechanicStatus.AVAILABLE,
-                            onClick = { onMechanicSelected(MechanicType.CLOZE) }
-                        )
-                    }
+                    MechanicCard(
+                        title = stringResource(R.string.mechanic_cloze_title),
+                        description = stringResource(R.string.mechanic_cloze_desc),
+                        icon = Icons.Default.Timer,
+                        status = MechanicStatus.AVAILABLE,
+                        onClick = { onMechanicSelected(MechanicType.CLOZE) }
+                    )
                 }
             }
         }

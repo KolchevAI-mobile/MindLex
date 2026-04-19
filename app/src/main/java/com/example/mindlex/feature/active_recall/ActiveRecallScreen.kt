@@ -41,26 +41,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.mindlex.R
 import com.example.mindlex.ui.components.MechanicSessionHeader
 import com.example.mindlex.feature.active_recall.components.FeedbackCard
 import com.example.mindlex.feature.active_recall.components.HintUsedFeedbackCard
 import com.example.mindlex.feature.active_recall.components.SessionCompleteScreen
 
-/**
- * Экран активного вспоминания.
- *
- * @param viewModel ViewModel для управления состоянием
- * @param onBackClick Callback для возврата назад
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActiveRecallScreen(
@@ -80,7 +77,7 @@ fun ActiveRecallScreen(
             .navigationBarsPadding()
     ) {
         MechanicSessionHeader(
-            title = "Активное вспоминание",
+            title = stringResource(R.string.active_recall_title),
             onBackClick = onBackClick
         )
         Box(
@@ -101,7 +98,8 @@ fun ActiveRecallScreen(
                 targetState = Triple(uiState.isLoading, uiState.sessionComplete, uiState.feedback != null),
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
                 label = "activeRecallStateChange"
-            ) {
+            ) { targetState ->
+                key(targetState) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -114,7 +112,7 @@ fun ActiveRecallScreen(
                 ) {
                     CircularProgressIndicator()
                     Text(
-                        text = "Загрузка...",
+                        text = stringResource(R.string.active_recall_loading),
                         modifier = Modifier.padding(top = 12.dp),
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -154,7 +152,11 @@ fun ActiveRecallScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
                         Text(
-                            text = "Слово ${uiState.currentWordIndex} из ${uiState.totalWords}",
+                            text = stringResource(
+                                R.string.active_recall_word_progress,
+                                uiState.currentWordIndex,
+                                uiState.totalWords
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -176,7 +178,7 @@ fun ActiveRecallScreen(
                                     horizontalAlignment = Alignment.Start
                                 ) {
                                     Text(
-                                        text = "Слово для перевода",
+                                        text = stringResource(R.string.active_recall_label_cue),
                                         style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
                                     )
@@ -199,7 +201,7 @@ fun ActiveRecallScreen(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Lightbulb,
-                                                contentDescription = "Показать подсказку",
+                                                contentDescription = stringResource(R.string.cd_hint),
                                                 tint = if (uiState.hintShown) {
                                                     MaterialTheme.colorScheme.outline
                                                 } else {
@@ -211,7 +213,7 @@ fun ActiveRecallScreen(
                                     if (uiState.hintShown) {
                                         Spacer(modifier = Modifier.height(12.dp))
                                         Text(
-                                            text = "Оригинал",
+                                            text = stringResource(R.string.active_recall_label_original),
                                             style = MaterialTheme.typography.labelMedium,
                                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
                                         )
@@ -268,11 +270,11 @@ fun ActiveRecallScreen(
                                 onValueChange = viewModel::onUserInputChanged,
                                 label = {
                                     Text(
-                                        "Перевод",
+                                        stringResource(R.string.active_recall_field_translation),
                                         style = MaterialTheme.typography.bodySmall
                                     )
                                 },
-                                placeholder = { Text("Перевод") },
+                                placeholder = { Text(stringResource(R.string.active_recall_field_translation)) },
                                 modifier = Modifier
                                     .widthIn(max = 400.dp)
                                     .fillMaxWidth(),
@@ -286,8 +288,7 @@ fun ActiveRecallScreen(
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                                 keyboardActions = KeyboardActions(
                                     onDone = { viewModel.checkAnswer() }
-                                ),
-                                enabled = uiState.feedback == null
+                                )
                             )
                             Button(
                                 onClick = { viewModel.checkAnswer() },
@@ -296,10 +297,10 @@ fun ActiveRecallScreen(
                                     .fillMaxWidth()
                                     .height(48.dp),
                                 shape = RoundedCornerShape(12.dp),
-                                enabled = uiState.userInput.isNotBlank() && uiState.feedback == null
+                                enabled = uiState.userInput.isNotBlank()
                             ) {
                                 Text(
-                                    "Проверить",
+                                    stringResource(R.string.common_check),
                                     style = MaterialTheme.typography.labelLarge
                                 )
                             }
@@ -322,11 +323,11 @@ fun ActiveRecallScreen(
                     }
                 }
             }
-            }
+                }
+                }
             }
         }
 
-        // Диалог туториала при первом запуске
         if (showTutorial) {
             TutorialDialog(
                 onDismiss = {
@@ -338,32 +339,29 @@ fun ActiveRecallScreen(
     }
 }
 
-/**
- * Диалог туториала для первого запуска Active Recall.
- */
 @Composable
 private fun TutorialDialog(
     onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Как это работает?") },
+        title = { Text(stringResource(R.string.active_recall_tutorial_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("1. Вам покажется перевод слова на русском")
-                Text("2. Введите оригинал на иностранном языке")
-                Text("3. Нажмите «Проверить»")
-                Text("4. Система оценит ответ и запланирует повторение")
+                Text(stringResource(R.string.active_recall_tutorial_step1))
+                Text(stringResource(R.string.active_recall_tutorial_step2))
+                Text(stringResource(R.string.active_recall_tutorial_step3))
+                Text(stringResource(R.string.active_recall_tutorial_step4))
             }
         },
         confirmButton = {
             Button(onClick = onDismiss) {
-                Text("Понятно")
+                Text(stringResource(R.string.active_recall_tutorial_ok))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Пропустить")
+                Text(stringResource(R.string.active_recall_tutorial_skip))
             }
         }
     )
