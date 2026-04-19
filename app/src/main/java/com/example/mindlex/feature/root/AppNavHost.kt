@@ -136,9 +136,6 @@ fun MindLexAppNavHost(
                     MechanicType.SYNONYM_CHAIN -> {
                         navController.navigate(SynonymChainDestinations.ROOT)
                     }
-                    else -> {
-                        // Другие механики пока не реализованы
-                    }
                 }
             }
         )
