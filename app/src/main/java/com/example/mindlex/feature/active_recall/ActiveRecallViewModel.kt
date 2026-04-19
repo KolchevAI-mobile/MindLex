@@ -67,9 +67,11 @@ class ActiveRecallViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val dailyGoal = settingsRepository.getDailyGoal().firstOrNull() ?: 10
-            _uiState.update { it.copy(totalWords = dailyGoal) }
-            Timber.d("[ActiveRecallVM] Daily goal loaded: $dailyGoal")
+            launch {
+                val dailyGoal = settingsRepository.getDailyGoal().firstOrNull() ?: 10
+                _uiState.update { it.copy(totalWords = dailyGoal) }
+                Timber.d("[ActiveRecallVM] Daily goal loaded: $dailyGoal")
+            }
             loadNextWord()
         }
     }

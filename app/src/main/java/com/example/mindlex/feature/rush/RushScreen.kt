@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -146,15 +148,18 @@ fun RushScreen(
                 }
 
                 else -> {
-                    Column(
+                    val scroll = rememberScrollState()
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(top = 4.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceBetween
+                            .padding(top = 4.dp)
                     ) {
                         Column(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.TopCenter)
+                                .verticalScroll(scroll)
+                                .padding(bottom = 16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
@@ -185,13 +190,8 @@ fun RushScreen(
                                 text = "📊 Счёт: ${uiState.score} очков",
                                 style = MaterialTheme.typography.titleMedium
                             )
-                        }
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
                             uiState.currentWord?.let { word ->
+                                Spacer(modifier = Modifier.height(8.dp))
                                 Card(
                                     modifier = Modifier
                                         .widthIn(max = 440.dp)
@@ -203,13 +203,19 @@ fun RushScreen(
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(20.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
+                                        horizontalAlignment = Alignment.Start
                                     ) {
+                                        Text(
+                                            text = "Переведите",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
+                                        )
+                                        Spacer(modifier = Modifier.height(6.dp))
                                         Text(
                                             text = word.wordNative,
                                             style = MaterialTheme.typography.headlineSmall,
                                             color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                            textAlign = TextAlign.Center
+                                            textAlign = TextAlign.Start
                                         )
                                     }
                                 }

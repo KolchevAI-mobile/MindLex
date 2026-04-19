@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -128,15 +130,18 @@ fun ActiveRecallScreen(
                     onBack = onBackClick
                 )
             } else {
-                Column(
+                val scroll = rememberScrollState()
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 4.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.SpaceBetween
+                        .padding(top = 4.dp)
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.TopCenter)
+                            .verticalScroll(scroll)
+                            .padding(bottom = 16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -168,19 +173,24 @@ fun ActiveRecallScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 20.dp, vertical = 16.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                                    horizontalAlignment = Alignment.Start
                                 ) {
+                                    Text(
+                                        text = "Слово для перевода",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
                                     Row(
+                                        modifier = Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(
-                                            8.dp,
-                                            Alignment.CenterHorizontally
-                                        )
+                                        horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
                                             text = word.wordNative,
                                             style = MaterialTheme.typography.headlineMedium,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            modifier = Modifier.weight(1f)
                                         )
                                         IconButton(
                                             onClick = { viewModel.showHint() },
@@ -200,6 +210,12 @@ fun ActiveRecallScreen(
                                     }
                                     if (uiState.hintShown) {
                                         Spacer(modifier = Modifier.height(12.dp))
+                                        Text(
+                                            text = "Оригинал",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
                                         Text(
                                             text = word.wordForeign,
                                             style = MaterialTheme.typography.titleLarge,
@@ -246,12 +262,6 @@ fun ActiveRecallScreen(
                                 }
                             }
                         }
-                    }
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
                         if (!uiState.hintShown && uiState.feedback == null) {
                             OutlinedTextField(
                                 value = uiState.userInput,
@@ -311,7 +321,7 @@ fun ActiveRecallScreen(
                         }
                     }
                 }
-                }
+            }
             }
             }
         }

@@ -62,11 +62,19 @@ class VocabularyRepositoryImpl @Inject constructor(
         category: String,
         limit: Int
     ): Flow<Result<List<Vocabulary>>> = flow {
-        // Читаем текущий язык из настроек
         val lang = settingsRepository.getSelectedLanguage().first()
-        Timber.d("[VocabularyRepository] Запрос по категории: lang=$lang, category=$category, limit=$limit")
+        val cat = category.lowercase()
+        val poolLimit = (limit * 4).coerceAtLeast(40).coerceAtMost(400)
+        Timber.d("[VocabularyRepository] Запрос по категории: lang=$lang, category=$cat, limit=$limit")
 
-        val safeResult = remoteDataSource.safeGetWordsByCategory(lang, category, limit)
+        val cached = localDataSource.getWordsByCategory(lang, cat, poolLimit).first()
+        if (cached.size >= limit) {
+            Timber.d("[VocabularyRepository] Категория '$cat': ${cached.size} в Room — без сети")
+            emit(Result.success(cached.shuffled().take(limit)))
+            return@flow
+        }
+
+        val safeResult = remoteDataSource.safeGetWordsByCategory(lang, cat, poolLimit.coerceAtLeast(limit))
 
         safeResult
             .onSuccess { remoteWords ->
@@ -81,7 +89,7 @@ class VocabularyRepositoryImpl @Inject constructor(
             .onFailure { throwable ->
                 Timber.e(throwable, "[VocabularyRepository] Ошибка загрузки по категории (lang=$lang, category=$category)")
                 Timber.d("[VocabularyRepository] Пробую загрузить из Room...")
-                val cached = localDataSource.getWordsByCategory(lang, category, limit).first()
+                val cached = localDataSource.getWordsByCategory(lang, cat, poolLimit.coerceAtLeast(limit)).first()
                 Timber.d("[VocabularyRepository] Найдено ${cached.size} слов в кэше")
 
                 if (cached.isNotEmpty()) {

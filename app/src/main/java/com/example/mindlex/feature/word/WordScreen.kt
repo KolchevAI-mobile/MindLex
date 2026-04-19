@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,19 +38,27 @@ fun WordScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    val scroll = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scroll)
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "Поиск слова",
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "Онлайн-справка по слову",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
         var word by remember { mutableStateOf("") }
 
@@ -74,16 +85,12 @@ fun WordScreen(
             )
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
         Button(
             onClick = { viewModel.loadWord(word) },
             enabled = word.isNotBlank() && !uiState.isLoading
         ) {
             Text(text = "Найти")
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         when {
             uiState.isLoading -> {

@@ -5,6 +5,7 @@ import com.example.mindlex.data.remote.supabase.models.SupabaseVocabularyDto
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -22,25 +23,19 @@ class SupabaseVocabularyRemoteDataSource(
     ): List<SupabaseVocabularyDto> = withContext(Dispatchers.IO) {
         Timber.d("[SupabaseAPI] Запрос к таблице '$tableName': targetLang=$targetLang, limit=$limit")
 
-        // Загружаем все слова из таблицы (клиентская фильтрация)
-        val all = client.postgrest.from(tableName)
-            .select()
+        val fetchCap = (limit * 25).coerceIn(60, 500)
+        val pool = client.postgrest.from(tableName)
+            .select(columns = Columns.ALL) {
+                filter {
+                    ilike("category", "general")
+                }
+                limit(count = fetchCap.toLong())
+            }
             .decodeList<SupabaseVocabularyDto>()
 
-        Timber.d("[SupabaseAPI] Загружено ${all.size} записей из таблицы '$tableName'")
+        Timber.d("[SupabaseAPI] Получено ${pool.size} записей (category~general, cap=$fetchCap)")
 
-        // Логируем примеры для отладки
-        if (all.isNotEmpty()) {
-            val sample = all.take(3).map { dto ->
-                "(id=${dto.id.take(8)}..., word_en=${dto.word_en}, word_ru=${dto.word_ru}, category=${dto.category})"
-            }
-            Timber.d("[SupabaseAPI] Примеры: $sample")
-        } else {
-            Timber.e("[SupabaseAPI] ⚠️ ТАБЛИЦА ПУСТА! Проверьте импорт данных в Supabase")
-        }
-
-        // Фильтрация: слово не должно быть пустым на целевом языке
-        val filteredByLang = all.filter { dto ->
+        val filteredByLang = pool.filter { dto ->
             when (targetLang) {
                 "en" -> !dto.word_en.isNullOrBlank()
                 "de" -> !dto.word_de.isNullOrBlank()
@@ -52,15 +47,7 @@ class SupabaseVocabularyRemoteDataSource(
 
         Timber.d("[SupabaseAPI] После фильтрации по языку '$targetLang': ${filteredByLang.size} записей")
 
-        // Фильтрация по категории (по умолчанию 'general')
-        val filteredByCategory = filteredByLang.filter { dto ->
-            dto.category?.lowercase() == "general"
-        }
-
-        Timber.d("[SupabaseAPI] После фильтрации по категории 'general': ${filteredByCategory.size} записей")
-
-        // Возвращаем случайные слова в нужном количестве
-        filteredByCategory
+        filteredByLang
             .shuffled()
             .take(limit)
             .also { result ->
@@ -76,30 +63,29 @@ class SupabaseVocabularyRemoteDataSource(
         val normalizedCategory = category.lowercase()
         Timber.d("[SupabaseAPI] Запрос по категории: lang=$targetLang, category=$normalizedCategory, limit=$limit")
 
-        // Загружаем все слова
-        val all = client.postgrest.from(tableName)
-            .select()
+        val fetchCap = (limit * 25).coerceIn(60, 500)
+        val pool = client.postgrest.from(tableName)
+            .select(columns = Columns.ALL) {
+                filter {
+                    ilike("category", normalizedCategory)
+                }
+                limit(count = fetchCap.toLong())
+            }
             .decodeList<SupabaseVocabularyDto>()
 
-        Timber.d("[SupabaseAPI] Загружено ${all.size} записей")
+        Timber.d("[SupabaseAPI] Получено ${pool.size} записей с сервера (cap=$fetchCap)")
 
-        // Клиентская фильтрация
-        val filtered = all.filter { dto ->
-            // 1. Слово на целевом языке не пустое
-            val hasWord = when (targetLang) {
+        val filtered = pool.filter { dto ->
+            when (targetLang) {
                 "en" -> !dto.word_en.isNullOrBlank()
                 "de" -> !dto.word_de.isNullOrBlank()
                 "fr" -> !dto.word_fr.isNullOrBlank()
                 "es" -> !dto.word_es.isNullOrBlank()
                 else -> !dto.word_en.isNullOrBlank()
             }
-            // 2. Категория совпадает (регистронезависимо)
-            val hasCategory = dto.category?.lowercase() == normalizedCategory
-
-            hasWord && hasCategory
         }
 
-        Timber.d("[SupabaseAPI] После фильтрации: ${filtered.size} записей")
+        Timber.d("[SupabaseAPI] После фильтрации по языку и категории: ${filtered.size} записей")
 
         filtered
             .shuffled()

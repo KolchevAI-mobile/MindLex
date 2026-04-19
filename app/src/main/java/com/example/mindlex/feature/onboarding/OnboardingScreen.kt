@@ -6,6 +6,8 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -40,7 +42,8 @@ fun OnboardingScreen(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Box(
+        val scroll = rememberScrollState()
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
@@ -51,30 +54,33 @@ fun OnboardingScreen(
                             MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
                         )
                     )
-                ),
-            contentAlignment = Alignment.Center
+                )
+                .verticalScroll(scroll)
+                .padding(horizontal = 24.dp)
+                .padding(top = 28.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.Start
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
                 AnimatedVisibility(
                     visible = true,
                     enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(horizontalAlignment = Alignment.Start) {
                         Text(
-                            text = "Добро пожаловать в MindLex",
+                            text = "MindLex",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Добро пожаловать",
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onBackground,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Start
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Настроим обучение за 20 секунд",
+                            text = "Настроим обучение за пару шагов",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -178,7 +184,6 @@ fun OnboardingScreen(
                 ) {
                     Text("Начать обучение")
                 }
-            }
         }
     }
 }
