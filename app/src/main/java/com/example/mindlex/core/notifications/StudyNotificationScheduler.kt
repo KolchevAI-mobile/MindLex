@@ -13,6 +13,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.example.mindlex.domain.repository.SettingsRepository
+import com.example.mindlex.domain.repository.AppNotificationRepository
 import com.example.mindlex.domain.repository.WordProgressRepository
 import com.example.mindlex.domain.usecase.CalculateRecommendedTimes
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -125,7 +126,8 @@ class StudyNotificationScheduler @Inject constructor(
 class MainStudyReminderWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted workerParams: WorkerParameters,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val appNotificationRepository: AppNotificationRepository
 ) : CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result {
@@ -138,19 +140,39 @@ class MainStudyReminderWorker @AssistedInject constructor(
         val isMainSlot = inputData.getBoolean(KEY_IS_MAIN_SLOT, true)
 
         if (isMainSlot) {
-            MindLexNotifications.show(
+            val title = "Пора учиться! 📚"
+            val message = "Ваша цель сегодня: $goal слов"
+            val isShown = MindLexNotifications.show(
                 context = applicationContext,
                 notificationId = 1000 + inputData.getInt(KEY_SLOT_INDEX, 1),
-                title = "Пора учиться! 📚",
-                message = "Ваша цель сегодня: $goal слов"
+                title = title,
+                message = message
             )
+            if (isShown) {
+                appNotificationRepository.addNotification(
+                    title = title,
+                    message = message,
+                    createdAtEpochMs = Clock.System.now().toEpochMilliseconds(),
+                    type = "main_study"
+                )
+            }
         } else {
-            MindLexNotifications.show(
+            val title = "Время для занятия! 🔁"
+            val message = "Рекомендованная сессия повторения. Цель на сегодня: $goal слов"
+            val isShown = MindLexNotifications.show(
                 context = applicationContext,
                 notificationId = 1000 + inputData.getInt(KEY_SLOT_INDEX, 1),
-                title = "Время для занятия! 🔁",
-                message = "Рекомендованная сессия повторения. Цель на сегодня: $goal слов"
+                title = title,
+                message = message
             )
+            if (isShown) {
+                appNotificationRepository.addNotification(
+                    title = title,
+                    message = message,
+                    createdAtEpochMs = Clock.System.now().toEpochMilliseconds(),
+                    type = "recommended_study"
+                )
+            }
         }
         return Result.success()
     }
@@ -167,7 +189,8 @@ class DueReviewReminderWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted workerParams: WorkerParameters,
     private val settingsRepository: SettingsRepository,
-    private val wordProgressRepository: WordProgressRepository
+    private val wordProgressRepository: WordProgressRepository,
+    private val appNotificationRepository: AppNotificationRepository
 ) : CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result {
@@ -177,12 +200,22 @@ class DueReviewReminderWorker @AssistedInject constructor(
         if (dueCount <= 0) return Result.success()
 
         MindLexNotifications.ensureChannel(applicationContext)
-        MindLexNotifications.show(
+        val title = "Пора повторить! 🔄"
+        val message = "У вас $dueCount слов на повторение"
+        val isShown = MindLexNotifications.show(
             context = applicationContext,
             notificationId = 2001,
-            title = "Пора повторить! 🔄",
-            message = "У вас $dueCount слов на повторение"
+            title = title,
+            message = message
         )
+        if (isShown) {
+            appNotificationRepository.addNotification(
+                title = title,
+                message = message,
+                createdAtEpochMs = Clock.System.now().toEpochMilliseconds(),
+                type = "due_review"
+            )
+        }
         return Result.success()
     }
 }
@@ -192,7 +225,8 @@ class MissedGoalReminderWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted workerParams: WorkerParameters,
     private val settingsRepository: SettingsRepository,
-    private val wordProgressRepository: WordProgressRepository
+    private val wordProgressRepository: WordProgressRepository,
+    private val appNotificationRepository: AppNotificationRepository
 ) : CoroutineWorker(context, workerParams) {
     override suspend fun doWork(): Result {
         if (settingsRepository.isNotificationsEnabled().firstOrNull() != true) return Result.success()
@@ -206,12 +240,22 @@ class MissedGoalReminderWorker @AssistedInject constructor(
 
         if (reviewedToday >= dailyGoal) return Result.success()
         MindLexNotifications.ensureChannel(applicationContext)
-        MindLexNotifications.show(
+        val title = "Не забудьте! ⏰"
+        val message = "Вы ещё не выполнили цель сегодня"
+        val isShown = MindLexNotifications.show(
             context = applicationContext,
             notificationId = 3001,
-            title = "Не забудьте! ⏰",
-            message = "Вы ещё не выполнили цель сегодня"
+            title = title,
+            message = message
         )
+        if (isShown) {
+            appNotificationRepository.addNotification(
+                title = title,
+                message = message,
+                createdAtEpochMs = Clock.System.now().toEpochMilliseconds(),
+                type = "missed_goal"
+            )
+        }
         return Result.success()
     }
 }

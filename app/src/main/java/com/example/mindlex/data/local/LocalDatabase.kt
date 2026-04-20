@@ -7,6 +7,8 @@ import com.example.mindlex.data.local.dao.ProgressDao
 import com.example.mindlex.data.local.dao.VocabularyDao
 import com.example.mindlex.data.local.dao.WordDao
 import com.example.mindlex.data.local.dao.WordProgressDao
+import com.example.mindlex.data.local.dao.AppNotificationDao
+import com.example.mindlex.data.local.entity.AppNotificationEntity
 import com.example.mindlex.data.local.entity.ProgressEntity
 import com.example.mindlex.data.local.entity.VocabularyEntity
 import com.example.mindlex.data.local.entity.WordEntity
@@ -17,9 +19,10 @@ import com.example.mindlex.data.local.entity.WordProgressEntity
         WordEntity::class,
         ProgressEntity::class,
         VocabularyEntity::class,
-        WordProgressEntity::class
+        WordProgressEntity::class,
+        AppNotificationEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(LocalTypeConverters::class)
@@ -32,4 +35,6 @@ abstract class LocalDatabase : RoomDatabase() {
     abstract fun vocabularyDao(): VocabularyDao
 
     abstract fun wordProgressDao(): WordProgressDao
+
+    abstract fun appNotificationDao(): AppNotificationDao
 }

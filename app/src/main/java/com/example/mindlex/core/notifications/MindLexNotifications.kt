@@ -31,11 +31,11 @@ object MindLexNotifications {
         manager.createNotificationChannel(channel)
     }
 
-    fun show(context: Context, notificationId: Int, title: String, message: String) {
+    fun show(context: Context, notificationId: Int, title: String, message: String): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) {
-            return
+            return false
         }
 
         val openAppIntent = Intent(context, MainActivity::class.java).apply {
@@ -58,5 +58,6 @@ object MindLexNotifications {
             .build()
 
         NotificationManagerCompat.from(context).notify(notificationId, notification)
+        return true
     }
 }

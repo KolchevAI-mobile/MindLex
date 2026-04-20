@@ -35,6 +35,11 @@
     <string name="dashboard_today_progress">Прогресс сегодня</string>
     <string name="dashboard_learn_new">Учить новые слова</string>
     <string name="dashboard_training">Тренировка</string>
+    <string name="notifications_title">Уведомления</string>
+    <string name="notifications_empty_title">Сегодня пока тихо</string>
+    <string name="notifications_empty_subtitle">Новые уведомления за день появятся здесь</string>
+    <string name="notifications_mark_read">Прочитано</string>
+    <string name="notifications_mark_all_read">Прочитать все</string>
 
     <string name="mechanics_header">Режимы обучения</string>
     <string name="mechanics_subtitle">Выберите режим обучения</string>

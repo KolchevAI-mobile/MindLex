@@ -8,12 +8,14 @@ object DashboardDestinations {
     const val ROOT = "dashboard_root"
     const val DASHBOARD = "dashboard_screen"
     const val LEARNING = "learning_screen"
+    const val NOTIFICATIONS = "notifications_screen"
 }
 
 fun NavGraphBuilder.dashboardGraph(
     onOpenSettings: () -> Unit,
     onStartLearning: () -> Unit,
     onQuickTraining: () -> Unit,
+    onOpenNotifications: () -> Unit,
     onBackFromLearning: () -> Unit
 ) {
     navigation(
@@ -24,7 +26,13 @@ fun NavGraphBuilder.dashboardGraph(
             DashboardScreen(
                 onOpenSettings = onOpenSettings,
                 onStartLearning = onStartLearning,
-                onQuickTraining = onQuickTraining
+                onQuickTraining = onQuickTraining,
+                onOpenNotifications = onOpenNotifications
+            )
+        }
+        composable(DashboardDestinations.NOTIFICATIONS) {
+            com.example.mindlex.feature.notifications.NotificationsScreen(
+                onBackClick = onBackFromLearning
             )
         }
         composable(DashboardDestinations.LEARNING) {

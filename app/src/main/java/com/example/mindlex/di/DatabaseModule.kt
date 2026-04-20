@@ -3,6 +3,7 @@ package com.example.mindlex.di
 import android.content.Context
 import androidx.room.Room
 import com.example.mindlex.data.local.LocalDatabase
+import com.example.mindlex.data.local.dao.AppNotificationDao
 import com.example.mindlex.data.local.dao.ProgressDao
 import com.example.mindlex.data.local.dao.VocabularyDao
 import com.example.mindlex.data.local.dao.WordDao
@@ -43,4 +44,7 @@ object DatabaseModule {
 
     @Provides
     fun provideWordProgressDao(database: LocalDatabase): WordProgressDao = database.wordProgressDao()
+
+    @Provides
+    fun provideAppNotificationDao(database: LocalDatabase): AppNotificationDao = database.appNotificationDao()
 }

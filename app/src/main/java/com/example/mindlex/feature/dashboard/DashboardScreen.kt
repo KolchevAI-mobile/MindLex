@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -58,6 +60,7 @@ fun DashboardScreen(
     onOpenSettings: () -> Unit = {},
     onStartLearning: () -> Unit = {},
     onQuickTraining: () -> Unit = {},
+    onOpenNotifications: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -68,12 +71,22 @@ fun DashboardScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.dashboard_title)) },
                 actions = {
-                    IconButton(onClick = { /* TODO: Notifications */ }) {
-                        Icon(
-                            imageVector = Icons.Default.Notifications,
-                            contentDescription = stringResource(R.string.cd_notifications),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+                    IconButton(onClick = onOpenNotifications) {
+                        BadgedBox(
+                            badge = {
+                                if (uiState.unreadNotificationsCount > 0) {
+                                    Badge {
+                                        Text(text = uiState.unreadNotificationsCount.coerceAtMost(9).toString())
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = stringResource(R.string.cd_notifications),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

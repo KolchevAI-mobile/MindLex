@@ -2,6 +2,7 @@ package com.example.mindlex.feature.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mindlex.domain.repository.AppNotificationRepository
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.repository.WordProgressRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     settingsRepository: SettingsRepository,
-    progressRepository: WordProgressRepository
+    progressRepository: WordProgressRepository,
+    appNotificationRepository: AppNotificationRepository
 ) : ViewModel() {
     private val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
     private val dayStart = today.atStartOfDayIn(TimeZone.currentSystemDefault())
@@ -47,7 +49,8 @@ class DashboardViewModel @Inject constructor(
         val rushBestScore: Int = 0,
         val rushMaxCombo: Int = 0,
         val synonymChainsCompleted: Int = 0,
-        val synonymChainAvgLength: Double = 0.0
+        val synonymChainAvgLength: Double = 0.0,
+        val unreadNotificationsCount: Int = 0
     )
 
     private val dashboardBaseFlow = combine(
@@ -82,9 +85,13 @@ class DashboardViewModel @Inject constructor(
         combine(
             progressRepository.observeReviewedWordsCountBetween(dayStart, dayEnd),
             settingsRepository.getCurrentStreak(),
-            settingsRepository.getLastStudyDate()
-        ) { reviewedToday, storedStreak, lastStudyDateRaw ->
-            Triple(reviewedToday, storedStreak, lastStudyDateRaw)
+            settingsRepository.getLastStudyDate(),
+            appNotificationRepository.observeUnreadCountBetween(
+                startEpochMs = dayStart.epochSeconds * 1000L,
+                endEpochMs = dayEnd.epochSeconds * 1000L
+            )
+        ) { reviewedToday, storedStreak, lastStudyDateRaw, unreadNotificationsCount ->
+            Quadruple(reviewedToday, storedStreak, lastStudyDateRaw, unreadNotificationsCount)
         }
     ) { primary, secondary ->
         val base = primary.first
@@ -93,6 +100,7 @@ class DashboardViewModel @Inject constructor(
         val reviewedToday = secondary.first
         val storedStreak = secondary.second
         val lastStudyDateRaw = secondary.third
+        val unreadNotificationsCount = secondary.fourth
         val dailyProgress = ((reviewedToday.toDouble() / base.dailyGoal.coerceAtLeast(1)) * 100)
             .toInt()
             .coerceIn(0, 100)
@@ -107,7 +115,8 @@ class DashboardViewModel @Inject constructor(
             rushBestScore = base.rushBestScore,
             rushMaxCombo = base.rushMaxCombo,
             synonymChainsCompleted = base.synonymChainsCompleted,
-            synonymChainAvgLength = avgChainLength
+            synonymChainAvgLength = avgChainLength,
+            unreadNotificationsCount = unreadNotificationsCount
         )
     }.stateIn(
         viewModelScope,
@@ -128,3 +137,10 @@ class DashboardViewModel @Inject constructor(
         }
     }
 }
+
+private data class Quadruple<A, B, C, D>(
+    val first: A,
+    val second: B,
+    val third: C,
+    val fourth: D
+)

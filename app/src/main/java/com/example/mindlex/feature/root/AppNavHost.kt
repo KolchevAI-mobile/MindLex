@@ -113,6 +113,9 @@ fun MindLexAppNavHost(
             onQuickTraining = {
                 navController.navigate(ActiveRecallDestinations.ROOT)
             },
+            onOpenNotifications = {
+                navController.navigate(DashboardDestinations.NOTIFICATIONS)
+            },
             onBackFromLearning = {
                 navController.popBackStack()
             }
