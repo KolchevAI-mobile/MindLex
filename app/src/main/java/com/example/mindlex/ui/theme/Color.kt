@@ -8,10 +8,10 @@ val GreenPrimaryLight = Color(0xFF818CF8)
 val GreenPrimaryDark = Color(0xFF312E81)
 
 // Background & Surface
-val BackgroundLight = Color(0xFFF4F7FF)
-val SurfaceLight = Color(0xFFFFFFFF)
-val BackgroundDark = Color(0xFF0D1224)
-val SurfaceDark = Color(0xFF171E34)
+val BackgroundLight = Color(0xFFEEF2FF)
+val SurfaceLight = Color(0xFFFDFEFF)
+val BackgroundDark = Color(0xFF0B1022)
+val SurfaceDark = Color(0xFF171F3A)
 
 // Text
 val TextPrimaryLight = Color(0xFF111827)

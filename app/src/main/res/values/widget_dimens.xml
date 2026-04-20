@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="widget_padding_h">20dp</dimen>
+    <dimen name="widget_padding_v">16dp</dimen>
+    <dimen name="widget_radius">20dp</dimen>
+    <dimen name="widget_title_sub_gap">6dp</dimen>
+    <dimen name="widget_title_gap">10dp</dimen>
+    <dimen name="widget_sub_progress_gap">14dp</dimen>
+    <dimen name="widget_progress_height">7dp</dimen>
+    <dimen name="widget_chip_padding_h">10dp</dimen>
+    <dimen name="widget_chip_padding_v">4dp</dimen>
+    <dimen name="widget_decor_size">108dp</dimen>
+    <dimen name="widget_decor_margin_top">-14dp</dimen>
+    <dimen name="widget_decor_margin_end">-8dp</dimen>
+    <dimen name="widget_glow_size">128dp</dimen>
+    <dimen name="widget_glow_margin_end">-30dp</dimen>
+    <dimen name="widget_glow_margin_bottom">-34dp</dimen>
+</resources>

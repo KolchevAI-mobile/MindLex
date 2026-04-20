@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Виджет: тёмная тема — насыщенный фон с фиолетовым акцентом -->
+    <color name="widget_bg_surface">#FF1D2140</color>
+    <color name="widget_bg_surface_alt">#FF2C2A5B</color>
+    <color name="widget_bg_border">#4DE5E7FF</color>
+    <color name="widget_bg_glow">#4D8B5CF6</color>
+    <color name="widget_pattern_tint">#FFB5BEFF</color>
+    <color name="widget_caption_chip_bg">#2EFFFFFF</color>
+    <color name="widget_caption_chip_stroke">#3DFFFFFF</color>
+    <color name="widget_text_caption">#FFF0F3FF</color>
+    <color name="widget_text_title">#FFFFFFFF</color>
+    <color name="widget_text_subtitle">#FFDEE5FF</color>
+    <color name="widget_progress_track">#3DE8EAFE</color>
+    <color name="widget_progress_fill_start">#FFC4B5FD</color>
+    <color name="widget_progress_fill_end">#FF818CF8</color>
+</resources>
