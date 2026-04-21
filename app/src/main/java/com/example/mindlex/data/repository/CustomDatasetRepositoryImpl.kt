@@ -1,14 +1,16 @@
 package com.example.mindlex.data.repository
 
+import android.content.Context
 import com.example.mindlex.data.local.entity.VocabularyEntity
 import com.example.mindlex.data.local.repository.VocabularyLocalDataSource
+import com.example.mindlex.core.constants.LearningDefaults
 import com.example.mindlex.domain.model.CustomDatasetMeta
 import com.example.mindlex.domain.model.DatasetImportPayload
-import com.example.mindlex.domain.model.VocabularySource
 import com.example.mindlex.domain.repository.CustomDatasetRepository
 import com.example.mindlex.domain.repository.SettingsRepository
 import java.security.MessageDigest
 import javax.inject.Inject
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.datetime.Clock
@@ -18,15 +20,53 @@ import timber.log.Timber
 
 class CustomDatasetRepositoryImpl @Inject constructor(
     private val localDataSource: VocabularyLocalDataSource,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    @ApplicationContext private val appContext: Context
 ) : CustomDatasetRepository {
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    override fun observeDatasetMeta(): Flow<CustomDatasetMeta?> =
+    override fun observeCurrentDatasetMeta(): Flow<CustomDatasetMeta?> =
         settingsRepository.getCustomDatasetMeta()
 
+    override fun observeDatasetHistory(): Flow<List<CustomDatasetMeta>> =
+        settingsRepository.getCustomDatasetHistory()
+
     override suspend fun importDataset(payload: DatasetImportPayload): Result<CustomDatasetMeta> = runCatching {
+        importPayload(payload)
+    }.onFailure { error ->
+        Timber.e(error, "[CustomDataset] Ошибка импорта ${payload.fileName}")
+    }
+
+    override suspend fun refreshDataset(datasetId: String): Result<CustomDatasetMeta> = runCatching {
+        val history = settingsRepository.getCustomDatasetHistory().first()
+        val item = history.firstOrNull { it.id == datasetId }
+            ?: throw IllegalArgumentException("Датасет не найден в истории.")
+        val payload = readPayloadFromStoredMeta(item)
+        importPayload(payload, datasetId = item.id)
+    }.onFailure { error ->
+        Timber.e(error, "[CustomDataset] Ошибка обновления датасета id=$datasetId")
+    }
+
+    override suspend fun deleteDataset(datasetId: String): Result<Unit> = runCatching {
+        val history = settingsRepository.getCustomDatasetHistory().first()
+        val updated = history.filterNot { it.id == datasetId }
+        settingsRepository.setCustomDatasetHistory(updated)
+
+        val current = settingsRepository.getCustomDatasetMeta().first()
+        if (current?.id == datasetId) {
+            localDataSource.clearAll()
+            settingsRepository.setCustomDatasetMeta(null)
+            settingsRepository.setSelectedCategory(LearningDefaults.FALLBACK_CATEGORY)
+        }
+    }.onFailure { error ->
+        Timber.e(error, "[CustomDataset] Ошибка удаления датасета")
+    }
+
+    private suspend fun importPayload(
+        payload: DatasetImportPayload,
+        datasetId: String? = null
+    ): CustomDatasetMeta {
         val language = settingsRepository.getSelectedLanguage().first()
         val extension = payload.fileName.substringAfterLast('.', "").lowercase()
         val records = when (extension) {
@@ -39,6 +79,7 @@ class CustomDatasetRepositoryImpl @Inject constructor(
         }
 
         val now = Clock.System.now()
+        val metaId = datasetId ?: stableId(payload.sourceUri, payload.fileName, now.toEpochMilliseconds().toString())
         val entities = records.map { record ->
             VocabularyEntity(
                 id = stableId(language, record.word, record.translation),
@@ -54,28 +95,44 @@ class CustomDatasetRepositoryImpl @Inject constructor(
                 lastAccessed = now
             )
         }
-
         localDataSource.replaceAll(entities)
 
         val meta = CustomDatasetMeta(
+            id = metaId,
             displayName = payload.fileName,
             format = extension.uppercase(),
             recordsCount = entities.size,
-            importedAtEpochMillis = now.toEpochMilliseconds()
+            importedAtEpochMillis = now.toEpochMilliseconds(),
+            sourceUri = payload.sourceUri
         )
+        upsertHistory(meta)
         settingsRepository.setCustomDatasetMeta(meta)
-        settingsRepository.setVocabularySource(VocabularySource.CUSTOM)
-        meta
-    }.onFailure { error ->
-        Timber.e(error, "[CustomDataset] Ошибка импорта ${payload.fileName}")
+        settingsRepository.setSelectedCategory(LearningDefaults.CUSTOM_DATASET_CATEGORY)
+        return meta
     }
 
-    override suspend fun deleteDataset(): Result<Unit> = runCatching {
-        localDataSource.clearAll()
-        settingsRepository.setCustomDatasetMeta(null)
-        settingsRepository.setVocabularySource(VocabularySource.REMOTE)
-    }.onFailure { error ->
-        Timber.e(error, "[CustomDataset] Ошибка удаления датасета")
+    private suspend fun upsertHistory(meta: CustomDatasetMeta) {
+        val history = settingsRepository.getCustomDatasetHistory().first()
+        val updated = buildList {
+            add(meta)
+            addAll(history.filterNot { it.id == meta.id })
+        }
+        settingsRepository.setCustomDatasetHistory(updated)
+    }
+
+    private fun readPayloadFromStoredMeta(meta: CustomDatasetMeta): DatasetImportPayload {
+        return DatasetImportPayload(
+            fileName = meta.displayName,
+            rawContent = readTextFromUri(meta.sourceUri),
+            sourceUri = meta.sourceUri
+        )
+    }
+
+    private fun readTextFromUri(uri: String): String {
+        val input = android.net.Uri.parse(uri)
+        val stream = appContext.contentResolver.openInputStream(input)
+            ?: throw IllegalArgumentException("Не удалось открыть файл датасета.")
+        return stream.bufferedReader().use { it.readText() }
     }
 
     private fun stableId(language: String, word: String, translation: String): String {

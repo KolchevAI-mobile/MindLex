@@ -10,10 +10,13 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalTime
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 
 class SettingsLocalDataSource @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) {
+    private val json = Json { ignoreUnknownKeys = true }
     fun getSelectedLanguage(): Flow<String> {
         return dataStore.data.map { prefs ->
             prefs[PreferencesKeys.SELECTED_LANGUAGE] ?: "en"
@@ -223,17 +226,21 @@ class SettingsLocalDataSource @Inject constructor(
 
     fun getCustomDatasetMeta(): Flow<CustomDatasetMeta?> {
         return dataStore.data.map { prefs ->
+            val id = prefs[PreferencesKeys.CUSTOM_DATASET_ID] ?: return@map null
             val name = prefs[PreferencesKeys.CUSTOM_DATASET_NAME] ?: return@map null
             val format = prefs[PreferencesKeys.CUSTOM_DATASET_FORMAT] ?: return@map null
             val recordsCount = prefs[PreferencesKeys.CUSTOM_DATASET_RECORDS_COUNT] ?: return@map null
             val importedAt = prefs[PreferencesKeys.CUSTOM_DATASET_IMPORTED_AT]?.toLongOrNull()
                 ?: return@map null
+            val sourceUri = prefs[PreferencesKeys.CUSTOM_DATASET_URI] ?: return@map null
 
             CustomDatasetMeta(
+                id = id,
                 displayName = name,
                 format = format,
                 recordsCount = recordsCount,
-                importedAtEpochMillis = importedAt
+                importedAtEpochMillis = importedAt,
+                sourceUri = sourceUri
             )
         }
     }
@@ -241,16 +248,36 @@ class SettingsLocalDataSource @Inject constructor(
     suspend fun setCustomDatasetMeta(meta: CustomDatasetMeta?) {
         dataStore.edit { prefs ->
             if (meta == null) {
+                prefs.remove(PreferencesKeys.CUSTOM_DATASET_ID)
                 prefs.remove(PreferencesKeys.CUSTOM_DATASET_NAME)
                 prefs.remove(PreferencesKeys.CUSTOM_DATASET_FORMAT)
                 prefs.remove(PreferencesKeys.CUSTOM_DATASET_RECORDS_COUNT)
                 prefs.remove(PreferencesKeys.CUSTOM_DATASET_IMPORTED_AT)
+                prefs.remove(PreferencesKeys.CUSTOM_DATASET_URI)
             } else {
+                prefs[PreferencesKeys.CUSTOM_DATASET_ID] = meta.id
                 prefs[PreferencesKeys.CUSTOM_DATASET_NAME] = meta.displayName
                 prefs[PreferencesKeys.CUSTOM_DATASET_FORMAT] = meta.format
                 prefs[PreferencesKeys.CUSTOM_DATASET_RECORDS_COUNT] = meta.recordsCount
                 prefs[PreferencesKeys.CUSTOM_DATASET_IMPORTED_AT] = meta.importedAtEpochMillis.toString()
+                prefs[PreferencesKeys.CUSTOM_DATASET_URI] = meta.sourceUri
             }
+        }
+    }
+
+    fun getCustomDatasetHistory(): Flow<List<CustomDatasetMeta>> {
+        return dataStore.data.map { prefs ->
+            val raw = prefs[PreferencesKeys.CUSTOM_DATASET_HISTORY] ?: return@map emptyList()
+            runCatching {
+                json.decodeFromString(ListSerializer(CustomDatasetMeta.serializer()), raw)
+            }.getOrElse { emptyList() }
+        }
+    }
+
+    suspend fun setCustomDatasetHistory(history: List<CustomDatasetMeta>) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.CUSTOM_DATASET_HISTORY] =
+                json.encodeToString(ListSerializer(CustomDatasetMeta.serializer()), history)
         }
     }
 }

@@ -2,6 +2,7 @@ package com.example.mindlex.core.constants
 
 object LearningDefaults {
     const val FALLBACK_CATEGORY: String = "general"
+    const val CUSTOM_DATASET_CATEGORY: String = "custom_dataset"
     const val DAILY_GOAL_FALLBACK: Int = 10
     const val PROGRESS_CANDIDATE_LIMIT: Int = 10
     const val VOCABULARY_FETCH_LIMIT: Int = 20

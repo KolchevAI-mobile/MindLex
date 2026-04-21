@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mindlex.core.notifications.StudyNotificationScheduler
+import com.example.mindlex.core.constants.LearningDefaults
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.usecase.CalculateRecommendedTimes
 import com.example.mindlex.widget.StudyWidgetUpdater
@@ -214,7 +215,8 @@ object Categories {
         CategoryOption("business", "Бизнес"),
         CategoryOption("it", "IT"),
         CategoryOption("sport", "Спорт"),
-        CategoryOption("family", "Семья")
+        CategoryOption("family", "Семья"),
+        CategoryOption(LearningDefaults.CUSTOM_DATASET_CATEGORY, "Свой датасет")
     )
 
     fun getDisplayName(code: String): String =

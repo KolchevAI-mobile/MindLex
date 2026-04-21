@@ -5,8 +5,10 @@ import com.example.mindlex.domain.model.DatasetImportPayload
 import kotlinx.coroutines.flow.Flow
 
 interface CustomDatasetRepository {
-    fun observeDatasetMeta(): Flow<CustomDatasetMeta?>
+    fun observeCurrentDatasetMeta(): Flow<CustomDatasetMeta?>
+    fun observeDatasetHistory(): Flow<List<CustomDatasetMeta>>
     suspend fun importDataset(payload: DatasetImportPayload): Result<CustomDatasetMeta>
-    suspend fun deleteDataset(): Result<Unit>
+    suspend fun refreshDataset(datasetId: String): Result<CustomDatasetMeta>
+    suspend fun deleteDataset(datasetId: String): Result<Unit>
 }
 

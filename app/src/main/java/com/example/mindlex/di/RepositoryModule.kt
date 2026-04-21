@@ -30,7 +30,9 @@ import com.example.mindlex.domain.repository.WordRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import android.content.Context
 import javax.inject.Singleton
 
 @Module
@@ -112,11 +114,13 @@ object RepositoryModule {
     @Singleton
     fun provideCustomDatasetRepository(
         localDataSource: VocabularyLocalDataSource,
-        settingsRepository: SettingsRepository
+        settingsRepository: SettingsRepository,
+        @ApplicationContext appContext: Context
     ): CustomDatasetRepository {
         return CustomDatasetRepositoryImpl(
             localDataSource = localDataSource,
-            settingsRepository = settingsRepository
+            settingsRepository = settingsRepository,
+            appContext = appContext
         )
     }
 }

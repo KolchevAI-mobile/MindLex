@@ -30,7 +30,10 @@ object PreferencesKeys {
     val PREFERRED_STUDY_TIME = stringPreferencesKey("preferred_study_time")
     val VOCABULARY_SOURCE = stringPreferencesKey("vocabulary_source")
     val CUSTOM_DATASET_NAME = stringPreferencesKey("custom_dataset_name")
+    val CUSTOM_DATASET_ID = stringPreferencesKey("custom_dataset_id")
     val CUSTOM_DATASET_FORMAT = stringPreferencesKey("custom_dataset_format")
     val CUSTOM_DATASET_RECORDS_COUNT = intPreferencesKey("custom_dataset_records_count")
     val CUSTOM_DATASET_IMPORTED_AT = stringPreferencesKey("custom_dataset_imported_at")
+    val CUSTOM_DATASET_URI = stringPreferencesKey("custom_dataset_uri")
+    val CUSTOM_DATASET_HISTORY = stringPreferencesKey("custom_dataset_history")
 }

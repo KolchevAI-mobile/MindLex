@@ -95,4 +95,8 @@ interface SettingsRepository {
     fun getCustomDatasetMeta(): Flow<CustomDatasetMeta?>
 
     suspend fun setCustomDatasetMeta(meta: CustomDatasetMeta?)
+
+    fun getCustomDatasetHistory(): Flow<List<CustomDatasetMeta>>
+
+    suspend fun setCustomDatasetHistory(history: List<CustomDatasetMeta>)
 }

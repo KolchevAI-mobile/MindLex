@@ -2,9 +2,11 @@ package com.example.mindlex.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -27,7 +29,8 @@ fun MechanicSessionHeader(
     title: String,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
-    subtitle: (@Composable () -> Unit)? = null
+    subtitle: (@Composable () -> Unit)? = null,
+    trailingContent: (@Composable () -> Unit)? = null
 ) {
     Row(
         modifier = modifier
@@ -45,7 +48,7 @@ fun MechanicSessionHeader(
         Surface(
             modifier = Modifier
                 .weight(1f)
-                .padding(end = 12.dp),
+                .padding(horizontal = 8.dp),
             shape = RoundedCornerShape(999.dp),
             color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.88f)
         ) {
@@ -53,17 +56,22 @@ fun MechanicSessionHeader(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 10.dp),
-                horizontalAlignment = Alignment.Start
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    textAlign = TextAlign.Start,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
                 subtitle?.invoke()
             }
+        }
+        if (trailingContent != null) {
+            trailingContent()
+        } else {
+            Spacer(modifier = Modifier.width(48.dp))
         }
     }
 }

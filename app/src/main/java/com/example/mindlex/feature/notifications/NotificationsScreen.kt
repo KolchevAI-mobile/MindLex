@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.MarkEmailRead
@@ -32,8 +31,6 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,6 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mindlex.R
 import com.example.mindlex.domain.model.AppNotification
 import com.example.mindlex.ui.components.BookOpenDecorLayer
+import com.example.mindlex.ui.components.MechanicSessionHeader
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -63,32 +61,19 @@ fun NotificationsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(R.string.notifications_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.cd_back)
-                        )
-                    }
-                },
-                actions = {
+            MechanicSessionHeader(
+                title = stringResource(R.string.notifications_title),
+                onBackClick = onBackClick,
+                trailingContent = {
                     AnimatedVisibility(visible = uiState.hasUnread) {
-                        TextButton(onClick = viewModel::markAllAsRead) {
+                        IconButton(onClick = viewModel::markAllAsRead) {
                             Icon(
                                 imageVector = Icons.Filled.DoneAll,
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.notifications_mark_all_read)
                             )
-                            Spacer(modifier = Modifier.size(4.dp))
-                            Text(text = stringResource(R.string.notifications_mark_all_read))
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
-                )
+                }
             )
         }
     ) { paddingValues ->

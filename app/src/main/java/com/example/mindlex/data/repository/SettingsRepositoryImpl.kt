@@ -137,4 +137,11 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setCustomDatasetMeta(meta: CustomDatasetMeta?) {
         localDataSource.setCustomDatasetMeta(meta)
     }
+
+    override fun getCustomDatasetHistory(): Flow<List<CustomDatasetMeta>> =
+        localDataSource.getCustomDatasetHistory()
+
+    override suspend fun setCustomDatasetHistory(history: List<CustomDatasetMeta>) {
+        localDataSource.setCustomDatasetHistory(history)
+    }
 }
