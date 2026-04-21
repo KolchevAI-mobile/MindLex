@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import com.example.mindlex.data.local.entity.VocabularyEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.Instant
@@ -60,5 +61,19 @@ interface VocabularyDao {
         """
     )
     suspend fun trimCacheToSize(maxSize: Int)
+
+    @Query("DELETE FROM vocabulary_cache")
+    suspend fun clearAll()
+
+    @Query("DELETE FROM vocabulary_cache WHERE source = :source")
+    suspend fun clearBySource(source: String)
+
+    @Transaction
+    suspend fun replaceAll(words: List<VocabularyEntity>) {
+        clearAll()
+        if (words.isNotEmpty()) {
+            insertAll(words)
+        }
+    }
 }
 

@@ -4,6 +4,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import com.example.mindlex.core.storage.PreferencesKeys
+import com.example.mindlex.domain.model.CustomDatasetMeta
+import com.example.mindlex.domain.model.VocabularySource
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -203,6 +205,52 @@ class SettingsLocalDataSource @Inject constructor(
     suspend fun setPreferredStudyTime(value: LocalTime) {
         dataStore.edit { prefs ->
             prefs[PreferencesKeys.PREFERRED_STUDY_TIME] = value.toString()
+        }
+    }
+
+    fun getVocabularySource(): Flow<VocabularySource> {
+        return dataStore.data.map { prefs ->
+            val raw = prefs[PreferencesKeys.VOCABULARY_SOURCE]
+            if (raw == VocabularySource.CUSTOM.name) VocabularySource.CUSTOM else VocabularySource.REMOTE
+        }
+    }
+
+    suspend fun setVocabularySource(source: VocabularySource) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.VOCABULARY_SOURCE] = source.name
+        }
+    }
+
+    fun getCustomDatasetMeta(): Flow<CustomDatasetMeta?> {
+        return dataStore.data.map { prefs ->
+            val name = prefs[PreferencesKeys.CUSTOM_DATASET_NAME] ?: return@map null
+            val format = prefs[PreferencesKeys.CUSTOM_DATASET_FORMAT] ?: return@map null
+            val recordsCount = prefs[PreferencesKeys.CUSTOM_DATASET_RECORDS_COUNT] ?: return@map null
+            val importedAt = prefs[PreferencesKeys.CUSTOM_DATASET_IMPORTED_AT]?.toLongOrNull()
+                ?: return@map null
+
+            CustomDatasetMeta(
+                displayName = name,
+                format = format,
+                recordsCount = recordsCount,
+                importedAtEpochMillis = importedAt
+            )
+        }
+    }
+
+    suspend fun setCustomDatasetMeta(meta: CustomDatasetMeta?) {
+        dataStore.edit { prefs ->
+            if (meta == null) {
+                prefs.remove(PreferencesKeys.CUSTOM_DATASET_NAME)
+                prefs.remove(PreferencesKeys.CUSTOM_DATASET_FORMAT)
+                prefs.remove(PreferencesKeys.CUSTOM_DATASET_RECORDS_COUNT)
+                prefs.remove(PreferencesKeys.CUSTOM_DATASET_IMPORTED_AT)
+            } else {
+                prefs[PreferencesKeys.CUSTOM_DATASET_NAME] = meta.displayName
+                prefs[PreferencesKeys.CUSTOM_DATASET_FORMAT] = meta.format
+                prefs[PreferencesKeys.CUSTOM_DATASET_RECORDS_COUNT] = meta.recordsCount
+                prefs[PreferencesKeys.CUSTOM_DATASET_IMPORTED_AT] = meta.importedAtEpochMillis.toString()
+            }
         }
     }
 }

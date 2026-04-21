@@ -75,6 +75,7 @@ data class SupabaseVocabularyDto(
             phonetic = phonetic,
             partOfSpeech = partOfSpeech,
             category = category ?: "general",
+            source = "remote",
             synonymsForeign = synonymsStored,
             lastAccessed = now
         )

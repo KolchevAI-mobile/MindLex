@@ -1,6 +1,8 @@
 package com.example.mindlex.data.repository
 
 import com.example.mindlex.data.local.repository.SettingsLocalDataSource
+import com.example.mindlex.domain.model.CustomDatasetMeta
+import com.example.mindlex.domain.model.VocabularySource
 import com.example.mindlex.domain.repository.SettingsRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
@@ -120,5 +122,19 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setPreferredStudyTime(value: LocalTime) {
         localDataSource.setPreferredStudyTime(value)
+    }
+
+    override fun getVocabularySource(): Flow<VocabularySource> =
+        localDataSource.getVocabularySource()
+
+    override suspend fun setVocabularySource(source: VocabularySource) {
+        localDataSource.setVocabularySource(source)
+    }
+
+    override fun getCustomDatasetMeta(): Flow<CustomDatasetMeta?> =
+        localDataSource.getCustomDatasetMeta()
+
+    override suspend fun setCustomDatasetMeta(meta: CustomDatasetMeta?) {
+        localDataSource.setCustomDatasetMeta(meta)
     }
 }

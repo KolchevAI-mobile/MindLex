@@ -70,5 +70,17 @@ class VocabularyLocalDataSource @Inject constructor(
             Timber.d("[RoomCache] Закэшировано ${words.size} слов, LRU применён")
         }
     }
+
+    suspend fun replaceAll(words: List<VocabularyEntity>) {
+        withContext(Dispatchers.IO) {
+            dao.replaceAll(words)
+        }
+    }
+
+    suspend fun clearAll() {
+        withContext(Dispatchers.IO) {
+            dao.clearAll()
+        }
+    }
 }
 

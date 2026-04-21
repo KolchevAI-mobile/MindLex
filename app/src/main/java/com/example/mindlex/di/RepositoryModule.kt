@@ -9,6 +9,7 @@ import com.example.mindlex.data.local.repository.SettingsLocalDataSource
 import com.example.mindlex.data.local.repository.VocabularyLocalDataSource
 import com.example.mindlex.data.local.repository.WordLocalDataSource
 import com.example.mindlex.data.repository.AppNotificationRepositoryImpl
+import com.example.mindlex.data.repository.CustomDatasetRepositoryImpl
 import com.example.mindlex.data.repository.WordProgressRepositoryImpl
 import com.example.mindlex.data.remote.supabase.ClozeRemoteDataSource
 import com.example.mindlex.data.remote.supabase.SynonymChainRemoteDataSource
@@ -20,6 +21,7 @@ import com.example.mindlex.data.repository.VocabularyRepositoryImpl
 import com.example.mindlex.data.repository.WordRepositoryImpl
 import com.example.mindlex.domain.repository.ClozeRepository
 import com.example.mindlex.domain.repository.AppNotificationRepository
+import com.example.mindlex.domain.repository.CustomDatasetRepository
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.repository.SynonymChainRepository
 import com.example.mindlex.domain.repository.VocabularyRepository
@@ -104,5 +106,17 @@ object RepositoryModule {
         appNotificationDao: AppNotificationDao
     ): AppNotificationRepository {
         return AppNotificationRepositoryImpl(appNotificationDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCustomDatasetRepository(
+        localDataSource: VocabularyLocalDataSource,
+        settingsRepository: SettingsRepository
+    ): CustomDatasetRepository {
+        return CustomDatasetRepositoryImpl(
+            localDataSource = localDataSource,
+            settingsRepository = settingsRepository
+        )
     }
 }

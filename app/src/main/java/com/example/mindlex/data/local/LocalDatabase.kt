@@ -22,7 +22,7 @@ import com.example.mindlex.data.local.entity.WordProgressEntity
         WordProgressEntity::class,
         AppNotificationEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(LocalTypeConverters::class)

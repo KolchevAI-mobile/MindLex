@@ -4,6 +4,7 @@ import com.example.mindlex.core.constants.LearningDefaults
 import com.example.mindlex.data.local.entity.VocabularyEntity
 import com.example.mindlex.data.local.repository.VocabularyLocalDataSource
 import com.example.mindlex.data.remote.supabase.SupabaseVocabularyRemoteDataSource
+import com.example.mindlex.domain.model.VocabularySource
 import com.example.mindlex.domain.model.Vocabulary
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.repository.VocabularyRepository
@@ -27,7 +28,14 @@ class VocabularyRepositoryImpl @Inject constructor(
     ): Flow<Result<List<Vocabulary>>> = flow {
         // Read current language from settings
         val lang = settingsRepository.getSelectedLanguage().first()
+        val source = settingsRepository.getVocabularySource().first()
         Timber.d("[VocabularyRepository] Запрос: lang=$lang, limit=$limit")
+
+        if (source == VocabularySource.CUSTOM) {
+            val cached = localDataSource.getRandomWords(lang, limit).first()
+            emit(Result.success(cached))
+            return@flow
+        }
 
         val safeResult = remoteDataSource.safeGetRandomWords(lang, limit)
 
@@ -64,11 +72,22 @@ class VocabularyRepositoryImpl @Inject constructor(
         limit: Int
     ): Flow<Result<List<Vocabulary>>> = flow {
         val lang = settingsRepository.getSelectedLanguage().first()
+        val source = settingsRepository.getVocabularySource().first()
         val cat = category.lowercase()
         val poolLimit = (limit * LearningDefaults.ROOM_POOL_MULTIPLIER)
             .coerceAtLeast(LearningDefaults.ROOM_POOL_MIN)
             .coerceAtMost(LearningDefaults.ROOM_POOL_MAX)
         Timber.d("[VocabularyRepository] Запрос по категории: lang=$lang, category=$cat, limit=$limit")
+
+        if (source == VocabularySource.CUSTOM) {
+            val customWords = if (cat == LearningDefaults.FALLBACK_CATEGORY) {
+                localDataSource.getRandomWords(lang, limit).first()
+            } else {
+                localDataSource.getWordsByCategory(lang, cat, poolLimit).first().take(limit)
+            }
+            emit(Result.success(customWords))
+            return@flow
+        }
 
         val cached = localDataSource.getWordsByCategory(lang, cat, poolLimit).first()
         if (cached.size >= limit) {

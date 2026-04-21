@@ -49,6 +49,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
+    onOpenCustomDataset: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -135,6 +136,7 @@ fun SettingsScreen(
             SettingsHomeBody(
                 uiState = uiState,
                 viewModel = viewModel,
+                onOpenCustomDataset = onOpenCustomDataset,
                 notificationPermissionLauncher = notificationPermissionLauncher,
                 modifier = Modifier
                     .fillMaxSize()

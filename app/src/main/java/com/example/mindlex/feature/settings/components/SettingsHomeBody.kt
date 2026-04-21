@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
@@ -36,6 +37,7 @@ import com.example.mindlex.feature.settings.SettingsViewModel
 internal fun SettingsHomeBody(
     uiState: SettingsViewModel.UiState,
     viewModel: SettingsViewModel,
+    onOpenCustomDataset: () -> Unit,
     notificationPermissionLauncher: ActivityResultLauncher<String>,
     modifier: Modifier = Modifier
 ) {
@@ -143,6 +145,17 @@ internal fun SettingsHomeBody(
                     )
                 )
             }
+        }
+
+        SettingsCard(
+            icon = Icons.Default.Add,
+            title = "Свой датасет",
+            description = "Загрузите CSV/JSON словарь и используйте его в приложении"
+        ) {
+            SettingsActionButton(
+                text = "Добавить или управлять датасетом",
+                onClick = onOpenCustomDataset
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))

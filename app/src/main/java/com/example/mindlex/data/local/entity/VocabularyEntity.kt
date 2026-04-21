@@ -23,6 +23,7 @@ data class VocabularyEntity(
     val phonetic: String?,
     val partOfSpeech: String?,
     val category: String,
+    val source: String = "remote",
     /** Сырые синонимы на целевом языке (строка из Supabase). */
     val synonymsForeign: String? = null,
     val lastAccessed: Instant

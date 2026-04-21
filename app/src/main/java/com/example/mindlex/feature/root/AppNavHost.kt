@@ -170,6 +170,9 @@ fun MindLexAppNavHost(
         settingsGraph(
             onBackClick = {
                 navController.popBackStack()
+            },
+            onOpenCustomDataset = {
+                navController.navigate(SettingsDestinations.CUSTOM_DATASET)
             }
         )
     }

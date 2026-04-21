@@ -2,6 +2,8 @@ package com.example.mindlex.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalTime
+import com.example.mindlex.domain.model.CustomDatasetMeta
+import com.example.mindlex.domain.model.VocabularySource
 
 interface SettingsRepository {
 
@@ -85,4 +87,12 @@ interface SettingsRepository {
     fun getPreferredStudyTime(): Flow<LocalTime>
 
     suspend fun setPreferredStudyTime(value: LocalTime)
+
+    fun getVocabularySource(): Flow<VocabularySource>
+
+    suspend fun setVocabularySource(source: VocabularySource)
+
+    fun getCustomDatasetMeta(): Flow<CustomDatasetMeta?>
+
+    suspend fun setCustomDatasetMeta(meta: CustomDatasetMeta?)
 }
