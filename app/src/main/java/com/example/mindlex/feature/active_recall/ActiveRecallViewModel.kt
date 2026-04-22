@@ -28,6 +28,8 @@ class ActiveRecallViewModel @Inject constructor(
     private val updateProgress: UpdateWordProgress,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
+    private val shownWordIds = mutableSetOf<String>()
+
 
     data class UiState(
         val currentWord: Word? = null,
@@ -160,8 +162,9 @@ class ActiveRecallViewModel @Inject constructor(
     private fun loadNextWord() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            getNextWord()
+            getNextWord(excludedIds = shownWordIds.toSet())
                 .onSuccess { word ->
+                    shownWordIds.add(word.id)
                     _uiState.update {
                         it.copy(
                             currentWord = word,
@@ -172,7 +175,13 @@ class ActiveRecallViewModel @Inject constructor(
                 }
                 .onFailure {
                     Timber.e(it, "[ActiveRecallVM] loadNextWord")
-                    _uiState.update { s -> s.copy(isLoading = false) }
+                    val exhausted = it is NoSuchElementException
+                    _uiState.update { s ->
+                        s.copy(
+                            isLoading = false,
+                            sessionComplete = exhausted || s.sessionComplete
+                        )
+                    }
                 }
         }
     }
@@ -190,6 +199,7 @@ class ActiveRecallViewModel @Inject constructor(
     }
 
     fun retrySession() {
+        shownWordIds.clear()
         _uiState.update {
             UiState(
                 totalWords = it.totalWords,

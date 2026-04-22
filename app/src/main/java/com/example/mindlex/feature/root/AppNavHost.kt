@@ -93,7 +93,7 @@ fun MindLexAppNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = startDestination!! // Safe because we return early if null
+        startDestination = startDestination!!
     ) {
         onboardingGraph(
             onCompleted = {

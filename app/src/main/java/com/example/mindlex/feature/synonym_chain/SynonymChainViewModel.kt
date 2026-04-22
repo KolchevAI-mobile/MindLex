@@ -91,9 +91,8 @@ class SynonymChainViewModel @Inject constructor(
             return
         }
 
-        // Берём каноническое значение из списка, чтобы цепочка выглядела чисто и единообразно.
-        val acceptedWord = session.validSynonyms.firstOrNull { it.equals(input, ignoreCase = true) }
-            ?: input
+        // Сохраняем в цепочке именно ввод пользователя, чтобы не подменять его случайным вариантом.
+        val acceptedWord = input
 
         val updatedWords = session.collectedWords + acceptedWord
         saveStepProgress(

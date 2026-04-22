@@ -4,6 +4,7 @@ import com.example.mindlex.domain.model.ReviewResult
 import com.example.mindlex.domain.model.UserAnswer
 import com.example.mindlex.domain.model.Word
 import com.example.mindlex.domain.model.WordStatus
+import java.text.Normalizer
 import kotlinx.datetime.Clock
 import javax.inject.Inject
 import kotlin.math.min
@@ -19,14 +20,15 @@ class EvaluateAnswer @Inject constructor() {
         userAnswer: UserAnswer,
         correctWord: Word
     ): ReviewResult {
-        val allCorrectAnswers = listOf(correctWord.wordForeign) + correctWord.alternativeTranslations
+        val normalizedInput = normalizeAnswer(userAnswer.userInput)
+        val allCorrectAnswers = buildAnswerCandidates(correctWord)
 
         val bestMatch = allCorrectAnswers.minByOrNull { answer ->
-            levenshteinDistance(userAnswer.userInput.lowercase(), answer.lowercase())
+            levenshteinDistance(normalizedInput, answer)
         }
-        
+
         val distance = bestMatch?.let { answer ->
-            levenshteinDistance(userAnswer.userInput.lowercase(), answer.lowercase())
+            levenshteinDistance(normalizedInput, answer)
         } ?: Int.MAX_VALUE
 
         val quality = when {
@@ -43,6 +45,34 @@ class EvaluateAnswer @Inject constructor() {
             nextReviewAt = Clock.System.now(),
             newStatus = WordStatus.LEARNING
         )
+    }
+
+    private fun buildAnswerCandidates(correctWord: Word): List<String> {
+        val rawAnswers = listOf(correctWord.wordForeign) + correctWord.alternativeTranslations
+        return rawAnswers.asSequence()
+            .flatMap { splitVariants(it).asSequence() }
+            .map { normalizeAnswer(it) }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .toList()
+    }
+
+    private fun splitVariants(value: String): List<String> {
+        return value.split(',', ';', '/', '|')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .ifEmpty { listOf(value) }
+    }
+
+    private fun normalizeAnswer(value: String): String {
+        val withoutDiacritics = Normalizer.normalize(value, Normalizer.Form.NFD)
+            .replace("\\p{Mn}+".toRegex(), "")
+
+        return withoutDiacritics
+            .lowercase()
+            .replace("[^\\p{L}\\p{N}\\s-]".toRegex(), " ")
+            .replace("\\s+".toRegex(), " ")
+            .trim()
     }
 
     private fun levenshteinDistance(s1: String, s2: String): Int {

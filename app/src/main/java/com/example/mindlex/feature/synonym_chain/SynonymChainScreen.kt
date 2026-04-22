@@ -30,14 +30,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -82,12 +77,6 @@ fun SynonymChainScreen(
                 ),
         ) {
             BookOpenDecorLayer()
-            AnimatedContent(
-                targetState = Triple(uiState.isLoading, uiState.chainCompleted, uiState.loadError != null),
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "synonymStateChange"
-            ) { targetState ->
-            key(targetState) {
             when {
                 uiState.isLoading && uiState.chainSession == null -> {
                     Column(
@@ -251,11 +240,9 @@ fun SynonymChainScreen(
                         }
                     }
                 }
-            }
-            }
-            }
         }
     }
+}
 }
 
 @Composable

@@ -2,10 +2,6 @@ package com.example.mindlex.feature.rush
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,7 +33,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -104,12 +99,6 @@ fun RushScreen(
                 ),
         ) {
             BookOpenDecorLayer()
-            AnimatedContent(
-                targetState = Triple(uiState.isLoading, uiState.sessionFinished, uiState.loadError != null),
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "rushStateChange"
-            ) { targetState ->
-            key(targetState) {
             when {
                 uiState.loadError != null && !uiState.sessionFinished -> {
                     Column(
@@ -280,11 +269,9 @@ fun RushScreen(
                         }
                     }
                 }
-            }
-            }
-            }
         }
     }
+}
 }
 
 @Composable

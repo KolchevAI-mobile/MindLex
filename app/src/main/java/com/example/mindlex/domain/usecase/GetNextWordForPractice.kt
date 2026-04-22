@@ -17,7 +17,7 @@ class GetNextWordForPractice @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) {
 
-    suspend operator fun invoke(): Result<Word> {
+    suspend operator fun invoke(excludedIds: Set<String> = emptySet()): Result<Word> {
         val now = Clock.System.now()
 
         val selectedCategory =
@@ -25,8 +25,9 @@ class GetNextWordForPractice @Inject constructor(
         Timber.d("[GetNextWord] Категория: $selectedCategory")
 
         val dueReviews = progressRepository.getDueReviews(now).firstOrNull()
-        if (dueReviews != null && dueReviews.isNotEmpty()) {
-            val progress = dueReviews.random()
+        val dueCandidates = dueReviews.orEmpty().filterNot { it.wordId in excludedIds }
+        if (dueCandidates.isNotEmpty()) {
+            val progress = dueCandidates.random()
             val word = progressRepository.getWordById(progress.wordId)
             if (word != null) {
                 Timber.d("[GetNextWord] Найдено слово на повторение: ${word.wordNative}")
@@ -35,8 +36,9 @@ class GetNextWordForPractice @Inject constructor(
         }
 
         val newWords = progressRepository.getNewWords(limit = LearningDefaults.PROGRESS_CANDIDATE_LIMIT).firstOrNull()
-        if (newWords != null && newWords.isNotEmpty()) {
-            val progress = newWords.random()
+        val newCandidates = newWords.orEmpty().filterNot { it.wordId in excludedIds }
+        if (newCandidates.isNotEmpty()) {
+            val progress = newCandidates.random()
             val word = progressRepository.getWordById(progress.wordId)
             if (word != null) {
                 Timber.d("[GetNextWord] Найдено новое слово: ${word.wordNative}")
@@ -46,8 +48,9 @@ class GetNextWordForPractice @Inject constructor(
 
         val learningWords =
             progressRepository.getLearningWords(limit = LearningDefaults.PROGRESS_CANDIDATE_LIMIT).firstOrNull()
-        if (learningWords != null && learningWords.isNotEmpty()) {
-            val progress = learningWords.random()
+        val learningCandidates = learningWords.orEmpty().filterNot { it.wordId in excludedIds }
+        if (learningCandidates.isNotEmpty()) {
+            val progress = learningCandidates.random()
             val word = progressRepository.getWordById(progress.wordId)
             if (word != null) {
                 Timber.d("[GetNextWord] Найдено слово в изучении: ${word.wordNative}")
@@ -65,8 +68,9 @@ class GetNextWordForPractice @Inject constructor(
 
             vocabularyResult?.fold(
                 onSuccess = { words ->
-                    if (words.isNotEmpty()) {
-                        val randomVocabulary = words.random()
+                    val freshWords = words.filterNot { it.id in excludedIds }
+                    if (freshWords.isNotEmpty()) {
+                        val randomVocabulary = freshWords.random()
                         val word = VocabularyToWordMapper.toWord(randomVocabulary)
                         Timber.d("[GetNextWord] Загружено слово из словаря: ${word.wordNative}")
                         Result.success(word)
