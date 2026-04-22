@@ -24,12 +24,18 @@ class ValidateSynonym @Inject constructor() {
 
     private fun normalizeToken(value: String): String {
         val withoutDiacritics = Normalizer.normalize(value, Normalizer.Form.NFD)
-            .replace("\\p{Mn}+".toRegex(), "")
+            .replace(DIACRITICS_REGEX, "")
 
         return withoutDiacritics
             .lowercase()
-            .replace("[^\\p{L}\\p{N}\\s-]".toRegex(), " ")
-            .replace("\\s+".toRegex(), " ")
+            .replace(NON_WORD_REGEX, " ")
+            .replace(MULTIPLE_SPACES_REGEX, " ")
             .trim()
+    }
+
+    private companion object {
+        val DIACRITICS_REGEX = "\\p{Mn}+".toRegex()
+        val NON_WORD_REGEX = "[^\\p{L}\\p{N}\\s-]".toRegex()
+        val MULTIPLE_SPACES_REGEX = "\\s+".toRegex()
     }
 }

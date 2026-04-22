@@ -91,9 +91,11 @@ fun MindLexAppNavHost(
         return
     }
 
+    val resolvedStartDestination = startDestination ?: return
+
     NavHost(
         navController = navController,
-        startDestination = startDestination!!
+        startDestination = resolvedStartDestination
     ) {
         onboardingGraph(
             onCompleted = {

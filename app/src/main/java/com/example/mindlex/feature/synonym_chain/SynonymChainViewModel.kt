@@ -81,6 +81,7 @@ class SynonymChainViewModel @Inject constructor(
 
     fun checkAnswer() {
         val state = _uiState.value
+        if (state.isLoading) return
         val session = state.chainSession ?: return
         val input = state.userInput.trim()
         if (input.isBlank()) return
@@ -119,7 +120,8 @@ class SynonymChainViewModel @Inject constructor(
         loadNextStep(
             chainId = session.chainId,
             stepNumber = session.currentStep + 1,
-            collectedWords = updatedWords
+            collectedWords = updatedWords,
+            fallbackWord = acceptedWord
         )
     }
 
@@ -191,7 +193,8 @@ class SynonymChainViewModel @Inject constructor(
     private fun loadNextStep(
         chainId: String,
         stepNumber: Int,
-        collectedWords: List<String>
+        collectedWords: List<String>,
+        fallbackWord: String
     ) {
         viewModelScope.launch {
             _uiState.update {
@@ -210,7 +213,7 @@ class SynonymChainViewModel @Inject constructor(
 
             nextStepResult
                 .onSuccess { nextStep ->
-                    val fallbackStep = buildFallbackStep(chainId, stepNumber, collectedWords.last())
+                    val fallbackStep = buildFallbackStep(chainId, stepNumber, fallbackWord)
                     val resolved = nextStep ?: fallbackStep
                     _uiState.update {
                         it.copy(
