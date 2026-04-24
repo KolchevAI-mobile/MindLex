@@ -4,7 +4,6 @@ import com.example.mindlex.data.remote.supabase.SynonymChainRemoteDataSource
 import com.example.mindlex.domain.model.SynonymChain
 import com.example.mindlex.domain.repository.SynonymChainRepository
 import javax.inject.Inject
-import timber.log.Timber
 
 class SynonymChainRepositoryImpl @Inject constructor(
     private val remoteDataSource: SynonymChainRemoteDataSource
@@ -39,7 +38,6 @@ class SynonymChainRepositoryImpl @Inject constructor(
         }
 
         val selected = startCandidates.random()
-        Timber.d("[SynonymChainRepo] Выбрана цепочка ${selected.chainId}, шаг ${selected.stepNumber}")
         return Result.success(selected)
     }
 

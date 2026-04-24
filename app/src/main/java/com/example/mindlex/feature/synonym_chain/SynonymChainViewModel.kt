@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import timber.log.Timber
 
 @HiltViewModel
 class SynonymChainViewModel @Inject constructor(
@@ -179,7 +178,6 @@ class SynonymChainViewModel @Inject constructor(
                     }
                 }
                 .onFailure { error ->
-                    Timber.e(error, "[SynonymChainVM] Ошибка старта цепочки")
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -231,7 +229,6 @@ class SynonymChainViewModel @Inject constructor(
                     }
                 }
                 .onFailure { error ->
-                    Timber.e(error, "[SynonymChainVM] Ошибка загрузки шага цепочки")
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -271,9 +268,7 @@ class SynonymChainViewModel @Inject constructor(
                 nextReviewAt = Clock.System.now(),
                 newStatus = if (isCorrect) WordStatus.KNOWN else WordStatus.LEARNING
             )
-            updateWordProgress(review).onFailure {
-                Timber.e(it, "[SynonymChainVM] Ошибка сохранения прогресса шага")
-            }
+            updateWordProgress(review)
         }
     }
 

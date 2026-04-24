@@ -5,20 +5,22 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import com.example.mindlex.domain.usecase.IsOnboardingCompleted
+import com.example.mindlex.domain.usecase.RescheduleStudyReminders
 import com.example.mindlex.feature.active_recall.ActiveRecallDestinations
 import com.example.mindlex.feature.active_recall.activeRecallGraph
 import com.example.mindlex.feature.cloze.ClozeDestinations
 import com.example.mindlex.feature.cloze.clozeGraph
-import com.example.mindlex.feature.rush.RushDestinations
-import com.example.mindlex.feature.rush.rushGraph
 import com.example.mindlex.feature.dashboard.DashboardDestinations
 import com.example.mindlex.feature.dashboard.dashboardGraph
 import com.example.mindlex.feature.mechanics.MechanicType
@@ -26,27 +28,23 @@ import com.example.mindlex.feature.mechanics.MechanicsDestinations
 import com.example.mindlex.feature.mechanics.mechanicsGraph
 import com.example.mindlex.feature.onboarding.OnboardingDestinations
 import com.example.mindlex.feature.onboarding.onboardingGraph
+import com.example.mindlex.feature.rush.RushDestinations
+import com.example.mindlex.feature.rush.rushGraph
 import com.example.mindlex.feature.settings.SettingsDestinations
 import com.example.mindlex.feature.settings.settingsGraph
 import com.example.mindlex.feature.synonym_chain.SynonymChainDestinations
 import com.example.mindlex.feature.synonym_chain.synonymChainGraph
-import com.example.mindlex.core.notifications.StudyNotificationScheduler
-import com.example.mindlex.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import com.example.mindlex.domain.usecase.IsOnboardingCompleted
 
 @HiltViewModel
 class RootViewModel @Inject constructor(
     private val isOnboardingCompleted: IsOnboardingCompleted,
-    private val settingsRepository: SettingsRepository,
-    private val scheduler: StudyNotificationScheduler
+    private val rescheduleStudyReminders: RescheduleStudyReminders
 ) : ViewModel() {
 
     private val _startDestination = MutableStateFlow<String?>(null)
@@ -62,11 +60,7 @@ class RootViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            scheduler.rescheduleDailyNotifications(
-                notificationsEnabled = settingsRepository.isNotificationsEnabled().first(),
-                preferredStudyTime = settingsRepository.getPreferredStudyTime().first(),
-                dailyGoal = settingsRepository.getDailyGoal().first()
-            )
+            rescheduleStudyReminders()
         }
     }
 }

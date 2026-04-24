@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 /**
@@ -196,7 +195,6 @@ class RushViewModel @Inject constructor(
                     recordMaxCombo = newComboRec
                 )
             }
-            Timber.d("[Rush] Финиш: очки=${state.score}, max комбо=${state.sessionMaxCombo}, wpm=$wpm")
         }
     }
 
@@ -254,8 +252,7 @@ class RushViewModel @Inject constructor(
 
         viewModelScope.launch {
             if (!_uiState.value.sessionRunning || _uiState.value.sessionFinished) return@launch
-            loadNextWordInternal().onFailure { e ->
-                Timber.e(e, "[Rush] Не удалось взять следующее слово")
+            loadNextWordInternal().onFailure {
                 finishSession()
             }
         }
@@ -274,8 +271,7 @@ class RushViewModel @Inject constructor(
         }
         viewModelScope.launch {
             if (!_uiState.value.sessionRunning || _uiState.value.sessionFinished) return@launch
-            loadNextWordInternal().onFailure { e ->
-                Timber.e(e, "[Rush] Не удалось взять следующее слово")
+            loadNextWordInternal().onFailure {
                 finishSession()
             }
         }

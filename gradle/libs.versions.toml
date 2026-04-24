@@ -52,7 +52,6 @@ mockk = "1.14.9"                   # mockk-android
 turbine = "1.2.0"                  # turbine
 
 # Utils
-timber = "5.0.1"                   # timber
 kotlinxDatetime = "0.6.2"          # kotlinx-datetime (0.7.x + Kotlin 2.1 даёт конфликт с kotlin.time)
 
 # Plugins
@@ -137,7 +136,6 @@ mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 # Utils
-timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 
 [plugins]

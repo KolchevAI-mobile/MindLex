@@ -8,7 +8,6 @@ import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 class SupabaseVocabularyRemoteDataSource(
     private val client: SupabaseClient
@@ -25,8 +24,6 @@ class SupabaseVocabularyRemoteDataSource(
         targetLang: String,
         limit: Int
     ): List<SupabaseVocabularyDto> = withContext(Dispatchers.IO) {
-        Timber.d("[SupabaseAPI] Запрос к таблице '$tableName': targetLang=$targetLang, limit=$limit")
-
         val pool = client.postgrest.from(tableName)
             .select(columns = Columns.ALL) {
                 filter {
@@ -35,8 +32,6 @@ class SupabaseVocabularyRemoteDataSource(
                 limit(count = fetchCap(limit))
             }
             .decodeList<SupabaseVocabularyDto>()
-
-        Timber.d("[SupabaseAPI] Получено ${pool.size} записей (category=${LearningDefaults.FALLBACK_CATEGORY})")
 
         val filteredByLang = pool.filter { dto ->
             when (targetLang) {
@@ -48,14 +43,9 @@ class SupabaseVocabularyRemoteDataSource(
             }
         }
 
-        Timber.d("[SupabaseAPI] После фильтрации по языку '$targetLang': ${filteredByLang.size} записей")
-
         filteredByLang
             .shuffled()
             .take(limit)
-            .also { result ->
-                Timber.d("[SupabaseAPI] Возвращаю ${result.size} слов")
-            }
     }
 
     override suspend fun getWordsByCategory(
@@ -64,7 +54,6 @@ class SupabaseVocabularyRemoteDataSource(
         limit: Int
     ): List<SupabaseVocabularyDto> = withContext(Dispatchers.IO) {
         val normalizedCategory = category.lowercase()
-        Timber.d("[SupabaseAPI] Запрос по категории: lang=$targetLang, category=$normalizedCategory, limit=$limit")
 
         val pool = client.postgrest.from(tableName)
             .select(columns = Columns.ALL) {
@@ -74,8 +63,6 @@ class SupabaseVocabularyRemoteDataSource(
                 limit(count = fetchCap(limit))
             }
             .decodeList<SupabaseVocabularyDto>()
-
-        Timber.d("[SupabaseAPI] Получено ${pool.size} записей с сервера")
 
         val filtered = pool.filter { dto ->
             when (targetLang) {
@@ -87,14 +74,9 @@ class SupabaseVocabularyRemoteDataSource(
             }
         }
 
-        Timber.d("[SupabaseAPI] После фильтрации по языку и категории: ${filtered.size} записей")
-
         filtered
             .shuffled()
             .take(limit)
-            .also { result ->
-                Timber.d("[SupabaseAPI] Возвращаю ${result.size} слов по категории")
-            }
     }
 
     suspend fun safeGetRandomWords(
@@ -102,8 +84,6 @@ class SupabaseVocabularyRemoteDataSource(
         limit: Int
     ): Result<List<SupabaseVocabularyDto>> = runCatching {
         getRandomWords(targetLang, limit)
-    }.onFailure { e ->
-        Timber.e(e, "[SupabaseAPI] Error: getRandomWords(lang=$targetLang)")
     }
 
     suspend fun safeGetWordsByCategory(
@@ -112,7 +92,5 @@ class SupabaseVocabularyRemoteDataSource(
         limit: Int
     ): Result<List<SupabaseVocabularyDto>> = runCatching {
         getWordsByCategory(targetLang, category, limit)
-    }.onFailure { e ->
-        Timber.e(e, "[SupabaseAPI] Error: getWordsByCategory(cat=$category)")
     }
 }

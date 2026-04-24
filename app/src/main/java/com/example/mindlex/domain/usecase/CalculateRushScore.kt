@@ -9,10 +9,6 @@ import kotlin.math.roundToInt
  */
 class CalculateRushScore @Inject constructor() {
 
-    companion object {
-        const val BASE_POINTS = 10
-    }
-
     /**
      * @param comboAfterCorrect текущая серия правильных подряд после засчитанного ответа
      * @param timeRemainingSeconds оставшееся время сессии в момент ответа
@@ -40,5 +36,9 @@ class CalculateRushScore @Inject constructor() {
         comboAfterCorrect >= 10 -> 2.0
         comboAfterCorrect >= 5 -> 1.5
         else -> 1.0
+    }
+
+    companion object {
+        const val BASE_POINTS = 10
     }
 }

@@ -9,7 +9,6 @@ import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.repository.VocabularyRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 
 class ClozeRepositoryImpl @Inject constructor(
     private val remoteDataSource: ClozeRemoteDataSource,
@@ -35,7 +34,6 @@ class ClozeRepositoryImpl @Inject constructor(
             .filter { it.category.lowercase() == category }
 
         val pool: List<ClozeExercise> = if (inCategory.isNotEmpty()) inCategory else {
-            Timber.w("[ClozeRepo] Категория '$category' пуста, берём все упражнения")
             dtos.map { it.toDomain() }
         }
 
@@ -58,7 +56,6 @@ class ClozeRepositoryImpl @Inject constructor(
             )
         }
 
-        Timber.d("[ClozeRepo] Выбрано упражнение id=${exercise.id}, progressWordId=${evaluationWord.id}")
         return Result.success(exercise to evaluationWord)
     }
 }

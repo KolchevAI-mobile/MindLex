@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mindlex.domain.model.CustomDatasetMeta
 import com.example.mindlex.domain.model.DatasetImportPayload
-import com.example.mindlex.domain.repository.CustomDatasetRepository
+import com.example.mindlex.domain.usecase.ManageCustomDataset
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class CustomDatasetViewModel @Inject constructor(
-    private val customDatasetRepository: CustomDatasetRepository,
+    private val manageCustomDataset: ManageCustomDataset,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
@@ -37,8 +37,8 @@ class CustomDatasetViewModel @Inject constructor(
 
     val uiState: StateFlow<UiState> = combine(
         localState,
-        customDatasetRepository.observeCurrentDatasetMeta(),
-        customDatasetRepository.observeDatasetHistory()
+        manageCustomDataset.observeCurrentMeta(),
+        manageCustomDataset.observeHistory()
     ) { local, currentMeta, history ->
         local.copy(currentMeta = currentMeta, history = history)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiState())
@@ -56,7 +56,7 @@ class CustomDatasetViewModel @Inject constructor(
                 return@launch
             }
 
-            customDatasetRepository.importDataset(payload)
+            manageCustomDataset.importDataset(payload)
                 .onSuccess { importedMeta ->
                     localState.update {
                         it.copy(
@@ -80,7 +80,7 @@ class CustomDatasetViewModel @Inject constructor(
     fun refreshDataset(datasetId: String) {
         viewModelScope.launch {
             localState.update { it.copy(isLoading = true, error = null, message = null) }
-            customDatasetRepository.refreshDataset(datasetId)
+            manageCustomDataset.refreshDataset(datasetId)
                 .onSuccess { meta ->
                     localState.update {
                         it.copy(
@@ -103,7 +103,7 @@ class CustomDatasetViewModel @Inject constructor(
     fun deleteDataset(datasetId: String) {
         viewModelScope.launch {
             localState.update { it.copy(isLoading = true, error = null, message = null) }
-            customDatasetRepository.deleteDataset(datasetId)
+            manageCustomDataset.deleteDataset(datasetId)
                 .onSuccess {
                     localState.update {
                         it.copy(
@@ -135,7 +135,6 @@ class CustomDatasetViewModel @Inject constructor(
                 android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
             )
         } catch (_: SecurityException) {
-            // Ignore; some providers do not grant persistable permissions.
         }
         val fileName = contentResolver.query(uri, null, null, null, null)?.use { cursor ->
             val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
@@ -152,4 +151,3 @@ class CustomDatasetViewModel @Inject constructor(
         )
     }
 }
-

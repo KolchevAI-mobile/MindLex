@@ -11,11 +11,6 @@ import kotlin.math.min
 
 class EvaluateAnswer @Inject constructor() {
 
-    companion object {
-        const val ACCEPTANCE_QUALITY_MIN: Int = 3
-        const val HINT_RESPONSE_QUALITY: Int = 3
-    }
-
     operator fun invoke(
         userAnswer: UserAnswer,
         correctWord: Word
@@ -101,5 +96,10 @@ class EvaluateAnswer @Inject constructor() {
         }
 
         return dp[m][n]
+    }
+
+    companion object {
+        const val ACCEPTANCE_QUALITY_MIN: Int = 3
+        const val HINT_RESPONSE_QUALITY: Int = 3
     }
 }

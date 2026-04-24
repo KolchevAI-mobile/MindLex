@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import timber.log.Timber
 
 /**
  * ViewModel для механики «Контекстный пропуск».
@@ -138,7 +137,6 @@ class ClozeViewModel @Inject constructor(
         )
         viewModelScope.launch {
             updateProgress(reviewResult)
-                .onFailure { Timber.e(it, "[ClozeVM] Ошибка сохранения прогресса (таймаут)") }
         }
 
         val fb = Feedback(
@@ -154,20 +152,15 @@ class ClozeViewModel @Inject constructor(
                 incorrectCount = it.incorrectCount + 1
             )
         }
-        Timber.d("[ClozeVM] Таймаут для упражнения ${exercise.id}")
     }
 
     fun checkAnswer() {
         cancelTimer()
         val state = _uiState.value
-        val exercise = state.exercise ?: run {
-            Timber.w("[ClozeVM] Проверка без упражнения")
-            return
-        }
+        val exercise = state.exercise ?: return
         val evaluationWord = state.evaluationWord ?: return
         val trimmed = state.userInput.trim()
         if (trimmed.isBlank() || state.feedback != null) {
-            if (trimmed.isBlank()) Timber.w("[ClozeVM] Пустой ввод")
             return
         }
 
@@ -181,8 +174,6 @@ class ClozeViewModel @Inject constructor(
         val reviewResult = evaluateAnswer(userAnswer, evaluationWord)
         viewModelScope.launch {
             updateProgress(reviewResult)
-                .onSuccess { Timber.d("[ClozeVM] Прогресс сохранён: ${evaluationWord.id}") }
-                .onFailure { Timber.e(it, "[ClozeVM] Ошибка сохранения прогресса") }
         }
 
         val isCorrect = reviewResult.quality >= 3
@@ -207,7 +198,6 @@ class ClozeViewModel @Inject constructor(
         val state = _uiState.value
         if (state.currentIndex >= state.totalExercises) {
             _uiState.update { it.copy(sessionComplete = true) }
-            Timber.d("[ClozeVM] Сессия завершена")
             return
         }
         _uiState.update {
@@ -243,10 +233,8 @@ class ClozeViewModel @Inject constructor(
                         )
                     }
                     startTimer()
-                    Timber.d("[ClozeVM] Упражнение ${exercise.id}, слово прогресса ${word.id}")
                 }
                 .onFailure { error ->
-                    Timber.e(error, "[ClozeVM] Ошибка загрузки")
                     _uiState.update {
                         it.copy(
                             isLoading = false,

@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import timber.log.Timber
 
 class CustomDatasetRepositoryImpl @Inject constructor(
     private val localDataSource: VocabularyLocalDataSource,
@@ -34,8 +33,6 @@ class CustomDatasetRepositoryImpl @Inject constructor(
 
     override suspend fun importDataset(payload: DatasetImportPayload): Result<CustomDatasetMeta> = runCatching {
         importPayload(payload)
-    }.onFailure { error ->
-        Timber.e(error, "[CustomDataset] Ошибка импорта ${payload.fileName}")
     }
 
     override suspend fun refreshDataset(datasetId: String): Result<CustomDatasetMeta> = runCatching {
@@ -44,8 +41,6 @@ class CustomDatasetRepositoryImpl @Inject constructor(
             ?: throw IllegalArgumentException("Датасет не найден в истории.")
         val payload = readPayloadFromStoredMeta(item)
         importPayload(payload, datasetId = item.id)
-    }.onFailure { error ->
-        Timber.e(error, "[CustomDataset] Ошибка обновления датасета id=$datasetId")
     }
 
     override suspend fun deleteDataset(datasetId: String): Result<Unit> = runCatching {
@@ -59,8 +54,6 @@ class CustomDatasetRepositoryImpl @Inject constructor(
             settingsRepository.setCustomDatasetMeta(null)
             settingsRepository.setSelectedCategory(LearningDefaults.FALLBACK_CATEGORY)
         }
-    }.onFailure { error ->
-        Timber.e(error, "[CustomDataset] Ошибка удаления датасета")
     }
 
     private suspend fun importPayload(

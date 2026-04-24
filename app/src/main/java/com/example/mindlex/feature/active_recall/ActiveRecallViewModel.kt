@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.datetime.Clock
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -60,7 +59,6 @@ class ActiveRecallViewModel @Inject constructor(
                 val dailyGoal =
                     settingsRepository.getDailyGoal().firstOrNull() ?: LearningDefaults.DAILY_GOAL_FALLBACK
                 _uiState.update { it.copy(totalWords = dailyGoal) }
-                Timber.d("[ActiveRecallVM] dailyGoal=$dailyGoal")
             }
             loadNextWord()
         }
@@ -71,10 +69,7 @@ class ActiveRecallViewModel @Inject constructor(
     }
 
     fun showHint() {
-        val currentWord = _uiState.value.currentWord ?: run {
-            Timber.w("[ActiveRecallVM] showHint without word")
-            return
-        }
+        val currentWord = _uiState.value.currentWord ?: return
 
         val feedback = Feedback(
             isCorrect = true,
@@ -98,19 +93,14 @@ class ActiveRecallViewModel @Inject constructor(
                 newStatus = WordStatus.LEARNING
             )
             updateProgress(reviewResult)
-                .onFailure { Timber.e(it, "[ActiveRecallVM] updateProgress hint") }
         }
     }
 
     fun checkAnswer() {
         val currentState = _uiState.value
-        val currentWord = currentState.currentWord ?: run {
-            Timber.w("[ActiveRecallVM] checkAnswer without word")
-            return
-        }
+        val currentWord = currentState.currentWord ?: return
         val userInput = currentState.userInput.trim()
         if (userInput.isBlank()) {
-            Timber.w("[ActiveRecallVM] empty input")
             return
         }
 
@@ -126,7 +116,6 @@ class ActiveRecallViewModel @Inject constructor(
 
         viewModelScope.launch {
             updateProgress(reviewResult)
-                .onFailure { Timber.e(it, "[ActiveRecallVM] updateProgress answer") }
         }
 
         val usedHint = currentState.hintShown
@@ -152,7 +141,6 @@ class ActiveRecallViewModel @Inject constructor(
         val currentState = _uiState.value
         if (currentState.currentWordIndex >= currentState.totalWords) {
             _uiState.update { it.copy(sessionComplete = true) }
-            Timber.d("[ActiveRecallVM] session done ${currentState.currentWordIndex}/${currentState.totalWords}")
             return
         }
 
@@ -174,7 +162,6 @@ class ActiveRecallViewModel @Inject constructor(
                     }
                 }
                 .onFailure {
-                    Timber.e(it, "[ActiveRecallVM] loadNextWord")
                     val exhausted = it is NoSuchElementException
                     _uiState.update { s ->
                         s.copy(

@@ -3,7 +3,7 @@ package com.example.mindlex.feature.words
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mindlex.domain.model.Word
-import com.example.mindlex.domain.repository.WordRepository
+import com.example.mindlex.domain.usecase.GetAllWords
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class WordsViewModel @Inject constructor(
-    private val wordRepository: WordRepository
+    private val getAllWords: GetAllWords
 ) : ViewModel() {
 
     data class UiState(
@@ -29,7 +29,7 @@ class WordsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val words = wordRepository.getAllWords()
+                val words = getAllWords()
                 _uiState.update { it.copy(isLoading = false, words = words) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }

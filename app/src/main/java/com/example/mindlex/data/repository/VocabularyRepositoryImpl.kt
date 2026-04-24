@@ -2,9 +2,11 @@ package com.example.mindlex.data.repository
 
 import com.example.mindlex.core.constants.LearningDefaults
 import com.example.mindlex.data.local.entity.VocabularyEntity
+import com.example.mindlex.data.local.mapper.VocabularyToWordMapper
 import com.example.mindlex.data.local.repository.VocabularyLocalDataSource
 import com.example.mindlex.data.remote.supabase.SupabaseVocabularyRemoteDataSource
 import com.example.mindlex.domain.model.Vocabulary
+import com.example.mindlex.domain.model.Word
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.repository.VocabularyRepository
 import javax.inject.Inject
@@ -13,7 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import timber.log.Timber
+import kotlinx.coroutines.withContext
 
 /** Реализация репозитория со стратегией offline-first кэширования. */
 class VocabularyRepositoryImpl @Inject constructor(
@@ -28,7 +30,6 @@ class VocabularyRepositoryImpl @Inject constructor(
         // Read current language from settings
         val lang = settingsRepository.getSelectedLanguage().first()
         val selectedCategory = settingsRepository.getSelectedCategory().first()
-        Timber.d("[VocabularyRepository] Запрос: lang=$lang, limit=$limit")
 
         if (selectedCategory == LearningDefaults.CUSTOM_DATASET_CATEGORY) {
             val cached = localDataSource.getRandomWords(lang, limit).first()
@@ -40,27 +41,16 @@ class VocabularyRepositoryImpl @Inject constructor(
 
         safeResult
             .onSuccess { remoteWords ->
-                Timber.d("[VocabularyRepository] Получено ${remoteWords.size} слов из Supabase")
-                // Успех сети: кэшируем в Room и возвращаем
                 val entities: List<VocabularyEntity> =
                     remoteWords.map { it.toVocabularyEntity(lang) }
-                Timber.d("[VocabularyRepository] Кэширую ${entities.size} слов в Room")
                 localDataSource.cacheWords(entities)
-                Timber.d("[VocabularyRepository] Возвращаю ${remoteWords.size} слов в UI")
                 emit(Result.success(remoteWords.map { it.toVocabulary(lang) }))
             }
-            .onFailure { throwable ->
-                Timber.e(throwable, "[VocabularyRepository] Ошибка загрузки слов (lang=$lang)")
-                // Ошибка сети: пробуем загрузить из кэша
-                Timber.d("[VocabularyRepository] Пробую загрузить из Room...")
+            .onFailure {
                 val cached = localDataSource.getRandomWords(lang, limit).first()
-                Timber.d("[VocabularyRepository] Найдено ${cached.size} слов в кэше")
-
                 if (cached.isNotEmpty()) {
-                    Timber.d("[VocabularyRepository] Возвращаю ${cached.size} слов из кэша")
                     emit(Result.success(cached))
                 } else {
-                    Timber.d("[VocabularyRepository] Кэш пуст, возвращаю пустой список")
                     emit(Result.success(emptyList()))
                 }
             }
@@ -75,8 +65,6 @@ class VocabularyRepositoryImpl @Inject constructor(
         val poolLimit = (limit * LearningDefaults.ROOM_POOL_MULTIPLIER)
             .coerceAtLeast(LearningDefaults.ROOM_POOL_MIN)
             .coerceAtMost(LearningDefaults.ROOM_POOL_MAX)
-        Timber.d("[VocabularyRepository] Запрос по категории: lang=$lang, category=$cat, limit=$limit")
-
         if (cat == LearningDefaults.CUSTOM_DATASET_CATEGORY) {
             val customWords = localDataSource.getRandomWords(lang, limit).first()
             emit(Result.success(customWords))
@@ -85,7 +73,6 @@ class VocabularyRepositoryImpl @Inject constructor(
 
         val cached = localDataSource.getWordsByCategory(lang, cat, poolLimit).first()
         if (cached.size >= limit) {
-            Timber.d("[VocabularyRepository] Категория '$cat': ${cached.size} в Room — без сети")
             emit(Result.success(cached.shuffled().take(limit)))
             return@flow
         }
@@ -94,25 +81,16 @@ class VocabularyRepositoryImpl @Inject constructor(
 
         safeResult
             .onSuccess { remoteWords ->
-                Timber.d("[VocabularyRepository] Получено ${remoteWords.size} слов из Supabase по категории '$category'")
                 val entities: List<VocabularyEntity> =
                     remoteWords.map { it.toVocabularyEntity(lang) }
-                Timber.d("[VocabularyRepository] Кэширую ${entities.size} слов в Room")
                 localDataSource.cacheWords(entities)
-                Timber.d("[VocabularyRepository] Возвращаю ${remoteWords.size} слов в UI")
                 emit(Result.success(remoteWords.map { it.toVocabulary(lang) }))
             }
-            .onFailure { throwable ->
-                Timber.e(throwable, "[VocabularyRepository] Ошибка загрузки по категории (lang=$lang, category=$category)")
-                Timber.d("[VocabularyRepository] Пробую загрузить из Room...")
+            .onFailure {
                 val cached = localDataSource.getWordsByCategory(lang, cat, poolLimit.coerceAtLeast(limit)).first()
-                Timber.d("[VocabularyRepository] Найдено ${cached.size} слов в кэше")
-
                 if (cached.isNotEmpty()) {
-                    Timber.d("[VocabularyRepository] Возвращаю ${cached.size} слов из кэша")
                     emit(Result.success(cached))
                 } else {
-                    Timber.d("[VocabularyRepository] Кэш пуст, возвращаю пустой список")
                     emit(Result.success(emptyList()))
                 }
             }
@@ -121,6 +99,32 @@ class VocabularyRepositoryImpl @Inject constructor(
     override suspend fun findVocabularyByForeignWord(foreignWord: String): Vocabulary? {
         val lang = settingsRepository.getSelectedLanguage().first()
         return localDataSource.findByForeignWord(lang, foreignWord)
+    }
+
+    override suspend fun getRandomWordByCategoryExcluding(
+        category: String,
+        limit: Int,
+        excludedIds: Set<String>,
+        reuseIfAllExcluded: Boolean
+    ): Result<Word> = withContext(Dispatchers.IO) {
+        getWordsByCategory(category, limit).first().fold(
+            onSuccess = { list ->
+                if (list.isEmpty()) {
+                    Result.failure(NoSuchElementException("Нет слов в категории $category"))
+                } else {
+                    val fresh = list.filter { it.id !in excludedIds }
+                    val pick = when {
+                        fresh.isNotEmpty() -> fresh.random()
+                        reuseIfAllExcluded -> list.random()
+                        else -> return@withContext Result.failure(
+                            NoSuchElementException("Нет свободных слов в категории $category")
+                        )
+                    }
+                    Result.success(VocabularyToWordMapper.toWord(pick))
+                }
+            },
+            onFailure = { Result.failure(it) }
+        )
     }
 }
 

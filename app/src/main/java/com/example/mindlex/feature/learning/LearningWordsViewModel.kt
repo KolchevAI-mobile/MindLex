@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /** ViewModel для экрана обучения слов. */
 @HiltViewModel
@@ -28,25 +27,16 @@ class LearningWordsViewModel @Inject constructor(
     val uiState: StateFlow<UiState> = _uiState
 
     init {
-        Timber.d("[LearningWordsVM] init - вызываю loadWords()")
         loadWords()
     }
 
     /** Загружает слова для обучения на основе текущих настроек пользователя. */
     fun loadWords() {
-        Timber.d("[LearningWordsVM] loadWords() начало")
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            Timber.d("[LearningWordsVM] isLoading=true, запускаю getLearningWords()")
-
             getLearningWords().collect { result ->
-                Timber.d("[LearningWordsVM] Получен результат от getLearningWords()")
                 result
                     .onSuccess { words ->
-                        Timber.d("[LearningWordsVM] onSuccess: получено ${words.size} слов")
-                        if (words.isEmpty()) {
-                            Timber.e("[LearningWordsVM] СПИСОК СЛОВ ПУСТ! Покажу 'Слова не найдены'")
-                        }
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -56,7 +46,6 @@ class LearningWordsViewModel @Inject constructor(
                         }
                     }
                     .onFailure { throwable ->
-                        Timber.e(throwable, "[LearningWordsVM] onFailure: ${throwable.message}")
                         _uiState.update {
                             it.copy(
                                 isLoading = false,

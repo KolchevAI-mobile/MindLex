@@ -148,7 +148,6 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
 
     // Utils
-    implementation(libs.timber)
     implementation(libs.kotlinx.datetime)
 
     // Tests
