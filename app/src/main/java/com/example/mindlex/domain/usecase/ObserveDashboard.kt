@@ -10,10 +10,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
-import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 
@@ -91,7 +89,8 @@ class ObserveDashboard @Inject constructor(
         val dailyProgress = ((reviewedToday.toDouble() / base.dailyGoal.coerceAtLeast(1)) * 100)
             .toInt()
             .coerceIn(0, 100)
-        val currentStreak = resolveVisibleStreak(storedStreak, lastStudyDateRaw)
+        val nowDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        val currentStreak = resolveVisibleDashboardStreak(storedStreak, lastStudyDateRaw, nowDate)
 
         DashboardSnapshot(
             userName = base.userName,
@@ -105,18 +104,6 @@ class ObserveDashboard @Inject constructor(
             synonymChainAvgLength = avgChainLength,
             unreadNotificationsCount = unreadNotificationsCount
         )
-    }
-
-    private fun resolveVisibleStreak(storedStreak: Int, lastStudyDateRaw: String?): Int {
-        val lastStudyDate = lastStudyDateRaw?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: return 0
-        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-        val yesterday = now.minus(DatePeriod(days = 1))
-        return when {
-            lastStudyDate == now -> storedStreak
-            lastStudyDate == yesterday -> storedStreak
-            lastStudyDate < yesterday -> 0
-            else -> 0
-        }
     }
 }
 

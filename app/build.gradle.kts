@@ -153,7 +153,7 @@ dependencies {
     // Tests
     testImplementation(libs.junit4)
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.mockk.android)
+    testImplementation(libs.mockk)
     testImplementation(libs.turbine)
 
     androidTestImplementation(libs.androidx.test.core.ktx)

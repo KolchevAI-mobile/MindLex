@@ -50,6 +50,19 @@ class EvaluateAnswerTest {
         assertTrue(result.nextReviewAt <= Clock.System.now())
     }
 
+    @Test
+    fun `bad answer yields low quality`() {
+        val word = sampleWord(wordForeign = "abstraction")
+        val r = evaluateAnswer(sampleAnswer("xyzunrelated"), word)
+        assertTrue(r.quality in 1..2)
+    }
+
+    @Test
+    fun `splits semicolon and slash variants`() {
+        val word = sampleWord("only", alternatives = listOf("one; two / three"))
+        assertEquals(5, evaluateAnswer(sampleAnswer("two"), word).quality)
+    }
+
     private fun sampleWord(
         wordForeign: String,
         alternatives: List<String> = emptyList()

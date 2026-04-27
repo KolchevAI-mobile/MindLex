@@ -132,6 +132,7 @@ androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxT
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
