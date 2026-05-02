@@ -1,8 +1,5 @@
 package com.example.mindlex.domain.model
 
-/**
- * Агрегированные данные для экрана «Главная» (снимок навигации и статистики).
- */
 data class DashboardSnapshot(
     val userName: String = "Ученик",
     val selectedLanguage: String = "en",

@@ -4,7 +4,6 @@ import com.example.mindlex.domain.model.ClozeExercise
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** DTO таблицы `cloze_exercises` в Supabase. */
 @Serializable
 data class ClozeExerciseDto(
     val id: String,

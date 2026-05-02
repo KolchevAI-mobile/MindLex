@@ -24,15 +24,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.mindlex.feature.mechanics.MechanicStatus
 
-/**
- * Карточка режима обучения.
- *
- * @param title Название механики
- * @param description Описание механики
- * @param icon Иконка механики
- * @param status Статус доступности
- * @param onClick Callback при нажатии
- */
 @Composable
 fun MechanicCard(
     title: String,

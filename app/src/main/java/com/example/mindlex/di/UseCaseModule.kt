@@ -22,9 +22,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-/**
- * Модуль DI для предоставления use case-ов Domain слоя.
- */
 @Module
 @InstallIn(SingletonComponent::class)
 object UseCaseModule {
@@ -120,4 +117,3 @@ object UseCaseModule {
         return UpdateWordProgress(progressRepository, settingsRepository, calculateNextReview)
     }
 }
-

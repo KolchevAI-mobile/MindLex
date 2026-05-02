@@ -9,7 +9,6 @@ import com.example.mindlex.data.local.entity.VocabularyEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.Instant
 
-/** DAO для кэша слов с поддержкой LRU. */
 @Dao
 interface VocabularyDao {
 
@@ -76,4 +75,3 @@ interface VocabularyDao {
         }
     }
 }
-

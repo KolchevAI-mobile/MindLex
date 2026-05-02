@@ -72,7 +72,6 @@ fun MindLexAppNavHost(
 ) {
     val startDestination by rootViewModel.startDestination.collectAsState()
 
-    // Показываем загрузку, пока startDestination не определен
     if (startDestination == null) {
         Box(
             modifier = Modifier

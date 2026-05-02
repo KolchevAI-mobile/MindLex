@@ -23,10 +23,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 
-/**
- * ViewModel для механики «Контекстный пропуск».
- * Таймер, проверка через [EvaluateAnswer], прогресс — через [UpdateWordProgress].
- */
 @HiltViewModel
 class ClozeViewModel @Inject constructor(
     private val getNextClozeExercise: GetNextClozeExercise,
@@ -40,7 +36,7 @@ class ClozeViewModel @Inject constructor(
         val quality: Int,
         val message: String,
         val fullSentence: String,
-        /** Истёк таймер: в сессии считаем ошибкой, в SRS — без жёсткого штрафа (см. [onTimeExpired]). */
+        
         val timedOut: Boolean = false
     )
 
@@ -128,7 +124,6 @@ class ClozeViewModel @Inject constructor(
         val exercise = state.exercise
         val evaluationWord = state.evaluationWord
 
-        // Сессия: неправильно; WordProgress: quality 3 — без инкремента incorrectCount (мягкий SRS)
         val reviewResult = ReviewResult(
             wordId = evaluationWord.id,
             quality = 3,
@@ -245,7 +240,6 @@ class ClozeViewModel @Inject constructor(
         }
     }
 
-    /** Повтор после сетевой ошибки. */
     fun retryLoad() {
         _uiState.update { it.copy(loadError = null) }
         loadNextExercise()

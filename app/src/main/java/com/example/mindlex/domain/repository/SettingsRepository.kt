@@ -7,18 +7,10 @@ import com.example.mindlex.domain.model.VocabularySource
 
 interface SettingsRepository {
 
-    /**
-     * Текущий язык обучения пользователя (target_language),
-     * используется для выборки слов из Supabase и отображения в UI.
-     */
     fun getSelectedLanguage(): Flow<String>
 
     suspend fun setSelectedLanguage(language: String)
 
-    /**
-     * Текущая выбранная категория словаря (например, general/food/travel).
-     * Используется для фильтрации слов в репозитории словаря.
-     */
     fun getSelectedCategory(): Flow<String>
 
     suspend fun setSelectedCategory(category: String)
@@ -31,7 +23,6 @@ interface SettingsRepository {
 
     suspend fun setNotificationsEnabled(enabled: Boolean)
 
-    /** Флаг runtime POST_NOTIFICATIONS (обновляется после диалога и при возврате в настройки). */
     fun isPostNotificationsPermissionGranted(): Flow<Boolean>
 
     suspend fun setPostNotificationsPermissionGranted(granted: Boolean)
@@ -40,22 +31,14 @@ interface SettingsRepository {
 
     suspend fun setUserName(name: String)
 
-    /**
-     * Проверяет, показывался ли туториал для Active Recall.
-     */
     fun isActiveRecallTutorialShown(): Flow<Boolean>
 
-    /**
-     * Отмечает, что туториал для Active Recall был показан.
-     */
     suspend fun setActiveRecallTutorialShown(shown: Boolean)
 
-    /** Длительность таймера для механики «Контекстный пропуск» (секунды). */
     fun getClozeTimerSeconds(): Flow<Int>
 
     suspend fun setClozeTimerSeconds(seconds: Int)
 
-    /** Длительность одной сессии Rush (секунды). */
     fun getRushSessionSeconds(): Flow<Int>
 
     suspend fun setRushSessionSeconds(seconds: Int)

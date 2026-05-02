@@ -29,7 +29,6 @@ class ActiveRecallViewModel @Inject constructor(
 ) : ViewModel() {
     private val shownWordIds = mutableSetOf<String>()
 
-
     data class UiState(
         val currentWord: Word? = null,
         val userInput: String = "",

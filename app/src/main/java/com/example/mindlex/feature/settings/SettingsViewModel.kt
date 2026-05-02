@@ -114,7 +114,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    /** Выключение уведомлений (переключатель в OFF). */
     fun onNotificationsDisabledByUser() {
         viewModelScope.launch {
             settingsRepository.setNotificationsEnabled(false)
@@ -124,7 +123,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    /** После успешного runtime POST_NOTIFICATIONS или на API &lt; 33. */
     fun onNotificationsEnabledByUser() {
         viewModelScope.launch {
             settingsRepository.setNotificationsEnabled(true)
@@ -143,10 +141,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    /**
-     * При возврате на экран настроек: синхронизация флага в DataStore и перепланирование
-     * (без принудительного выключения тумблера — намерение пользователя остаётся в prefs).
-     */
     fun syncRuntimeNotificationPermission(runtimeGranted: Boolean) {
         viewModelScope.launch {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

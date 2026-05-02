@@ -3,10 +3,6 @@ package com.example.mindlex.domain.usecase
 import kotlinx.datetime.LocalTime
 import javax.inject.Inject
 
-/**
- * Расчёт рекомендованных слотов занятий относительно выбранного основного времени и дневной цели.
- * Интервалы: предпочтительное время ±4 ч при 2–3 сессиях в день.
- */
 class CalculateRecommendedTimes @Inject constructor() {
 
     operator fun invoke(preferredTime: LocalTime, dailyGoal: Int): List<LocalTime> {

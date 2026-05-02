@@ -2,7 +2,6 @@ package com.example.mindlex.domain.repository
 
 import com.example.mindlex.domain.model.SynonymChain
 
-/** Репозиторий механики «Цепочка синонимов». */
 interface SynonymChainRepository {
     suspend fun getRandomChainStartStep(
         language: String,

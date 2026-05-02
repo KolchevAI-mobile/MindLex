@@ -53,7 +53,6 @@ private fun formatMmSs(seconds: Int): String {
     return "%02d:%02d".format(m, s)
 }
 
-/** Множитель очков для отображения (пороги совпадают с логикой начисления очков в спринте). */
 private fun comboMultiplierForStreak(streak: Int): Double = when {
     streak >= 20 -> 3.0
     streak >= 10 -> 2.0

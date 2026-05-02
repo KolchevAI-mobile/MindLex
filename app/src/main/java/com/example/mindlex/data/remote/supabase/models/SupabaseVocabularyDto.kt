@@ -7,7 +7,6 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** DTO таблицы vocabulary в Supabase с поддержкой мультиязычности. */
 @Serializable
 data class SupabaseVocabularyDto(
     val id: String,
@@ -28,12 +27,11 @@ data class SupabaseVocabularyDto(
     @SerialName("part_of_speech")
     val partOfSpeech: String? = null,
     val category: String? = null,
-    /** Синонимы/альтернативы на английском (таблица words), через запятую или ; */
+    
     @SerialName("synonyms_en")
     val synonymsEn: String? = null
 ) {
 
-    /** Конвертирует в Room entity для заданного языка обучения. */
     fun toVocabularyEntity(targetLang: String): VocabularyEntity {
         val now = Clock.System.now()
 
@@ -81,10 +79,8 @@ data class SupabaseVocabularyDto(
         )
     }
 
-    /** Конвертирует в доменную модель для заданного языка обучения. */
     fun toVocabulary(targetLang: String): Vocabulary {
         val entity = toVocabularyEntity(targetLang)
         return entity.toDomain()
     }
 }
-

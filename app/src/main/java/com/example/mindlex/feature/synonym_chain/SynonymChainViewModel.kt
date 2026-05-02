@@ -91,7 +91,6 @@ class SynonymChainViewModel @Inject constructor(
             return
         }
 
-        // Сохраняем в цепочке именно ввод пользователя, чтобы не подменять его случайным вариантом.
         val acceptedWord = input
 
         val updatedWords = session.collectedWords + acceptedWord
@@ -244,7 +243,7 @@ class SynonymChainViewModel @Inject constructor(
         stepNumber: Int,
         currentWord: String
     ): SynonymChain {
-        // Если следующий шаг в БД не найден, даём мягкий fallback, чтобы сессия не прерывалась.
+        
         return SynonymChain(
             id = "fallback:$chainId:$stepNumber",
             chainId = chainId,

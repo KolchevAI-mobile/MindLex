@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 
-/** Локальный источник данных для кэша слов с LRU стратегией. */
 class VocabularyLocalDataSource @Inject constructor(
     private val dao: VocabularyDao
 ) {
@@ -39,7 +38,6 @@ class VocabularyLocalDataSource @Inject constructor(
             }
     }
 
-    /** Поиск слова в кэше по форме на целевом языке (для связи cloze → WordProgress). */
     suspend fun findByForeignWord(lang: String, foreignWord: String): Vocabulary? =
         withContext(Dispatchers.IO) {
             val trimmed = foreignWord.trim()
@@ -47,7 +45,6 @@ class VocabularyLocalDataSource @Inject constructor(
             dao.findByWordIgnoreCase(lang, trimmed)?.toDomain()
         }
 
-    /** Кэширует слова и применяет LRU стратегию. */
     suspend fun cacheWords(words: List<VocabularyEntity>) {
         if (words.isEmpty()) {
             return
@@ -74,4 +71,3 @@ class VocabularyLocalDataSource @Inject constructor(
         }
     }
 }
-

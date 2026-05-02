@@ -12,9 +12,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
 import javax.inject.Inject
 
-/**
- * Реализация репозитория прогресса слов с использованием Room.
- */
 class WordProgressRepositoryImpl @Inject constructor(
     private val wordProgressDao: WordProgressDao,
     private val wordRepository: WordRepository
@@ -59,9 +56,6 @@ class WordProgressRepositoryImpl @Inject constructor(
         return wordRepository.getWordById(wordId)
     }
 
-    /**
-     * Преобразует Entity в доменную модель.
-     */
     private fun WordProgressEntity.toDomain(): WordProgress {
         return WordProgress(
             id = this.id,
@@ -79,9 +73,6 @@ class WordProgressRepositoryImpl @Inject constructor(
         )
     }
 
-    /**
-     * Преобразует доменную модель в Entity.
-     */
     private fun WordProgress.toEntity(): WordProgressEntity {
         return WordProgressEntity(
             id = this.id,

@@ -11,4 +11,3 @@ interface CustomDatasetRepository {
     suspend fun refreshDataset(datasetId: String): Result<CustomDatasetMeta>
     suspend fun deleteDataset(datasetId: String): Result<Unit>
 }
-

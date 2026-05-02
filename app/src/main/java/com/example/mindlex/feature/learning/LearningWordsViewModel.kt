@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** ViewModel для экрана обучения слов. */
 @HiltViewModel
 class LearningWordsViewModel @Inject constructor(
     private val getLearningWords: GetLearningWords
@@ -30,7 +29,6 @@ class LearningWordsViewModel @Inject constructor(
         loadWords()
     }
 
-    /** Загружает слова для обучения на основе текущих настроек пользователя. */
     fun loadWords() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
@@ -57,4 +55,3 @@ class LearningWordsViewModel @Inject constructor(
         }
     }
 }
-

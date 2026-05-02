@@ -21,9 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
-/**
- * Компактная шапка сессии: кнопка «назад» + широкий «овал» с названием (ниже статус-бара).
- */
 @Composable
 fun MechanicSessionHeader(
     title: String,

@@ -14,13 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
-/**
- * Карточка отображения слова для активного вспоминания.
- *
- * @param wordNative Перевод слова на русский
- * @param phonetic Фонетическая транскрипция (опционально)
- * @param example Пример использования (опционально)
- */
 @Composable
 fun WordCard(
     wordNative: String,

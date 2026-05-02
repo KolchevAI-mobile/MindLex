@@ -288,7 +288,7 @@ internal fun DailyGoalSlider(
             onValueChange = { sliderValue = it },
             onValueChangeFinished = { onGoalChanged(sliderValue.toInt()) },
             valueRange = 10f..50f,
-            steps = 7 // 10, 15, 20, 25, 30, 35, 40, 45, 50
+            steps = 7 
         )
 
         Row(

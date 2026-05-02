@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Виджет: тёмная тема — насыщенный фон с фиолетовым акцентом -->
     <color name="widget_bg_surface">#FF1D2140</color>
     <color name="widget_bg_surface_alt">#FF2C2A5B</color>
     <color name="widget_bg_border">#4DE5E7FF</color>

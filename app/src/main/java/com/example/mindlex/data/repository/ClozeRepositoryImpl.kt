@@ -46,7 +46,7 @@ class ClozeRepositoryImpl @Inject constructor(
         val evaluationWord = if (linkedVocab != null) {
             VocabularyToWordMapper.toWord(linkedVocab)
         } else {
-            // Отдельный ключ прогресса для упражнения без совпадения в словаре
+            
             Word(
                 id = "cloze:${exercise.id}",
                 wordForeign = exercise.correctAnswer,

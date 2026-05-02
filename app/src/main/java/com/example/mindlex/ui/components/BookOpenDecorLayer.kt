@@ -29,10 +29,6 @@ private const val SecondaryBookScale = 1.25f
 private const val PrimaryTintAlpha = 0.085f
 private const val SecondaryTintAlpha = 0.045f
 
-/**
- * Декоративный общий фон приложения:
- * мягкие glow-слои + два паттерна книги с разной геометрией для более живого контраста.
- */
 @Composable
 fun BookOpenDecorLayer(
     modifier: Modifier = Modifier,

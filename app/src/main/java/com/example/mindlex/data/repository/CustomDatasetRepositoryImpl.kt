@@ -211,4 +211,3 @@ private data class JsonWordRecord(
     val category: String? = null,
     val synonyms: String? = null
 )
-

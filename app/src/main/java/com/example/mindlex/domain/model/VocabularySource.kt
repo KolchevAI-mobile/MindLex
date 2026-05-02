@@ -4,4 +4,3 @@ enum class VocabularySource {
     REMOTE,
     CUSTOM
 }
-

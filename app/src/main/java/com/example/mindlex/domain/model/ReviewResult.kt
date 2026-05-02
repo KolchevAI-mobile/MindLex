@@ -3,14 +3,6 @@ package com.example.mindlex.domain.model
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
-/**
- * Результат повторения слова.
- *
- * @property wordId ID слова
- * @property quality Качество ответа (1-5, где 5 = отлично)
- * @property nextReviewAt Время следующего повторения
- * @property newStatus Новый статус слова
- */
 @Serializable
 data class ReviewResult(
     val wordId: String,

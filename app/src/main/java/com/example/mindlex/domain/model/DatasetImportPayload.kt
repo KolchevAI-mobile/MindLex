@@ -5,4 +5,3 @@ data class DatasetImportPayload(
     val rawContent: String,
     val sourceUri: String
 )
-

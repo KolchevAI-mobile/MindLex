@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
-/** Реализация репозитория со стратегией offline-first кэширования. */
 class VocabularyRepositoryImpl @Inject constructor(
     private val remoteDataSource: SupabaseVocabularyRemoteDataSource,
     private val localDataSource: VocabularyLocalDataSource,
@@ -27,7 +26,7 @@ class VocabularyRepositoryImpl @Inject constructor(
     override fun getRandomWords(
         limit: Int
     ): Flow<Result<List<Vocabulary>>> = flow {
-        // Read current language from settings
+        
         val lang = settingsRepository.getSelectedLanguage().first()
         val selectedCategory = settingsRepository.getSelectedCategory().first()
 
@@ -127,4 +126,3 @@ class VocabularyRepositoryImpl @Inject constructor(
         )
     }
 }
-

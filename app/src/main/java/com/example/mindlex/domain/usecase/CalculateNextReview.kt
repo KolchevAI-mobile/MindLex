@@ -9,9 +9,6 @@ import kotlinx.datetime.plus
 import kotlin.math.max
 import kotlin.math.min
 
-/**
- * Use case для расчёта следующего повторения слова по модифицированному SM-2.
- */
 class CalculateNextReview {
 
     operator fun invoke(

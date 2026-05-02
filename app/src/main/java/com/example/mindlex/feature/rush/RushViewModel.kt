@@ -22,9 +22,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlin.math.roundToInt
 
-/**
- * Спринт «перевод на скорость»: один таймер на сессию, комбо, очки, [WordProgress] на каждый ответ.
- */
 @HiltViewModel
 class RushViewModel @Inject constructor(
     private val getRandomWordForRush: GetRandomWordForRush,
@@ -49,7 +46,7 @@ class RushViewModel @Inject constructor(
         val skipCount: Int = 0,
         val isLoading: Boolean = true,
         val loadError: String? = null,
-        /** Ненулевой при достижении порога 5/10/15/20 — для короткой анимации в UI. */
+        
         val milestonePulse: Int = 0,
         val recordBestScore: Int = 0,
         val recordMaxCombo: Int = 0,
@@ -78,7 +75,6 @@ class RushViewModel @Inject constructor(
         _uiState.update { it.copy(userInput = s) }
     }
 
-    /** Старт сессии: сброс статистики, загрузка первого слова, общий таймер. */
     private suspend fun beginNewSession() {
         cancelTimer()
         sessionEndHandled = false
@@ -258,7 +254,6 @@ class RushViewModel @Inject constructor(
         }
     }
 
-    /** Пропуск: комбо сбрасывается, прогресс по слову не трогаем. */
     fun skipWord() {
         val state = _uiState.value
         if (!state.sessionRunning || state.sessionFinished) return

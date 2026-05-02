@@ -13,21 +13,12 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
 import javax.inject.Inject
 
-/**
- * Use case для обновления прогресса слова после ответа.
- */
 class UpdateWordProgress @Inject constructor(
     private val progressRepository: WordProgressRepository,
     private val settingsRepository: SettingsRepository,
     private val calculateNextReview: CalculateNextReview
 ) {
 
-    /**
-     * Сохраняет результат повторения в базу данных.
-     *
-     * @param result Результат повторения
-     * @return Результат операции
-     */
     suspend operator fun invoke(result: ReviewResult): Result<Unit> {
         return try {
             val now = Clock.System.now()

@@ -9,7 +9,6 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="book_decor_mask">#FFFFFFFF</color>
-    <!-- Виджет: светлая тема — яркая карточка с мягким свечением -->
     <color name="widget_bg_surface">#FFF8FAFF</color>
     <color name="widget_bg_surface_alt">#FFF1F6FF</color>
     <color name="widget_bg_border">#335B62F6</color>

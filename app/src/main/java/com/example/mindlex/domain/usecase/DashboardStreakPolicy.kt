@@ -4,10 +4,6 @@ import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
 
-/**
- * Сериал, видимый на дэшборде: учитываем только вчера/сегодня, иначе 0.
- * [today] передаётся явно, чтобы тесты были детерминированы.
- */
 internal fun resolveVisibleDashboardStreak(
     storedStreak: Int,
     lastStudyDateRaw: String?,

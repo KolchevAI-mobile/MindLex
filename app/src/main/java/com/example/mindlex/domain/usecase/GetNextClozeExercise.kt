@@ -5,7 +5,6 @@ import com.example.mindlex.domain.model.Word
 import com.example.mindlex.domain.repository.ClozeRepository
 import javax.inject.Inject
 
-/** Получение следующего contextual cloze с привязкой к слову для прогресса. */
 class GetNextClozeExercise @Inject constructor(
     private val clozeRepository: ClozeRepository
 ) {

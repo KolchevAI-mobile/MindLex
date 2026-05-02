@@ -14,10 +14,6 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
-/**
- * Состояние виджета: слоты как в [CalculateRecommendedTimes], прогресс — как на дашборде
- * (число повторений сегодня / дневная цель).
- */
 data class StudyWidgetUi(
     val title: String,
     val subtitle: String,

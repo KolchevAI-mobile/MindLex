@@ -6,7 +6,6 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** Удалённая загрузка шагов механики «Цепочка синонимов». */
 class SynonymChainRemoteDataSource(
     private val client: SupabaseClient
 ) {

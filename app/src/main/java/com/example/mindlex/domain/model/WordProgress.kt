@@ -2,9 +2,6 @@ package com.example.mindlex.domain.model
 
 import kotlinx.datetime.Instant
 
-/**
- * Доменная модель прогресса изучения слова.
- */
 data class WordProgress(
     val id: String,
     val wordId: String,

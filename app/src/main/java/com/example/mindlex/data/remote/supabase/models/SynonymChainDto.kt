@@ -4,7 +4,6 @@ import com.example.mindlex.domain.model.SynonymChain
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** DTO таблицы `synonym_chains` в Supabase. */
 @Serializable
 data class SynonymChainDto(
     val id: String,

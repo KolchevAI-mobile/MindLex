@@ -6,7 +6,6 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** Удалённая загрузка упражнений contextual cloze из Supabase. */
 class ClozeRemoteDataSource(
     private val client: SupabaseClient
 ) {

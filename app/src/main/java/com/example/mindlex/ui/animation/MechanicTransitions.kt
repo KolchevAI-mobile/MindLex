@@ -19,4 +19,3 @@ fun mechanicStateTransition(): ContentTransform {
     )
     return inAnim togetherWith outAnim
 }
-

@@ -6,7 +6,6 @@ import androidx.room.PrimaryKey
 import com.example.mindlex.domain.model.Vocabulary
 import kotlinx.datetime.Instant
 
-/** Room entity для кэшированных слов словаря. */
 @Entity(
     tableName = "vocabulary_cache",
     indices = [
@@ -24,12 +23,11 @@ data class VocabularyEntity(
     val partOfSpeech: String?,
     val category: String,
     val source: String = "remote",
-    /** Сырые синонимы на целевом языке (строка из Supabase). */
+    
     val synonymsForeign: String? = null,
     val lastAccessed: Instant
 )
 
-/** Конвертирует entity в доменную модель. */
 fun VocabularyEntity.toDomain(): Vocabulary =
     Vocabulary(
         id = id,
@@ -49,4 +47,3 @@ private fun String?.parseSynonymTokens(): List<String> {
         .map { it.trim() }
         .filter { it.isNotEmpty() }
 }
-

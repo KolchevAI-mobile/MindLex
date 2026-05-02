@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 
-/** Получает слова для обучения на основе настроек пользователя (язык и категория). */
 class GetLearningWords @Inject constructor(
     private val repository: VocabularyRepository,
     private val settingsRepository: SettingsRepository
@@ -34,4 +33,3 @@ class GetLearningWords @Inject constructor(
         emit(result)
     }.flowOn(Dispatchers.Default)
 }
-

@@ -17,7 +17,6 @@ object WordLocalMapper {
         val definitions: List<Definition> =
             json.decodeFromString(entity.definitions)
 
-        // Берём первое определение как пример или объединяем все
         val exampleText = definitions.firstOrNull()?.definition 
             ?: definitions.firstOrNull()?.example 
             ?: ""
@@ -26,7 +25,7 @@ object WordLocalMapper {
             id = entity.id,
             wordForeign = entity.word,
             wordNative = entity.translation ?: "",
-            targetLanguage = "en", // Значение по умолчанию, можно получить из данных
+            targetLanguage = "en", 
             example = exampleText.takeIf { it.isNotEmpty() },
             phonetic = entity.phonetic,
             partOfSpeech = entity.partOfSpeech,
