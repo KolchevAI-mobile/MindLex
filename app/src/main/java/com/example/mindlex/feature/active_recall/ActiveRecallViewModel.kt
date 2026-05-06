@@ -28,6 +28,7 @@ class ActiveRecallViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
     private val shownWordIds = mutableSetOf<String>()
+    private var isFetchingNextWord = false
 
     data class UiState(
         val currentWord: Word? = null,
@@ -147,28 +148,34 @@ class ActiveRecallViewModel @Inject constructor(
     }
 
     private fun loadNextWord() {
+        if (isFetchingNextWord) return
+        isFetchingNextWord = true
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            getNextWord(excludedIds = shownWordIds.toSet())
-                .onSuccess { word ->
-                    shownWordIds.add(word.id)
-                    _uiState.update {
-                        it.copy(
-                            currentWord = word,
-                            isLoading = false,
-                            currentWordIndex = it.currentWordIndex + 1
-                        )
+            try {
+                _uiState.update { it.copy(isLoading = true) }
+                getNextWord(excludedIds = shownWordIds.toSet())
+                    .onSuccess { word ->
+                        shownWordIds.add(word.id)
+                        _uiState.update {
+                            it.copy(
+                                currentWord = word,
+                                isLoading = false,
+                                currentWordIndex = it.currentWordIndex + 1
+                            )
+                        }
                     }
-                }
-                .onFailure {
-                    val exhausted = it is NoSuchElementException
-                    _uiState.update { s ->
-                        s.copy(
-                            isLoading = false,
-                            sessionComplete = exhausted || s.sessionComplete
-                        )
+                    .onFailure {
+                        val exhausted = it is NoSuchElementException
+                        _uiState.update { s ->
+                            s.copy(
+                                isLoading = false,
+                                sessionComplete = exhausted || s.sessionComplete
+                            )
+                        }
                     }
-                }
+            } finally {
+                isFetchingNextWord = false
+            }
         }
     }
 

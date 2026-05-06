@@ -6,6 +6,16 @@ import com.example.mindlex.domain.model.Vocabulary
 import kotlinx.datetime.Clock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 @Serializable
 data class SupabaseVocabularyDto(
@@ -29,7 +39,17 @@ data class SupabaseVocabularyDto(
     val category: String? = null,
     
     @SerialName("synonyms_en")
-    val synonymsEn: String? = null
+    @Serializable(with = SynonymsFieldSerializer::class)
+    val synonymsEn: List<String> = emptyList(),
+    @SerialName("synonyms_de")
+    @Serializable(with = SynonymsFieldSerializer::class)
+    val synonymsDe: List<String> = emptyList(),
+    @SerialName("synonyms_fr")
+    @Serializable(with = SynonymsFieldSerializer::class)
+    val synonymsFr: List<String> = emptyList(),
+    @SerialName("synonyms_es")
+    @Serializable(with = SynonymsFieldSerializer::class)
+    val synonymsEs: List<String> = emptyList()
 ) {
 
     fun toVocabularyEntity(targetLang: String): VocabularyEntity {
@@ -60,9 +80,11 @@ data class SupabaseVocabularyDto(
         }
 
         val synonymsStored = when (targetLang) {
-            "en" -> synonymsEn
-            else -> null
-        }
+            "de" -> synonymsDe
+            "fr" -> synonymsFr
+            "es" -> synonymsEs
+            else -> synonymsEn
+        }.joinToString(separator = ", ")
 
         return VocabularyEntity(
             id = id,
@@ -82,5 +104,39 @@ data class SupabaseVocabularyDto(
     fun toVocabulary(targetLang: String): Vocabulary {
         val entity = toVocabularyEntity(targetLang)
         return entity.toDomain()
+    }
+}
+
+private object SynonymsFieldSerializer : kotlinx.serialization.KSerializer<List<String>> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("SynonymsField", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): List<String> {
+        val jsonDecoder = decoder as? JsonDecoder ?: return emptyList()
+        val element = jsonDecoder.decodeJsonElement()
+        return parseSynonyms(element)
+    }
+
+    override fun serialize(encoder: Encoder, value: List<String>) {
+        encoder.encodeString(value.joinToString(", "))
+    }
+
+    private fun parseSynonyms(element: JsonElement): List<String> {
+        return when (element) {
+            is JsonArray -> element
+                .filterIsInstance<JsonPrimitive>()
+                .mapNotNull { it.contentOrNull }
+                .flatMap(::splitSynonymTokens)
+            is JsonPrimitive -> splitSynonymTokens(element.contentOrNull.orEmpty())
+            else -> emptyList()
+        }.map { it.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+    }
+
+    private fun splitSynonymTokens(raw: String): List<String> {
+        val normalized = raw.trim()
+        if (normalized.isEmpty()) return emptyList()
+        return normalized.split(',', ';', '|', '/')
     }
 }

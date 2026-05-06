@@ -43,7 +43,7 @@ fun VocabularyEntity.toDomain(): Vocabulary =
 
 private fun String?.parseSynonymTokens(): List<String> {
     if (this.isNullOrBlank()) return emptyList()
-    return split(',', ';')
+    return split(',', ';', '|', '/')
         .map { it.trim() }
         .filter { it.isNotEmpty() }
 }
