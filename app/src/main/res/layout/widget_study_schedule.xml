@@ -17,6 +17,7 @@
         android:layout_marginTop="@dimen/widget_decor_margin_top"
         android:layout_marginEnd="@dimen/widget_decor_margin_end"
         android:alpha="0.2"
+        android:contentDescription="@null"
         android:scaleType="fitCenter"
         android:src="@drawable/book_open_decor"
         android:tint="@color/widget_pattern_tint" />
@@ -29,6 +30,7 @@
         android:layout_marginEnd="@dimen/widget_glow_margin_end"
         android:layout_marginBottom="@dimen/widget_glow_margin_bottom"
         android:alpha="0.55"
+        android:contentDescription="@null"
         android:scaleType="fitXY"
         android:src="@drawable/widget_corner_glow" />
 
@@ -52,7 +54,7 @@
             android:paddingBottom="@dimen/widget_chip_padding_v"
             android:text="@string/widget_caption"
             android:textColor="@color/widget_text_caption"
-            android:textSize="10sp"
+            android:textSize="11sp"
             android:textStyle="bold" />
 
         <TextView
