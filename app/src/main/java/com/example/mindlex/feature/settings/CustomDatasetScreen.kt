@@ -39,9 +39,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mindlex.domain.model.CustomDatasetMeta
+import com.example.mindlex.R
 import com.example.mindlex.ui.components.BookOpenDecorLayer
 import com.example.mindlex.ui.components.MechanicSessionHeader
 
@@ -69,7 +71,12 @@ fun CustomDatasetScreen(
     }
 
     Scaffold(
-        topBar = { MechanicSessionHeader(title = "Свой датасет", onBackClick = onBackClick) },
+        topBar = {
+            MechanicSessionHeader(
+                title = stringResource(R.string.custom_dataset_screen_title),
+                onBackClick = onBackClick
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Box(

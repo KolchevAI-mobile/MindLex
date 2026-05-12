@@ -6,6 +6,7 @@ import com.example.mindlex.data.local.repository.VocabularyLocalDataSource
 import com.example.mindlex.core.constants.LearningDefaults
 import com.example.mindlex.domain.model.CustomDatasetMeta
 import com.example.mindlex.domain.model.DatasetImportPayload
+import com.example.mindlex.domain.model.VocabularySource
 import com.example.mindlex.domain.repository.CustomDatasetRepository
 import com.example.mindlex.domain.repository.SettingsRepository
 import java.security.MessageDigest
@@ -53,6 +54,7 @@ class CustomDatasetRepositoryImpl @Inject constructor(
             localDataSource.clearAll()
             settingsRepository.setCustomDatasetMeta(null)
             settingsRepository.setSelectedCategory(LearningDefaults.FALLBACK_CATEGORY)
+            settingsRepository.setVocabularySource(VocabularySource.REMOTE)
         }
     }
 
@@ -60,6 +62,10 @@ class CustomDatasetRepositoryImpl @Inject constructor(
         payload: DatasetImportPayload,
         datasetId: String? = null
     ): CustomDatasetMeta {
+        val categoryBefore = settingsRepository.getSelectedCategory().first()
+        if (categoryBefore != LearningDefaults.CUSTOM_DATASET_CATEGORY) {
+            settingsRepository.setLastRemoteCategory(categoryBefore)
+        }
         val language = settingsRepository.getSelectedLanguage().first()
         val extension = payload.fileName.substringAfterLast('.', "").lowercase()
         val records = when (extension) {
@@ -100,6 +106,7 @@ class CustomDatasetRepositoryImpl @Inject constructor(
         )
         upsertHistory(meta)
         settingsRepository.setCustomDatasetMeta(meta)
+        settingsRepository.setVocabularySource(VocabularySource.CUSTOM)
         settingsRepository.setSelectedCategory(LearningDefaults.CUSTOM_DATASET_CATEGORY)
         return meta
     }

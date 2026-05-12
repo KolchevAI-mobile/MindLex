@@ -111,6 +111,9 @@ fun MindLexAppNavHost(
             onOpenNotifications = {
                 navController.navigate(DashboardDestinations.NOTIFICATIONS)
             },
+            onOpenCustomDataset = {
+                navController.navigate(DashboardDestinations.CUSTOM_DATASET)
+            },
             onBackFromLearning = {
                 navController.popBackStack()
             }

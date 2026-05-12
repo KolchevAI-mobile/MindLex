@@ -1,6 +1,7 @@
 package com.example.mindlex.domain.usecase
 
 import com.example.mindlex.domain.model.DashboardSnapshot
+import com.example.mindlex.domain.model.VocabularySource
 import com.example.mindlex.domain.repository.AppNotificationRepository
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.repository.WordProgressRepository
@@ -60,6 +61,17 @@ class ObserveDashboard @Inject constructor(
     }
 
     operator fun invoke(): Flow<DashboardSnapshot> = combine(
+        dashboardSnapshotBase(),
+        settingsRepository.getCustomDatasetHistory(),
+        settingsRepository.getVocabularySource()
+    ) { snapshot, history, vocabularySource ->
+        snapshot.copy(
+            hasImportedCustomDataset = history.isNotEmpty(),
+            isOfflineCustomDatasetMode = vocabularySource == VocabularySource.CUSTOM
+        )
+    }
+
+    private fun dashboardSnapshotBase(): Flow<DashboardSnapshot> = combine(
         combine(
             dashboardBaseFlow,
             settingsRepository.getSynonymChainAvgLength(),

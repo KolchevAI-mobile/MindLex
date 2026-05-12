@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mindlex.core.notifications.StudyNotificationScheduler
 import com.example.mindlex.core.constants.LearningDefaults
+import com.example.mindlex.domain.model.VocabularySource
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.usecase.CalculateRecommendedTimes
 import com.example.mindlex.widget.StudyWidgetUpdater
@@ -101,6 +102,12 @@ class SettingsViewModel @Inject constructor(
 
     fun onCategorySelected(category: String) {
         viewModelScope.launch {
+            if (category != LearningDefaults.CUSTOM_DATASET_CATEGORY) {
+                settingsRepository.setLastRemoteCategory(category)
+                settingsRepository.setVocabularySource(VocabularySource.REMOTE)
+            } else {
+                settingsRepository.setVocabularySource(VocabularySource.CUSTOM)
+            }
             settingsRepository.setSelectedCategory(category)
             showSaveMessage("Категория: ${Categories.getDisplayName(category)}")
         }

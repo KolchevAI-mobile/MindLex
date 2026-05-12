@@ -17,25 +17,23 @@ class VocabularyLocalDataSource @Inject constructor(
 
     private val maxCacheSize: Int = 500
 
-    fun getRandomWords(
+    fun getRandomWordsBySource(
         lang: String,
-        limit: Int
+        limit: Int,
+        source: String
     ): Flow<List<Vocabulary>> {
-        return dao.getRandomWords(lang = lang, limit = limit)
-            .map { entities ->
-                entities.map(VocabularyEntity::toDomain)
-            }
+        return dao.getRandomWordsBySource(lang = lang, source = source, limit = limit)
+            .map { entities -> entities.map(VocabularyEntity::toDomain) }
     }
 
-    fun getWordsByCategory(
+    fun getWordsByCategoryBySource(
         lang: String,
         category: String,
-        limit: Int
+        limit: Int,
+        source: String
     ): Flow<List<Vocabulary>> {
-        return dao.getWordsByCategory(lang = lang, cat = category, limit = limit)
-            .map { entities ->
-                entities.map(VocabularyEntity::toDomain)
-            }
+        return dao.getWordsByCategoryBySource(lang = lang, cat = category, source = source, limit = limit)
+            .map { entities -> entities.map(VocabularyEntity::toDomain) }
     }
 
     suspend fun findByForeignWord(lang: String, foreignWord: String): Vocabulary? =

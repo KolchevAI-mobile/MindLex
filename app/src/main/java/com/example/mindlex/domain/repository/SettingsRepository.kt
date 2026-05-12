@@ -15,6 +15,10 @@ interface SettingsRepository {
 
     suspend fun setSelectedCategory(category: String)
 
+    fun getLastRemoteCategory(): Flow<String>
+
+    suspend fun setLastRemoteCategory(category: String)
+
     fun getDailyGoal(): Flow<Int>
 
     suspend fun setDailyGoal(goal: Int)

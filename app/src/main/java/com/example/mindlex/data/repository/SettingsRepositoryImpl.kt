@@ -26,6 +26,13 @@ class SettingsRepositoryImpl @Inject constructor(
         localDataSource.setSelectedCategory(category)
     }
 
+    override fun getLastRemoteCategory(): Flow<String> =
+        localDataSource.getLastRemoteCategory()
+
+    override suspend fun setLastRemoteCategory(category: String) {
+        localDataSource.setLastRemoteCategory(category)
+    }
+
     override fun getDailyGoal(): Flow<Int> =
         localDataSource.getDailyGoal()
 

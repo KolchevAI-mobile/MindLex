@@ -6,6 +6,7 @@ import com.example.mindlex.data.local.mapper.VocabularyToWordMapper
 import com.example.mindlex.data.local.repository.VocabularyLocalDataSource
 import com.example.mindlex.data.remote.supabase.SupabaseVocabularyRemoteDataSource
 import com.example.mindlex.domain.model.Vocabulary
+import com.example.mindlex.domain.model.VocabularySource
 import com.example.mindlex.domain.model.Word
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.repository.VocabularyRepository
@@ -26,12 +27,14 @@ class VocabularyRepositoryImpl @Inject constructor(
     override fun getRandomWords(
         limit: Int
     ): Flow<Result<List<Vocabulary>>> = flow {
-        
         val lang = settingsRepository.getSelectedLanguage().first()
         val selectedCategory = settingsRepository.getSelectedCategory().first()
+        val vocabularySource = settingsRepository.getVocabularySource().first()
+        val useCustomWords = vocabularySource == VocabularySource.CUSTOM ||
+            selectedCategory == LearningDefaults.CUSTOM_DATASET_CATEGORY
 
-        if (selectedCategory == LearningDefaults.CUSTOM_DATASET_CATEGORY) {
-            val cached = localDataSource.getRandomWords(lang, limit).first()
+        if (useCustomWords) {
+            val cached = localDataSource.getRandomWordsBySource(lang, limit, SOURCE_CUSTOM).first()
             emit(Result.success(cached))
             return@flow
         }
@@ -46,7 +49,7 @@ class VocabularyRepositoryImpl @Inject constructor(
                 emit(Result.success(remoteWords.map { it.toVocabulary(lang) }))
             }
             .onFailure {
-                val cached = localDataSource.getRandomWords(lang, limit).first()
+                val cached = localDataSource.getRandomWordsBySource(lang, limit, SOURCE_REMOTE).first()
                 if (cached.isNotEmpty()) {
                     emit(Result.success(cached))
                 } else {
@@ -60,17 +63,33 @@ class VocabularyRepositoryImpl @Inject constructor(
         limit: Int
     ): Flow<Result<List<Vocabulary>>> = flow {
         val lang = settingsRepository.getSelectedLanguage().first()
+        val vocabularySource = settingsRepository.getVocabularySource().first()
+        val selectedCategory = settingsRepository.getSelectedCategory().first()
         val cat = category.lowercase()
         val poolLimit = (limit * LearningDefaults.ROOM_POOL_MULTIPLIER)
             .coerceAtLeast(LearningDefaults.ROOM_POOL_MIN)
             .coerceAtMost(LearningDefaults.ROOM_POOL_MAX)
-        if (cat == LearningDefaults.CUSTOM_DATASET_CATEGORY) {
-            val customWords = localDataSource.getRandomWords(lang, limit).first()
+
+        val useCustomWords = vocabularySource == VocabularySource.CUSTOM ||
+            selectedCategory == LearningDefaults.CUSTOM_DATASET_CATEGORY
+
+        if (useCustomWords && cat == LearningDefaults.CUSTOM_DATASET_CATEGORY) {
+            val customWords = localDataSource.getRandomWordsBySource(lang, limit, SOURCE_CUSTOM).first()
             emit(Result.success(customWords))
             return@flow
         }
 
-        val cached = localDataSource.getWordsByCategory(lang, cat, poolLimit).first()
+        if (useCustomWords) {
+            val customWords = localDataSource.getWordsByCategoryBySource(lang, cat, poolLimit, SOURCE_CUSTOM).first()
+            if (customWords.size >= limit) {
+                emit(Result.success(customWords.shuffled().take(limit)))
+                return@flow
+            }
+            emit(Result.success(customWords.shuffled().take(limit)))
+            return@flow
+        }
+
+        val cached = localDataSource.getWordsByCategoryBySource(lang, cat, poolLimit, SOURCE_REMOTE).first()
         if (cached.size >= limit) {
             emit(Result.success(cached.shuffled().take(limit)))
             return@flow
@@ -86,9 +105,10 @@ class VocabularyRepositoryImpl @Inject constructor(
                 emit(Result.success(remoteWords.map { it.toVocabulary(lang) }))
             }
             .onFailure {
-                val cached = localDataSource.getWordsByCategory(lang, cat, poolLimit.coerceAtLeast(limit)).first()
-                if (cached.isNotEmpty()) {
-                    emit(Result.success(cached))
+                val cachedFallback =
+                    localDataSource.getWordsByCategoryBySource(lang, cat, poolLimit.coerceAtLeast(limit), SOURCE_REMOTE).first()
+                if (cachedFallback.isNotEmpty()) {
+                    emit(Result.success(cachedFallback))
                 } else {
                     emit(Result.success(emptyList()))
                 }
@@ -124,5 +144,10 @@ class VocabularyRepositoryImpl @Inject constructor(
             },
             onFailure = { Result.failure(it) }
         )
+    }
+
+    private companion object {
+        const val SOURCE_REMOTE = "remote"
+        const val SOURCE_CUSTOM = "custom"
     }
 }

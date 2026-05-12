@@ -41,6 +41,18 @@ class SettingsLocalDataSource @Inject constructor(
         }
     }
 
+    fun getLastRemoteCategory(): Flow<String> {
+        return dataStore.data.map { prefs ->
+            prefs[PreferencesKeys.LAST_REMOTE_CATEGORY] ?: "general"
+        }
+    }
+
+    suspend fun setLastRemoteCategory(category: String) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.LAST_REMOTE_CATEGORY] = category
+        }
+    }
+
     fun getDailyGoal(): Flow<Int> {
         return dataStore.data.map { prefs ->
             prefs[PreferencesKeys.DAILY_GOAL] ?: 10

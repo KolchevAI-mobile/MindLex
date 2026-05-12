@@ -9,6 +9,7 @@ object DashboardDestinations {
     const val DASHBOARD = "dashboard_screen"
     const val LEARNING = "learning_screen"
     const val NOTIFICATIONS = "notifications_screen"
+    const val CUSTOM_DATASET = "dashboard_custom_dataset_screen"
 }
 
 fun NavGraphBuilder.dashboardGraph(
@@ -16,6 +17,7 @@ fun NavGraphBuilder.dashboardGraph(
     onStartLearning: () -> Unit,
     onQuickTraining: () -> Unit,
     onOpenNotifications: () -> Unit,
+    onOpenCustomDataset: () -> Unit,
     onBackFromLearning: () -> Unit
 ) {
     navigation(
@@ -27,13 +29,17 @@ fun NavGraphBuilder.dashboardGraph(
                 onOpenSettings = onOpenSettings,
                 onStartLearning = onStartLearning,
                 onQuickTraining = onQuickTraining,
-                onOpenNotifications = onOpenNotifications
+                onOpenNotifications = onOpenNotifications,
+                onOpenCustomDataset = onOpenCustomDataset
             )
         }
         composable(DashboardDestinations.NOTIFICATIONS) {
             com.example.mindlex.feature.notifications.NotificationsScreen(
                 onBackClick = onBackFromLearning
             )
+        }
+        composable(DashboardDestinations.CUSTOM_DATASET) {
+            com.example.mindlex.feature.settings.CustomDatasetScreen(onBackClick = onBackFromLearning)
         }
         composable(DashboardDestinations.LEARNING) {
             com.example.mindlex.feature.learning.LearningWordsScreen(

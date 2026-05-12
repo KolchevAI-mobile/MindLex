@@ -10,5 +10,7 @@ data class DashboardSnapshot(
     val rushMaxCombo: Int = 0,
     val synonymChainsCompleted: Int = 0,
     val synonymChainAvgLength: Double = 0.0,
-    val unreadNotificationsCount: Int = 0
+    val unreadNotificationsCount: Int = 0,
+    val hasImportedCustomDataset: Boolean = false,
+    val isOfflineCustomDatasetMode: Boolean = false
 )

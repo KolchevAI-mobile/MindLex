@@ -9,6 +9,7 @@ object PreferencesKeys {
     val USER_ID = stringPreferencesKey("user_id")
     val SELECTED_LANGUAGE = stringPreferencesKey("selected_language")
     val SELECTED_CATEGORY = stringPreferencesKey("selected_category")
+    val LAST_REMOTE_CATEGORY = stringPreferencesKey("last_remote_category")
     val DAILY_GOAL = intPreferencesKey("daily_goal")
     val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
     

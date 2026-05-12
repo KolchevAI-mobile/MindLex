@@ -14,6 +14,10 @@
 
     <string name="cd_back">Назад</string>
     <string name="cd_notifications">Уведомления</string>
+    <string name="cd_import_dataset">Загрузить свой датасет</string>
+    <string name="custom_dataset_screen_title">Мой датасет</string>
+    <string name="dashboard_vocab_mode_title">Источник слов</string>
+    <string name="dashboard_vocab_mode_subtitle">Включено — только загруженный JSON или CSV, без сети. Выключено — слова из Supabase.</string>
     <string name="cd_hint">Показать подсказку</string>
 
     <string name="common_loading">Загрузка…</string>

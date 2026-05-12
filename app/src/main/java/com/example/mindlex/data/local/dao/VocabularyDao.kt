@@ -17,24 +17,26 @@ interface VocabularyDao {
 
     @Query(
         "SELECT * FROM vocabulary_cache " +
-            "WHERE targetLanguage = :lang " +
+            "WHERE targetLanguage = :lang AND IFNULL(source, 'remote') = :source " +
             "ORDER BY RANDOM() " +
             "LIMIT :limit"
     )
-    fun getRandomWords(
+    fun getRandomWordsBySource(
         lang: String,
+        source: String,
         limit: Int
     ): Flow<List<VocabularyEntity>>
 
     @Query(
         "SELECT * FROM vocabulary_cache " +
-            "WHERE targetLanguage = :lang AND category = :cat " +
+            "WHERE targetLanguage = :lang AND category = :cat AND IFNULL(source, 'remote') = :source " +
             "ORDER BY RANDOM() " +
             "LIMIT :limit"
     )
-    fun getWordsByCategory(
+    fun getWordsByCategoryBySource(
         lang: String,
         cat: String,
+        source: String,
         limit: Int
     ): Flow<List<VocabularyEntity>>
 
