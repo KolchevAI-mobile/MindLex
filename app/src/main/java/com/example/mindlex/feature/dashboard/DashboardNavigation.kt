@@ -12,6 +12,7 @@ object DashboardDestinations {
     const val CUSTOM_DATASET = "dashboard_custom_dataset_screen"
 }
 
+/** Граф навигации: главная, уведомления, датасет и экран слов. */
 fun NavGraphBuilder.dashboardGraph(
     onOpenSettings: () -> Unit,
     onStartLearning: () -> Unit,

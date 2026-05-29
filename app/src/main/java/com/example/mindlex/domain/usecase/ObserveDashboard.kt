@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
@@ -23,105 +25,144 @@ class ObserveDashboard @Inject constructor(
     private val appNotificationRepository: AppNotificationRepository
 ) {
 
-    private val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-    private val dayStart = today.atStartOfDayIn(TimeZone.currentSystemDefault())
-    private val dayEnd = today.plus(DatePeriod(days = 1)).atStartOfDayIn(TimeZone.currentSystemDefault())
+    operator fun invoke(): Flow<DashboardSnapshot> = combine(
+        profileAndGoals(),
+        learningStats(),
+        todayActivity(),
+        vocabularyFlags()
+    ) { profile, learning, today, vocabulary ->
+        val progressPercent = dailyProgressPercent(today.reviewedWords, profile.dailyGoal)
+        val streak = resolveVisibleDashboardStreak(
+            storedStreak = today.storedStreak,
+            lastStudyDateRaw = today.lastStudyDateRaw,
+            today = today.calendarDate
+        )
 
-    private data class DashboardBaseState(
+        DashboardSnapshot(
+            userName = profile.userName,
+            selectedLanguage = profile.languageCode,
+            wordsLearned = learning.totalCorrectAnswers,
+            currentStreak = streak,
+            wordsReviewedToday = today.reviewedWords,
+            dailyGoal = profile.dailyGoal,
+            dailyProgress = progressPercent,
+            rushBestScore = profile.rushBestScore,
+            rushMaxCombo = profile.rushMaxCombo,
+            synonymChainsCompleted = profile.synonymChainsCompleted,
+            synonymChainAvgLength = learning.avgChainLength,
+            unreadNotificationsCount = today.unreadNotifications,
+            hasImportedCustomDataset = vocabulary.hasCustomDataset,
+            isOfflineCustomDatasetMode = vocabulary.usesCustomDataset
+        )
+    }
+
+    private fun profileAndGoals(): Flow<ProfileAndGoals> = combine(
+        combine(
+            settingsRepository.getUserName(),
+            settingsRepository.getSelectedLanguage(),
+            settingsRepository.getDailyGoal()
+        ) { name, language, goal -> Triple(name, language, goal) },
+        combine(
+            settingsRepository.getRushBestScore(),
+            settingsRepository.getRushMaxComboRecord(),
+            settingsRepository.getSynonymChainsCompleted()
+        ) { rushScore, rushCombo, chains -> Triple(rushScore, rushCombo, chains) }
+    ) { profile, rush ->
+        ProfileAndGoals(
+            userName = profile.first,
+            languageCode = profile.second,
+            dailyGoal = profile.third,
+            rushBestScore = rush.first,
+            rushMaxCombo = rush.second,
+            synonymChainsCompleted = rush.third
+        )
+    }
+
+    private fun learningStats(): Flow<LearningStats> = combine(
+        settingsRepository.getSynonymChainAvgLength(),
+        progressRepository.observeTotalCorrectCount()
+    ) { avgChainLength, totalCorrect ->
+        LearningStats(avgChainLength = avgChainLength, totalCorrectAnswers = totalCorrect)
+    }
+
+    private fun todayActivity(): Flow<TodayActivity> {
+        val bounds = currentDayBounds()
+        return combine(
+            progressRepository.observeReviewedWordsCountBetween(bounds.start, bounds.end),
+            settingsRepository.getCurrentStreak(),
+            settingsRepository.getLastStudyDate(),
+            appNotificationRepository.observeUnreadCountBetween(
+                startEpochMs = bounds.start.toEpochMillis(),
+                endEpochMs = bounds.end.toEpochMillis()
+            )
+        ) { reviewedToday, streak, lastStudyDate, unread ->
+            TodayActivity(
+                reviewedWords = reviewedToday,
+                storedStreak = streak,
+                lastStudyDateRaw = lastStudyDate,
+                unreadNotifications = unread,
+                calendarDate = bounds.date
+            )
+        }
+    }
+
+    private fun vocabularyFlags(): Flow<VocabularyFlags> = combine(
+        settingsRepository.getCustomDatasetHistory(),
+        settingsRepository.getVocabularySource()
+    ) { history, source ->
+        VocabularyFlags(
+            hasCustomDataset = history.isNotEmpty(),
+            usesCustomDataset = source == VocabularySource.CUSTOM
+        )
+    }
+
+    private fun dailyProgressPercent(reviewedToday: Int, dailyGoal: Int): Int {
+        val goal = dailyGoal.coerceAtLeast(1)
+        return ((reviewedToday.toDouble() / goal) * 100).toInt().coerceIn(0, 100)
+    }
+
+    private fun currentDayBounds(): DayBounds {
+        val zone = TimeZone.currentSystemDefault()
+        val today = Clock.System.now().toLocalDateTime(zone).date
+        return DayBounds(
+            date = today,
+            start = today.atStartOfDayIn(zone),
+            end = today.plus(DatePeriod(days = 1)).atStartOfDayIn(zone)
+        )
+    }
+
+    private data class ProfileAndGoals(
         val userName: String,
-        val selectedLanguage: String,
+        val languageCode: String,
         val dailyGoal: Int,
         val rushBestScore: Int,
         val rushMaxCombo: Int,
         val synonymChainsCompleted: Int
     )
 
-    private val dashboardBaseFlow = combine(
-        combine(settingsRepository.getUserName(), settingsRepository.getSelectedLanguage()) { userName, language ->
-            userName to language
-        },
-        combine(settingsRepository.getDailyGoal(), settingsRepository.getRushBestScore()) { dailyGoal, rushBest ->
-            dailyGoal to rushBest
-        },
-        combine(
-            settingsRepository.getRushMaxComboRecord(),
-            settingsRepository.getSynonymChainsCompleted()
-        ) { rushCombo, chainsCompleted ->
-            rushCombo to chainsCompleted
-        }
-    ) { userLang, goalRush, comboChains ->
-        DashboardBaseState(
-            userName = userLang.first,
-            selectedLanguage = userLang.second,
-            dailyGoal = goalRush.first,
-            rushBestScore = goalRush.second,
-            rushMaxCombo = comboChains.first,
-            synonymChainsCompleted = comboChains.second
-        )
-    }
+    private data class LearningStats(
+        val avgChainLength: Double,
+        val totalCorrectAnswers: Int
+    )
 
-    operator fun invoke(): Flow<DashboardSnapshot> = combine(
-        dashboardSnapshotBase(),
-        settingsRepository.getCustomDatasetHistory(),
-        settingsRepository.getVocabularySource()
-    ) { snapshot, history, vocabularySource ->
-        snapshot.copy(
-            hasImportedCustomDataset = history.isNotEmpty(),
-            isOfflineCustomDatasetMode = vocabularySource == VocabularySource.CUSTOM
-        )
-    }
+    private data class TodayActivity(
+        val reviewedWords: Int,
+        val storedStreak: Int,
+        val lastStudyDateRaw: String?,
+        val unreadNotifications: Int,
+        val calendarDate: LocalDate
+    )
 
-    private fun dashboardSnapshotBase(): Flow<DashboardSnapshot> = combine(
-        combine(
-            dashboardBaseFlow,
-            settingsRepository.getSynonymChainAvgLength(),
-            progressRepository.observeTotalCorrectCount()
-        ) { base, avgChainLength, totalCorrectAnswers ->
-            Triple(base, avgChainLength, totalCorrectAnswers)
-        },
-        combine(
-            progressRepository.observeReviewedWordsCountBetween(dayStart, dayEnd),
-            settingsRepository.getCurrentStreak(),
-            settingsRepository.getLastStudyDate(),
-            appNotificationRepository.observeUnreadCountBetween(
-                startEpochMs = dayStart.epochSeconds * 1000L,
-                endEpochMs = dayEnd.epochSeconds * 1000L
-            )
-        ) { reviewedToday, storedStreak, lastStudyDateRaw, unreadNotificationsCount ->
-            Quadruple(reviewedToday, storedStreak, lastStudyDateRaw, unreadNotificationsCount)
-        }
-    ) { primary, secondary ->
-        val base = primary.first
-        val avgChainLength = primary.second
-        val wordsLearnedCount = primary.third
-        val reviewedToday = secondary.first
-        val storedStreak = secondary.second
-        val lastStudyDateRaw = secondary.third
-        val unreadNotificationsCount = secondary.fourth
-        val dailyProgress = ((reviewedToday.toDouble() / base.dailyGoal.coerceAtLeast(1)) * 100)
-            .toInt()
-            .coerceIn(0, 100)
-        val nowDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-        val currentStreak = resolveVisibleDashboardStreak(storedStreak, lastStudyDateRaw, nowDate)
+    private data class VocabularyFlags(
+        val hasCustomDataset: Boolean,
+        val usesCustomDataset: Boolean
+    )
 
-        DashboardSnapshot(
-            userName = base.userName,
-            selectedLanguage = base.selectedLanguage,
-            wordsLearned = wordsLearnedCount,
-            currentStreak = currentStreak,
-            dailyProgress = dailyProgress,
-            rushBestScore = base.rushBestScore,
-            rushMaxCombo = base.rushMaxCombo,
-            synonymChainsCompleted = base.synonymChainsCompleted,
-            synonymChainAvgLength = avgChainLength,
-            unreadNotificationsCount = unreadNotificationsCount
-        )
-    }
+    private data class DayBounds(
+        val date: LocalDate,
+        val start: Instant,
+        val end: Instant
+    )
 }
 
-private data class Quadruple<A, B, C, D>(
-    val first: A,
-    val second: B,
-    val third: C,
-    val fourth: D
-)
+private fun Instant.toEpochMillis(): Long = epochSeconds * 1000L

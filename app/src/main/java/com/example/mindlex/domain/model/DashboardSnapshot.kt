@@ -1,10 +1,13 @@
 package com.example.mindlex.domain.model
 
+/** Снимок данных для главного экрана - всё, что нужно для отрисовки. */
 data class DashboardSnapshot(
     val userName: String = "Ученик",
     val selectedLanguage: String = "en",
     val wordsLearned: Int = 0,
     val currentStreak: Int = 0,
+    val wordsReviewedToday: Int = 0,
+    val dailyGoal: Int = 1,
     val dailyProgress: Int = 0,
     val rushBestScore: Int = 0,
     val rushMaxCombo: Int = 0,

@@ -1,61 +1,30 @@
 package com.example.mindlex.feature.dashboard
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AutoGraph
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.Switch
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.mindlex.R
 import com.example.mindlex.ui.components.BookOpenDecorLayer
 
-@SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
@@ -66,303 +35,70 @@ fun DashboardScreen(
     onOpenCustomDataset: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val cardShape = RoundedCornerShape(24.dp)
+    val state by viewModel.uiState.collectAsState()
+    val scroll = rememberScrollState()
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.dashboard_title)) },
-                actions = {
-                    IconButton(onClick = onOpenCustomDataset) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = stringResource(R.string.cd_import_dataset),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    IconButton(onClick = onOpenNotifications) {
-                        BadgedBox(
-                            badge = {
-                                if (uiState.unreadNotificationsCount > 0) {
-                                    Badge {
-                                        Text(text = uiState.unreadNotificationsCount.coerceAtMost(9).toString())
-                                    }
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = stringResource(R.string.cd_notifications),
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
-                )
+            DashboardTopBar(
+                notificationBadgeText = state.notificationBadgeText,
+                onImportDataset = onOpenCustomDataset,
+                onOpenNotifications = onOpenNotifications
             )
-        },
-        content = { padding ->
-            Box(
+        }
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.background,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                        )
+                    )
+                )
+                .padding(padding)
+        ) {
+            BookOpenDecorLayer()
+
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.background,
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                            )
-                        )
-                    )
-                    .padding(padding)
                     .padding(horizontal = 24.dp)
+                    .verticalScroll(scroll),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                BookOpenDecorLayer()
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(24.dp)
-                ) {
                 AnimatedVisibility(
                     visible = true,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { it / 3 })
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it / 4 })
                 ) {
-                    Text(
-                        text = stringResource(R.string.dashboard_greeting, uiState.userName),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
+                    DashboardGreeting(
+                        userName = state.userName,
+                        languageLabel = state.languageLabel
                     )
                 }
 
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = cardShape,
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(24.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.dashboard_progress_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                DashboardProgressCard(
+                    state = state,
+                    onStartLearning = onStartLearning
+                )
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            StatItem(
-                                value = uiState.wordsLearned.toString(),
-                                label = stringResource(R.string.dashboard_stat_words_learned),
-                                icon = "📚"
-                            )
-                            StatItem(
-                                value = uiState.currentStreak.toString(),
-                                label = stringResource(R.string.dashboard_stat_streak),
-                                icon = "🔥"
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            StatItem(
-                                value = uiState.synonymChainsCompleted.toString(),
-                                label = stringResource(R.string.dashboard_stat_chains),
-                                icon = "🔗"
-                            )
-                            StatItem(
-                                value = String.format("%.1f", uiState.synonymChainAvgLength),
-                                label = stringResource(R.string.dashboard_stat_chain_avg),
-                                icon = "🧠"
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                                    shape = RoundedCornerShape(18.dp)
-                                )
-                                .padding(16.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.dashboard_today_progress),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.size(80.dp)
-                            ) {
-                                CircularProgressIndicator(
-                                    progress = { uiState.dailyProgress / 100f },
-                                    modifier = Modifier.fillMaxSize(),
-                                    color = MaterialTheme.colorScheme.primary,
-                                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    strokeWidth = 8.dp
-                                )
-                                Text(
-                                    text = "${uiState.dailyProgress}%",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-
-                        Button(
-                            onClick = onStartLearning,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.PlayArrow,
-                                contentDescription = null
-                            )
-                            Spacer(modifier = Modifier.size(8.dp))
-                            Text(
-                                text = stringResource(R.string.dashboard_learn_new),
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                        }
-                    }
+                AnimatedVisibility(visible = state.hasImportedCustomDataset) {
+                    VocabularyModeCard(
+                        checked = state.isOfflineCustomDatasetMode,
+                        enabled = !state.isVocabularySwitchBusy,
+                        onCheckedChange = viewModel::setOfflineCustomDatasetEnabled
+                    )
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
-
-                AnimatedVisibility(visible = uiState.hasImportedCustomDataset) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = cardShape,
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp, vertical = 14.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.dashboard_vocab_mode_title),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = stringResource(R.string.dashboard_vocab_mode_subtitle),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Spacer(modifier = Modifier.size(12.dp))
-                            Switch(
-                                checked = uiState.isOfflineCustomDatasetMode,
-                                onCheckedChange = viewModel::setOfflineCustomDatasetEnabled
-                            )
-                        }
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    TextButton(
-                        onClick = onOpenSettings,
-                        modifier = Modifier
-                            .weight(1f)
-                            .border(
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
-                                shape = RoundedCornerShape(14.dp)
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(
-                            text = stringResource(R.string.common_settings),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                    TextButton(
-                        onClick = onQuickTraining,
-                        modifier = Modifier
-                            .weight(1f)
-                            .border(
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
-                                shape = RoundedCornerShape(14.dp)
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AutoGraph,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(stringResource(R.string.dashboard_training))
-                    }
-                }
+                DashboardBottomActions(
+                    onOpenSettings = onOpenSettings,
+                    onQuickTraining = onQuickTraining
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
-            }
         }
-    )
-}
-
-@Composable
-private fun StatItem(
-    value: String,
-    label: String,
-    icon: String,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-    ) {
-        Text(
-            text = icon,
-            style = MaterialTheme.typography.headlineSmall
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }

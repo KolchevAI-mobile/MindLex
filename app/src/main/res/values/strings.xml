@@ -37,7 +37,14 @@
     <string name="dashboard_stat_chains">Собрано цепочек</string>
     <string name="dashboard_stat_chain_avg">Средн. длина цепи</string>
     <string name="dashboard_today_progress">Прогресс сегодня</string>
+    <string name="dashboard_today_goal_progress">%1$d из %2$d слов</string>
+    <string name="dashboard_today_goal_done">Цель на сегодня выполнена</string>
+    <string name="dashboard_language_chip">Язык: %1$s</string>
     <string name="dashboard_learn_new">Учить новые слова</string>
+    <string name="dashboard_learn_more">Продолжить обучение</string>
+    <string name="dashboard_rush_section">Рекорды Rush</string>
+    <string name="dashboard_rush_best">Лучший счёт: %1$d</string>
+    <string name="dashboard_rush_combo">Комбо: %1$d</string>
     <string name="dashboard_training">Тренировка</string>
     <string name="notifications_title">Уведомления</string>
     <string name="notifications_empty_title">Сегодня пока тихо</string>
