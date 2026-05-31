@@ -1,10 +1,5 @@
 package com.example.mindlex.feature.settings.components
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,135 +20,110 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import com.example.mindlex.feature.settings.Categories
-import com.example.mindlex.feature.settings.Languages
-import com.example.mindlex.feature.settings.SettingsViewModel
+import com.example.mindlex.R
+import com.example.mindlex.feature.settings.SettingsUiState
+import kotlinx.datetime.LocalTime
 
 @Composable
 internal fun SettingsHomeBody(
-    uiState: SettingsViewModel.UiState,
-    viewModel: SettingsViewModel,
+    state: SettingsUiState,
+    onUserNameChange: (String) -> Unit,
+    onLanguageSelected: (String) -> Unit,
+    onCategorySelected: (String) -> Unit,
+    onDailyGoalChanged: (Int) -> Unit,
+    onPreferredStudyTimeChanged: (LocalTime) -> Unit,
+    recommendedSessionTimes: (LocalTime, Int) -> List<LocalTime>,
+    onNotificationsToggle: (Boolean) -> Unit,
     onOpenCustomDataset: () -> Unit,
-    notificationPermissionLauncher: ActivityResultLauncher<String>,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = "Текущие настройки",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    text = "${Languages.getDisplayName(uiState.selectedLanguage)} • ${Categories.getDisplayName(uiState.selectedCategory)} • ${uiState.dailyGoal} слов/день",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
+        SettingsSummaryCard(summaryLine = state.summaryLine)
 
         SettingsCard(
             icon = Icons.Default.Person,
-            title = "Ваше имя",
-            description = "Как к вам обращаться"
+            title = stringResource(R.string.settings_name_title),
+            description = stringResource(R.string.settings_name_subtitle)
         ) {
             UserNameField(
-                userName = uiState.userName,
-                onUserNameChange = viewModel::onUserNameChange
+                userName = state.userName,
+                onUserNameChange = onUserNameChange
             )
         }
 
         SettingsCard(
             icon = Icons.Default.School,
-            title = "Язык обучения",
-            description = "Выберите язык, который хотите изучать"
+            title = stringResource(R.string.settings_language_title),
+            description = stringResource(R.string.settings_language_subtitle)
         ) {
             LanguageDropdown(
-                selectedLanguage = uiState.selectedLanguage,
-                onLanguageSelected = viewModel::onLanguageSelected
+                selectedLanguage = state.selectedLanguage,
+                onLanguageSelected = onLanguageSelected
             )
         }
 
         SettingsCard(
             icon = Icons.AutoMirrored.Filled.Sort,
-            title = "Категория слов",
-            description = "Выберите тему для изучения"
+            title = stringResource(R.string.settings_category_title),
+            description = stringResource(R.string.settings_category_subtitle)
         ) {
             CategoryDropdown(
-                selectedCategory = uiState.selectedCategory,
-                onCategorySelected = viewModel::onCategorySelected
+                selectedCategory = state.selectedCategory,
+                onCategorySelected = onCategorySelected
             )
         }
 
         SettingsCard(
             icon = Icons.Default.Star,
-            title = "Ежедневная цель",
-            description = "Сколько слов вы хотите учить каждый день"
+            title = stringResource(R.string.settings_goal_title),
+            description = stringResource(R.string.settings_goal_subtitle)
         ) {
             DailyGoalSlider(
-                currentGoal = uiState.dailyGoal,
-                onGoalChanged = viewModel::onDailyGoalChanged
+                currentGoal = state.dailyGoal,
+                onGoalChanged = onDailyGoalChanged
             )
         }
 
         SettingsCard(
             icon = Icons.Default.Notifications,
-            title = "Уведомления",
-            description = "Получать напоминания об учёбе"
+            title = stringResource(R.string.settings_notifications_title),
+            description = stringResource(R.string.settings_notifications_subtitle)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 NotificationToggle(
-                    enabled = uiState.notificationsEnabled,
-                    onToggle = { wantEnabled ->
-                        handleNotificationToggle(
-                            wantEnabled = wantEnabled,
-                            context = context,
-                            viewModel = viewModel,
-                            notificationPermissionLauncher = notificationPermissionLauncher
-                        )
-                    }
+                    enabled = state.notificationsEnabled,
+                    onToggle = onNotificationsToggle
                 )
-                PreferredStudyTimePicker(
-                    time = uiState.preferredStudyTime,
-                    onTimeSelected = viewModel::onPreferredStudyTimeChanged
-                )
-                StudyScheduleRecommendation(
-                    preferredTime = uiState.preferredStudyTime,
-                    recommendedTimes = viewModel.getRecommendedSessionTimes(
-                        preferred = uiState.preferredStudyTime,
-                        dailyGoal = uiState.dailyGoal
+                if (state.notificationsEnabled) {
+                    PreferredStudyTimePicker(
+                        timeLabel = state.preferredTimeLabel,
+                        time = state.preferredStudyTime,
+                        onTimeSelected = onPreferredStudyTimeChanged
                     )
-                )
+                    StudyScheduleRecommendation(
+                        preferredTime = state.preferredStudyTime,
+                        recommendedTimes = recommendedSessionTimes(
+                            state.preferredStudyTime,
+                            state.dailyGoal
+                        )
+                    )
+                }
             }
         }
 
         SettingsCard(
             icon = Icons.Default.Add,
-            title = "Свой датасет",
-            description = "Загрузите CSV/JSON словарь и используйте его в приложении"
+            title = stringResource(R.string.settings_dataset_title),
+            description = stringResource(R.string.settings_dataset_subtitle)
         ) {
             SettingsActionButton(
-                text = "Добавить или управлять датасетом",
+                text = stringResource(R.string.settings_dataset_action),
                 onClick = onOpenCustomDataset
             )
         }
@@ -162,27 +132,30 @@ internal fun SettingsHomeBody(
     }
 }
 
-private fun handleNotificationToggle(
-    wantEnabled: Boolean,
-    context: Context,
-    viewModel: SettingsViewModel,
-    notificationPermissionLauncher: ActivityResultLauncher<String>
-) {
-    if (!wantEnabled) {
-        viewModel.onNotificationsDisabledByUser()
-    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        when {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                viewModel.onNotificationsEnabledByUser()
-            }
-            else -> {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
+@Composable
+private fun SettingsSummaryCard(summaryLine: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_summary_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Text(
+                text = summaryLine,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
-    } else {
-        viewModel.onNotificationsEnabledByUser()
     }
 }

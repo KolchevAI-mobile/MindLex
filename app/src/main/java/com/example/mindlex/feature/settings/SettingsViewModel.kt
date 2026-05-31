@@ -4,14 +4,17 @@ import android.content.Context
 import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mindlex.core.notifications.StudyNotificationScheduler
 import com.example.mindlex.core.constants.LearningDefaults
+import com.example.mindlex.core.notifications.StudyNotificationScheduler
 import com.example.mindlex.domain.model.VocabularySource
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.usecase.CalculateRecommendedTimes
+import com.example.mindlex.domain.usecase.ObserveSettings
 import com.example.mindlex.widget.StudyWidgetUpdater
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.Locale
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,82 +24,47 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 import kotlinx.datetime.LocalTime
-import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    observeSettings: ObserveSettings,
     private val settingsRepository: SettingsRepository,
     private val scheduler: StudyNotificationScheduler,
     private val calculateRecommendedTimes: CalculateRecommendedTimes,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
-    sealed interface NotificationPermissionUiEvent {
-        data object ShowRationaleSnackbar : NotificationPermissionUiEvent
+    sealed interface PermissionEvent {
+        data object OpenSystemSettings : PermissionEvent
     }
 
-    data class UiState(
-        val userName: String = "",
-        val selectedLanguage: String = "en",
-        val selectedCategory: String = "general",
-        val dailyGoal: Int = 10,
-        val notificationsEnabled: Boolean = true,
-        val preferredStudyTime: LocalTime = LocalTime(15, 0, 0),
-        val isLoading: Boolean = false,
-        val saveMessage: String? = null
+    private val saveMessage = MutableStateFlow<String?>(null)
+    private val _permissionEvents = MutableSharedFlow<PermissionEvent>(extraBufferCapacity = 1)
+    val permissionEvents = _permissionEvents.asSharedFlow()
+
+    val uiState: StateFlow<SettingsUiState> = combine(
+        observeSettings(),
+        saveMessage
+    ) { snapshot, message ->
+        SettingsUiState.from(snapshot, message)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = SettingsUiState()
     )
-
-    private val _notificationPermissionEvents =
-        MutableSharedFlow<NotificationPermissionUiEvent>(extraBufferCapacity = 1)
-    val notificationPermissionEvents = _notificationPermissionEvents.asSharedFlow()
-
-    private val settingsBaseFlow = combine(
-        combine(
-            settingsRepository.getUserName(),
-            settingsRepository.getSelectedLanguage(),
-            settingsRepository.getSelectedCategory()
-        ) { userName, language, category ->
-            Triple(userName, language, category)
-        },
-        combine(
-            settingsRepository.getDailyGoal(),
-            settingsRepository.isNotificationsEnabled(),
-            settingsRepository.getPreferredStudyTime()
-        ) { goal, notifications, preferredTime ->
-            Triple(goal, notifications, preferredTime)
-        }
-    ) { profile, preferences ->
-        UiState(
-            userName = profile.first,
-            selectedLanguage = profile.second,
-            selectedCategory = profile.third,
-            dailyGoal = preferences.first,
-            notificationsEnabled = preferences.second,
-            preferredStudyTime = preferences.third,
-            isLoading = false,
-            saveMessage = null
-        )
-    }
-
-    private val saveMessageFlow = MutableStateFlow<String?>(null)
-
-    val uiState: StateFlow<UiState> = combine(settingsBaseFlow, saveMessageFlow) { base, msg ->
-        base.copy(saveMessage = msg)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiState())
 
     fun onUserNameChange(name: String) {
         viewModelScope.launch {
-            settingsRepository.setUserName(name)
-            showSaveMessage("Имя сохранено: $name")
+            settingsRepository.setUserName(name.trim())
+            flashSaveMessage("Имя сохранено: ${name.trim()}")
         }
     }
 
     fun onLanguageSelected(language: String) {
         viewModelScope.launch {
             settingsRepository.setSelectedLanguage(language)
-            showSaveMessage("Язык: ${Languages.getDisplayName(language)}")
+            flashSaveMessage("Язык: ${Languages.getDisplayName(language)}")
         }
     }
 
@@ -109,15 +77,15 @@ class SettingsViewModel @Inject constructor(
                 settingsRepository.setVocabularySource(VocabularySource.CUSTOM)
             }
             settingsRepository.setSelectedCategory(category)
-            showSaveMessage("Категория: ${Categories.getDisplayName(category)}")
+            flashSaveMessage("Категория: ${Categories.getDisplayName(category)}")
         }
     }
 
     fun onDailyGoalChanged(goal: Int) {
         viewModelScope.launch {
             settingsRepository.setDailyGoal(goal)
-            rescheduleNotifications()
-            showSaveMessage("Цель: $goal слов/день")
+            refreshReminders()
+            flashSaveMessage("Цель: $goal слов/день")
         }
     }
 
@@ -125,8 +93,8 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             settingsRepository.setNotificationsEnabled(false)
             settingsRepository.setPostNotificationsPermissionGranted(false)
-            rescheduleNotifications()
-            showSaveMessage("Уведомления выключены")
+            refreshReminders()
+            flashSaveMessage("Уведомления выключены")
         }
     }
 
@@ -134,8 +102,8 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             settingsRepository.setNotificationsEnabled(true)
             settingsRepository.setPostNotificationsPermissionGranted(true)
-            rescheduleNotifications()
-            showSaveMessage("Уведомления включены")
+            refreshReminders()
+            flashSaveMessage("Уведомления включены")
         }
     }
 
@@ -143,8 +111,8 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             settingsRepository.setNotificationsEnabled(false)
             settingsRepository.setPostNotificationsPermissionGranted(false)
-            rescheduleNotifications()
-            _notificationPermissionEvents.emit(NotificationPermissionUiEvent.ShowRationaleSnackbar)
+            refreshReminders()
+            _permissionEvents.emit(PermissionEvent.OpenSystemSettings)
         }
     }
 
@@ -153,75 +121,38 @@ class SettingsViewModel @Inject constructor(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 settingsRepository.setPostNotificationsPermissionGranted(runtimeGranted)
             }
-            rescheduleNotifications()
+            refreshReminders()
         }
     }
 
     fun onPreferredStudyTimeChanged(time: LocalTime) {
         viewModelScope.launch {
             settingsRepository.setPreferredStudyTime(time)
-            rescheduleNotifications()
-            showSaveMessage("Время обучения: ${formatTime(time)}")
+            refreshReminders()
+            flashSaveMessage(
+                "Время обучения: ${String.format(Locale.getDefault(), "%02d:%02d", time.hour, time.minute)}"
+            )
         }
     }
 
-    fun getRecommendedSessionTimes(preferred: LocalTime, dailyGoal: Int): List<LocalTime> =
+    fun recommendedSessionTimes(preferred: LocalTime, dailyGoal: Int): List<LocalTime> =
         calculateRecommendedTimes(preferred, dailyGoal)
 
-    private fun showSaveMessage(message: String) {
-        saveMessageFlow.value = message
-        viewModelScope.launch {
-            delay(2000)
-            saveMessageFlow.value = null
-        }
-    }
-
     fun clearSaveMessage() {
-        saveMessageFlow.value = null
+        saveMessage.value = null
     }
 
-    private suspend fun rescheduleNotifications() {
+    private fun flashSaveMessage(message: String) {
+        saveMessage.value = message
+    }
+
+    private suspend fun refreshReminders() {
         scheduler.rescheduleDailyNotifications(
             notificationsEnabled = settingsRepository.isNotificationsEnabled().firstOrNull() == true,
-            preferredStudyTime = settingsRepository.getPreferredStudyTime().firstOrNull() ?: LocalTime(15, 0, 0),
+            preferredStudyTime = settingsRepository.getPreferredStudyTime().firstOrNull()
+                ?: LocalTime(15, 0, 0),
             dailyGoal = settingsRepository.getDailyGoal().firstOrNull() ?: 10
         )
         StudyWidgetUpdater.requestUpdateAll(appContext)
     }
-
-    private fun formatTime(time: LocalTime): String {
-        return "%02d:%02d".format(time.hour, time.minute)
-    }
 }
-
-object Languages {
-    val ALL = listOf(
-        LanguageOption("en", "English"),
-        LanguageOption("de", "Deutsch"),
-        LanguageOption("fr", "Français"),
-        LanguageOption("es", "Español")
-    )
-
-    fun getDisplayName(code: String): String =
-        ALL.find { it.code == code }?.displayName ?: code
-}
-
-data class LanguageOption(val code: String, val displayName: String)
-
-object Categories {
-    val ALL = listOf(
-        CategoryOption("general", "Общие"),
-        CategoryOption("food", "Еда"),
-        CategoryOption("travel", "Путешествия"),
-        CategoryOption("business", "Бизнес"),
-        CategoryOption("it", "IT"),
-        CategoryOption("sport", "Спорт"),
-        CategoryOption("family", "Семья"),
-        CategoryOption(LearningDefaults.CUSTOM_DATASET_CATEGORY, "Свой датасет")
-    )
-
-    fun getDisplayName(code: String): String =
-        ALL.find { it.code == code }?.displayName ?: code
-}
-
-data class CategoryOption(val code: String, val displayName: String)

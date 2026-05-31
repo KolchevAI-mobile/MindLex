@@ -9,13 +9,16 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
+import com.example.mindlex.R
 import kotlinx.datetime.LocalTime
 
 @Composable
 internal fun PreferredStudyTimePicker(
+    timeLabel: String,
     time: LocalTime,
     onTimeSelected: (LocalTime) -> Unit
 ) {
@@ -24,9 +27,7 @@ internal fun PreferredStudyTimePicker(
         onClick = {
             TimePickerDialog(
                 context,
-                { _, hour, minute ->
-                    onTimeSelected(LocalTime(hour, minute, 0))
-                },
+                { _, hour, minute -> onTimeSelected(LocalTime(hour, minute, 0)) },
                 time.hour,
                 time.minute,
                 true
@@ -34,7 +35,7 @@ internal fun PreferredStudyTimePicker(
         },
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text("Основное время занятия: ${"%02d:%02d".format(time.hour, time.minute)}")
+        Text(stringResource(R.string.settings_study_time, timeLabel))
     }
 }
 
@@ -43,30 +44,33 @@ internal fun StudyScheduleRecommendation(
     preferredTime: LocalTime,
     recommendedTimes: List<LocalTime>
 ) {
-    val algorithmExtraSlots = recommendedTimes.filterNot {
+    val extraSlots = recommendedTimes.filterNot {
         it.hour == preferredTime.hour && it.minute == preferredTime.minute
     }
+
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
-            text = "💡 Рекомендуемое время",
+            text = stringResource(R.string.settings_schedule_title),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Medium
         )
-        if (algorithmExtraSlots.isEmpty()) {
+        if (extraSlots.isEmpty()) {
             Text(
-                text = "При вашей цели достаточно одной сессии в выбранное основное время.",
+                text = stringResource(R.string.settings_schedule_single),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         } else {
-            val label = algorithmExtraSlots.joinToString(" / ") { "%02d:%02d".format(it.hour, it.minute) }
+            val slotsLabel = extraSlots.joinToString(" / ") { slot ->
+                "%02d:%02d".format(slot.hour, slot.minute)
+            }
             Text(
-                text = label,
+                text = slotsLabel,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "(расписание по вашей цели: ±4 ч от основного времени)",
+                text = stringResource(R.string.settings_schedule_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

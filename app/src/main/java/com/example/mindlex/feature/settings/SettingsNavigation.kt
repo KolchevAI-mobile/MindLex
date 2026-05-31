@@ -10,6 +10,7 @@ object SettingsDestinations {
     const val CUSTOM_DATASET = "custom_dataset_screen"
 }
 
+/** Граф настроек: главный экран и свой датасет. */
 fun NavGraphBuilder.settingsGraph(
     onBackClick: () -> Unit,
     onOpenCustomDataset: () -> Unit

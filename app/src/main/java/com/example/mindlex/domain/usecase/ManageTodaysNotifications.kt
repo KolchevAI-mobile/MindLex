@@ -7,6 +7,8 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
@@ -16,31 +18,46 @@ import kotlinx.datetime.toLocalDateTime
 class ManageTodaysNotifications @Inject constructor(
     private val appNotificationRepository: AppNotificationRepository
 ) {
-    private val todayDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-    private val dayStartEpochMs = todayDate.atStartOfDayIn(TimeZone.currentSystemDefault()).epochSeconds * 1000L
-    private val dayEndEpochMs = todayDate
-        .plus(DatePeriod(days = 1))
-        .atStartOfDayIn(TimeZone.currentSystemDefault())
-        .epochSeconds * 1000L
 
-    fun observeNotificationsForToday(): Flow<List<AppNotification>> =
-        appNotificationRepository.observeNotificationsBetween(
-            startEpochMs = dayStartEpochMs,
-            endEpochMs = dayEndEpochMs
+    fun observeNotificationsForToday(): Flow<List<AppNotification>> {
+        val bounds = currentDayBounds()
+        return appNotificationRepository.observeNotificationsBetween(
+            startEpochMs = bounds.start.toEpochMillis(),
+            endEpochMs = bounds.end.toEpochMillis()
         )
+    }
 
     suspend fun markAsRead(notificationId: Long) {
         appNotificationRepository.markAsRead(notificationId)
     }
 
     suspend fun markAllAsReadForToday() {
+        val bounds = currentDayBounds()
         appNotificationRepository.markAllAsReadBetween(
-            startEpochMs = dayStartEpochMs,
-            endEpochMs = dayEndEpochMs
+            startEpochMs = bounds.start.toEpochMillis(),
+            endEpochMs = bounds.end.toEpochMillis()
         )
     }
 
     suspend fun deleteNotification(notificationId: Long) {
         appNotificationRepository.deleteNotification(notificationId)
     }
+
+    private fun currentDayBounds(): DayBounds {
+        val zone = TimeZone.currentSystemDefault()
+        val today = Clock.System.now().toLocalDateTime(zone).date
+        return DayBounds(
+            date = today,
+            start = today.atStartOfDayIn(zone),
+            end = today.plus(DatePeriod(days = 1)).atStartOfDayIn(zone)
+        )
+    }
+
+    private data class DayBounds(
+        val date: LocalDate,
+        val start: Instant,
+        val end: Instant
+    )
 }
+
+private fun Instant.toEpochMillis(): Long = epochSeconds * 1000L
