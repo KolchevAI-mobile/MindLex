@@ -9,6 +9,7 @@ object SynonymChainDestinations {
     const val SCREEN = "synonym_chain_screen"
 }
 
+/** Навигация цепочки синонимов. */
 fun NavGraphBuilder.synonymChainGraph(
     onBackClick: () -> Unit
 ) {

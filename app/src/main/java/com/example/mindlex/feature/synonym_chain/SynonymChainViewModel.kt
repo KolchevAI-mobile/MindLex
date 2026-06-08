@@ -26,34 +26,8 @@ class SynonymChainViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
-    data class ChainSession(
-        val chainId: String = "",
-        val startStep: Int = 1,
-        val currentStep: Int = 1,
-        val collectedWords: List<String> = emptyList(),
-        val targetWord: String = "",
-        val validSynonyms: List<String> = emptyList()
-    )
-
-    data class UiState(
-        val isLoading: Boolean = true,
-        val userInput: String = "",
-        val chainSession: ChainSession? = null,
-        val progressInChain: Int = 1,
-        val targetChainLength: Int = 3,
-        val shownHints: List<String> = emptyList(),
-        val hintVisible: Boolean = false,
-        val hintUsedCurrentStep: Boolean = false,
-        val incorrectMessage: String? = null,
-        val chainsCompletedSession: Int = 0,
-        val hintsUsedSession: Int = 0,
-        val skipCountSession: Int = 0,
-        val chainCompleted: Boolean = false,
-        val loadError: String? = null
-    )
-
-    private val _uiState = MutableStateFlow(UiState())
-    val uiState: StateFlow<UiState> = _uiState
+    private val _uiState = MutableStateFlow(SynonymChainUiState())
+    val uiState: StateFlow<SynonymChainUiState> = _uiState
 
     init {
         startNewChain()
@@ -67,12 +41,10 @@ class SynonymChainViewModel @Inject constructor(
         val session = _uiState.value.chainSession ?: return
         if (_uiState.value.hintVisible) return
 
-        val hints = session.validSynonyms.shuffled().take(3)
         _uiState.update {
             it.copy(
-                shownHints = hints,
+                shownHints = session.validSynonyms.shuffled().take(3),
                 hintVisible = true,
-                hintUsedCurrentStep = true,
                 hintsUsedSession = it.hintsUsedSession + 1
             )
         }
@@ -80,25 +52,18 @@ class SynonymChainViewModel @Inject constructor(
 
     fun checkAnswer() {
         val state = _uiState.value
-        if (state.isLoading) return
+        if (!state.canAnswer) return
         val session = state.chainSession ?: return
         val input = state.userInput.trim()
         if (input.isBlank()) return
 
-        val isValid = validateSynonym(input, session.validSynonyms)
-        if (!isValid) {
+        if (!validateSynonym(input, session.validSynonyms)) {
             _uiState.update { it.copy(incorrectMessage = "Попробуйте другой синоним") }
             return
         }
 
-        val acceptedWord = input
-
-        val updatedWords = session.collectedWords + acceptedWord
-        saveStepProgress(
-            chainId = session.chainId,
-            stepNumber = session.currentStep,
-            isCorrect = true
-        )
+        val updatedWords = session.collectedWords + input
+        saveStepProgress(session.chainId, session.currentStep, isCorrect = true)
 
         if (updatedWords.size >= state.targetChainLength) {
             _uiState.update {
@@ -119,24 +84,18 @@ class SynonymChainViewModel @Inject constructor(
             chainId = session.chainId,
             stepNumber = session.currentStep + 1,
             collectedWords = updatedWords,
-            fallbackWord = acceptedWord
+            fallbackWord = input
         )
     }
 
     fun skipCurrentWord() {
         val session = _uiState.value.chainSession ?: return
-        saveStepProgress(
-            chainId = session.chainId,
-            stepNumber = session.currentStep,
-            isCorrect = false
-        )
+        saveStepProgress(session.chainId, session.currentStep, isCorrect = false)
         _uiState.update { it.copy(skipCountSession = it.skipCountSession + 1) }
         startNewChain()
     }
 
-    fun continueWithNextChain() {
-        startNewChain()
-    }
+    fun continueWithNextChain() = startNewChain()
 
     private fun startNewChain() {
         viewModelScope.launch {
@@ -147,7 +106,6 @@ class SynonymChainViewModel @Inject constructor(
                     chainCompleted = false,
                     hintVisible = false,
                     shownHints = emptyList(),
-                    hintUsedCurrentStep = false,
                     progressInChain = 1,
                     loadError = null,
                     incorrectMessage = null,
@@ -160,7 +118,6 @@ class SynonymChainViewModel @Inject constructor(
 
             getNextChainStep.getRandomChainStartStep(language, category)
                 .onSuccess { startStep ->
-                    val initialWords = listOf(startStep.word)
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -168,7 +125,7 @@ class SynonymChainViewModel @Inject constructor(
                                 chainId = startStep.chainId,
                                 startStep = startStep.stepNumber,
                                 currentStep = startStep.stepNumber,
-                                collectedWords = initialWords,
+                                collectedWords = listOf(startStep.word),
                                 targetWord = startStep.word,
                                 validSynonyms = startStep.validSynonyms
                             ),
@@ -200,18 +157,14 @@ class SynonymChainViewModel @Inject constructor(
                     userInput = "",
                     hintVisible = false,
                     shownHints = emptyList(),
-                    hintUsedCurrentStep = false,
                     incorrectMessage = null
                 )
             }
 
             val language = settingsRepository.getSelectedLanguage().firstOrNull() ?: "en"
-            val nextStepResult = getNextChainStep(chainId, stepNumber, language)
-
-            nextStepResult
+            getNextChainStep(chainId, stepNumber, language)
                 .onSuccess { nextStep ->
-                    val fallbackStep = buildFallbackStep(chainId, stepNumber, fallbackWord)
-                    val resolved = nextStep ?: fallbackStep
+                    val resolved = nextStep ?: fallbackStep(chainId, stepNumber, fallbackWord)
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -238,51 +191,37 @@ class SynonymChainViewModel @Inject constructor(
         }
     }
 
-    private fun buildFallbackStep(
-        chainId: String,
-        stepNumber: Int,
-        currentWord: String
-    ): SynonymChain {
-        
-        return SynonymChain(
+    private fun fallbackStep(chainId: String, stepNumber: Int, word: String): SynonymChain =
+        SynonymChain(
             id = "fallback:$chainId:$stepNumber",
             chainId = chainId,
             stepNumber = stepNumber,
-            word = currentWord,
-            validSynonyms = listOf(currentWord),
+            word = word,
+            validSynonyms = listOf(word),
             difficulty = 1,
             category = "general"
         )
-    }
 
-    private fun saveStepProgress(
-        chainId: String,
-        stepNumber: Int,
-        isCorrect: Boolean
-    ) {
+    private fun saveStepProgress(chainId: String, stepNumber: Int, isCorrect: Boolean) {
         viewModelScope.launch {
-            val review = ReviewResult(
-                wordId = "synonym_chain:$chainId:$stepNumber",
-                quality = if (isCorrect) 4 else 2,
-                nextReviewAt = Clock.System.now(),
-                newStatus = if (isCorrect) WordStatus.KNOWN else WordStatus.LEARNING
+            updateWordProgress(
+                ReviewResult(
+                    wordId = "synonym_chain:$chainId:$stepNumber",
+                    quality = if (isCorrect) 4 else 2,
+                    nextReviewAt = Clock.System.now(),
+                    newStatus = if (isCorrect) WordStatus.KNOWN else WordStatus.LEARNING
+                )
             )
-            updateWordProgress(review)
         }
     }
 
     private fun onChainCompleted(chainLength: Int) {
         viewModelScope.launch {
-            val completedNow = (_uiState.value.chainsCompletedSession + 1)
-            _uiState.update {
-                it.copy(
-                    chainsCompletedSession = completedNow
-                )
-            }
+            val completedNow = _uiState.value.chainsCompletedSession + 1
+            _uiState.update { it.copy(chainsCompletedSession = completedNow) }
 
             val currentCompleted = settingsRepository.getSynonymChainsCompleted().firstOrNull() ?: 0
             val currentAvg = settingsRepository.getSynonymChainAvgLength().firstOrNull() ?: 0.0
-
             val newCompleted = currentCompleted + 1
             val newAvg = if (currentCompleted <= 0) {
                 chainLength.toDouble()

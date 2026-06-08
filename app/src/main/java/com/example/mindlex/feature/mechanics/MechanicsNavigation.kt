@@ -9,6 +9,7 @@ object MechanicsDestinations {
     const val MECHANICS = "mechanics_screen"
 }
 
+/** Выбор режима обучения. */
 fun NavGraphBuilder.mechanicsGraph(
     onBackClick: () -> Unit,
     onMechanicSelected: (MechanicType) -> Unit

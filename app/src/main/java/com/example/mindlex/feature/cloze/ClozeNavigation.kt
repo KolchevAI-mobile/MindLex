@@ -9,6 +9,7 @@ object ClozeDestinations {
     const val SCREEN = "cloze_screen"
 }
 
+/** Навигация cloze-упражнений. */
 fun NavGraphBuilder.clozeGraph(
     onBackClick: () -> Unit
 ) {

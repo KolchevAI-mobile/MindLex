@@ -21,7 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.mindlex.R
 import com.example.mindlex.feature.mechanics.MechanicStatus
 
 @Composable
@@ -32,30 +34,23 @@ fun MechanicCard(
     status: MechanicStatus,
     onClick: () -> Unit
 ) {
-    val isAvailable = status == MechanicStatus.AVAILABLE
-    val containerColor = if (isAvailable) {
-        MaterialTheme.colorScheme.surface
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-    }
+    val available = status == MechanicStatus.AVAILABLE
+    val borderAlpha = if (available) 0.35f else 0.2f
 
     Card(
         onClick = onClick,
-        enabled = isAvailable,
+        enabled = available,
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize(),
         colors = CardDefaults.cardColors(
-            containerColor = containerColor
-        ),
-        border = BorderStroke(
-            1.dp,
-            if (isAvailable) {
-                MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
+            containerColor = if (available) {
+                MaterialTheme.colorScheme.surface
             } else {
-                MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
             }
-        )
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = borderAlpha))
     ) {
         Row(
             modifier = Modifier
@@ -67,7 +62,7 @@ fun MechanicCard(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
-                tint = if (isAvailable) {
+                tint = if (available) {
                     MaterialTheme.colorScheme.primary
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
@@ -80,29 +75,25 @@ fun MechanicCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Text(text = title, style = MaterialTheme.typography.titleMedium)
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                if (!isAvailable) {
+                if (!available) {
                     Text(
-                        text = "Скоро будет доступно",
+                        text = stringResource(R.string.mechanic_coming_soon),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
 
-            if (isAvailable) {
+            if (available) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Перейти",
+                    contentDescription = stringResource(R.string.mechanic_cd_open),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }

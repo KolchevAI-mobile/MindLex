@@ -12,11 +12,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.Psychology
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,17 +26,6 @@ import com.example.mindlex.feature.mechanics.components.MechanicCard
 import com.example.mindlex.ui.components.BookOpenDecorLayer
 import com.example.mindlex.ui.components.MechanicSessionHeader
 
-enum class MechanicType {
-    ACTIVE_RECALL,
-    CLOZE,
-    RUSH,
-    SYNONYM_CHAIN
-}
-
-enum class MechanicStatus {
-    AVAILABLE
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MechanicsScreen(
@@ -49,6 +33,7 @@ fun MechanicsScreen(
     onMechanicSelected: (MechanicType) -> Unit
 ) {
     val scroll = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -76,11 +61,9 @@ fun MechanicsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scroll)
-                    .padding(16.dp)
-                    .padding(bottom = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = stringResource(R.string.mechanics_subtitle),
                     style = MaterialTheme.typography.headlineSmall,
@@ -89,38 +72,18 @@ fun MechanicsScreen(
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    MechanicCard(
-                        title = stringResource(R.string.mechanic_active_recall_title),
-                        description = stringResource(R.string.mechanic_active_recall_desc),
-                        icon = Icons.Default.Memory,
-                        status = MechanicStatus.AVAILABLE,
-                        onClick = { onMechanicSelected(MechanicType.ACTIVE_RECALL) }
-                    )
-
-                    MechanicCard(
-                        title = stringResource(R.string.mechanic_synonym_title),
-                        description = stringResource(R.string.mechanic_synonym_desc),
-                        icon = Icons.Default.Psychology,
-                        status = MechanicStatus.AVAILABLE,
-                        onClick = { onMechanicSelected(MechanicType.SYNONYM_CHAIN) }
-                    )
-
-                    MechanicCard(
-                        title = stringResource(R.string.mechanic_rush_title),
-                        description = stringResource(R.string.mechanic_rush_desc),
-                        icon = Icons.Default.Bolt,
-                        status = MechanicStatus.AVAILABLE,
-                        onClick = { onMechanicSelected(MechanicType.RUSH) }
-                    )
-
-                    MechanicCard(
-                        title = stringResource(R.string.mechanic_cloze_title),
-                        description = stringResource(R.string.mechanic_cloze_desc),
-                        icon = Icons.Default.Timer,
-                        status = MechanicStatus.AVAILABLE,
-                        onClick = { onMechanicSelected(MechanicType.CLOZE) }
-                    )
+                    MechanicsUiState.entries.forEach { entry ->
+                        MechanicCard(
+                            title = stringResource(entry.titleRes),
+                            description = stringResource(entry.descriptionRes),
+                            icon = entry.icon,
+                            status = entry.status,
+                            onClick = { onMechanicSelected(entry.type) }
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }

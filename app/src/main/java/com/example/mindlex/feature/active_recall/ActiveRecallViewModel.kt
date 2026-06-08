@@ -5,20 +5,19 @@ import androidx.lifecycle.viewModelScope
 import com.example.mindlex.core.constants.LearningDefaults
 import com.example.mindlex.domain.model.ReviewResult
 import com.example.mindlex.domain.model.UserAnswer
-import com.example.mindlex.domain.model.Word
 import com.example.mindlex.domain.model.WordStatus
 import com.example.mindlex.domain.repository.SettingsRepository
 import com.example.mindlex.domain.usecase.EvaluateAnswer
 import com.example.mindlex.domain.usecase.GetNextWordForPractice
 import com.example.mindlex.domain.usecase.UpdateWordProgress
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import javax.inject.Inject
 
 @HiltViewModel
 class ActiveRecallViewModel @Inject constructor(
@@ -27,39 +26,18 @@ class ActiveRecallViewModel @Inject constructor(
     private val updateProgress: UpdateWordProgress,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
+
     private val shownWordIds = mutableSetOf<String>()
-    private var isFetchingNextWord = false
+    private var loadingWord = false
 
-    data class UiState(
-        val currentWord: Word? = null,
-        val userInput: String = "",
-        val feedback: Feedback? = null,
-        val currentWordIndex: Int = 0,
-        val totalWords: Int = LearningDefaults.DAILY_GOAL_FALLBACK,
-        val isLoading: Boolean = false,
-        val hintShown: Boolean = false,
-        val sessionComplete: Boolean = false,
-        val correctCount: Int = 0,
-        val incorrectCount: Int = 0,
-        val hintUsedCount: Int = 0
-    )
-
-    data class Feedback(
-        val isCorrect: Boolean,
-        val quality: Int,
-        val usedHint: Boolean = false
-    )
-
-    private val _uiState = MutableStateFlow(UiState())
-    val uiState: StateFlow<UiState> = _uiState
+    private val _uiState = MutableStateFlow(ActiveRecallUiState())
+    val uiState: StateFlow<ActiveRecallUiState> = _uiState
 
     init {
         viewModelScope.launch {
-            launch {
-                val dailyGoal =
-                    settingsRepository.getDailyGoal().firstOrNull() ?: LearningDefaults.DAILY_GOAL_FALLBACK
-                _uiState.update { it.copy(totalWords = dailyGoal) }
-            }
+            val goal = settingsRepository.getDailyGoal().firstOrNull()
+                ?: LearningDefaults.DAILY_GOAL_FALLBACK
+            _uiState.update { it.copy(totalWords = goal) }
             loadNextWord()
         }
     }
@@ -69,67 +47,64 @@ class ActiveRecallViewModel @Inject constructor(
     }
 
     fun showHint() {
-        val currentWord = _uiState.value.currentWord ?: return
-
-        val feedback = Feedback(
-            isCorrect = true,
-            quality = EvaluateAnswer.HINT_RESPONSE_QUALITY,
-            usedHint = true
-        )
+        val word = _uiState.value.currentWord ?: return
+        if (!_uiState.value.canShowHint) return
 
         _uiState.update {
             it.copy(
                 hintShown = true,
-                feedback = feedback,
-                hintUsedCount = it.hintUsedCount + 1
+                hintUsedCount = it.hintUsedCount + 1,
+                feedback = ActiveRecallFeedback(
+                    isCorrect = true,
+                    quality = EvaluateAnswer.HINT_RESPONSE_QUALITY,
+                    usedHint = true
+                )
             )
         }
 
         viewModelScope.launch {
-            val reviewResult = ReviewResult(
-                wordId = currentWord.id,
-                quality = EvaluateAnswer.HINT_RESPONSE_QUALITY,
-                nextReviewAt = Clock.System.now(),
-                newStatus = WordStatus.LEARNING
+            updateProgress(
+                ReviewResult(
+                    wordId = word.id,
+                    quality = EvaluateAnswer.HINT_RESPONSE_QUALITY,
+                    nextReviewAt = Clock.System.now(),
+                    newStatus = WordStatus.LEARNING
+                )
             )
-            updateProgress(reviewResult)
         }
     }
 
     fun checkAnswer() {
-        val currentState = _uiState.value
-        val currentWord = currentState.currentWord ?: return
-        val userInput = currentState.userInput.trim()
-        if (userInput.isBlank()) {
-            return
-        }
+        val state = _uiState.value
+        val word = state.currentWord ?: return
+        val input = state.userInput.trim()
+        if (!state.awaitingAnswer || input.isBlank()) return
 
-        val userAnswer = UserAnswer(
-            wordId = currentWord.id,
-            userInput = userInput,
-            isCorrect = false,
-            responseTimeMs = System.currentTimeMillis(),
-            timestamp = Clock.System.now()
+        val reviewResult = evaluateAnswer(
+            UserAnswer(
+                wordId = word.id,
+                userInput = input,
+                isCorrect = false,
+                responseTimeMs = System.currentTimeMillis(),
+                timestamp = Clock.System.now()
+            ),
+            word
         )
 
-        val reviewResult = evaluateAnswer(userAnswer, currentWord)
+        viewModelScope.launch { updateProgress(reviewResult) }
 
-        viewModelScope.launch {
-            updateProgress(reviewResult)
-        }
-
-        val usedHint = currentState.hintShown
-        val isCorrect = reviewResult.quality >= EvaluateAnswer.ACCEPTANCE_QUALITY_MIN
-        val feedback = createFeedback(isCorrect, reviewResult.quality, usedHint)
-
-        when {
-            usedHint -> _uiState.update { it.copy(hintUsedCount = it.hintUsedCount + 1) }
-            isCorrect -> _uiState.update { it.copy(correctCount = it.correctCount + 1) }
-            else -> _uiState.update { it.copy(incorrectCount = it.incorrectCount + 1) }
-        }
-
+        val correct = reviewResult.quality >= EvaluateAnswer.ACCEPTANCE_QUALITY_MIN
         _uiState.update {
-            it.copy(feedback = feedback, hintShown = false)
+            it.copy(
+                feedback = ActiveRecallFeedback(
+                    isCorrect = correct,
+                    quality = reviewResult.quality,
+                    usedHint = false
+                ),
+                hintShown = false,
+                correctCount = it.correctCount + if (correct) 1 else 0,
+                incorrectCount = it.incorrectCount + if (!correct) 1 else 0
+            )
         }
     }
 
@@ -138,63 +113,17 @@ class ActiveRecallViewModel @Inject constructor(
             it.copy(userInput = "", feedback = null, hintShown = false)
         }
 
-        val currentState = _uiState.value
-        if (currentState.currentWordIndex >= currentState.totalWords) {
+        if (_uiState.value.currentWordIndex >= _uiState.value.totalWords) {
             _uiState.update { it.copy(sessionComplete = true) }
             return
         }
-
         loadNextWord()
-    }
-
-    private fun loadNextWord() {
-        if (isFetchingNextWord) return
-        isFetchingNextWord = true
-        viewModelScope.launch {
-            try {
-                _uiState.update { it.copy(isLoading = true) }
-                getNextWord(excludedIds = shownWordIds.toSet())
-                    .onSuccess { word ->
-                        shownWordIds.add(word.id)
-                        _uiState.update {
-                            it.copy(
-                                currentWord = word,
-                                isLoading = false,
-                                currentWordIndex = it.currentWordIndex + 1
-                            )
-                        }
-                    }
-                    .onFailure {
-                        val exhausted = it is NoSuchElementException
-                        _uiState.update { s ->
-                            s.copy(
-                                isLoading = false,
-                                sessionComplete = exhausted || s.sessionComplete
-                            )
-                        }
-                    }
-            } finally {
-                isFetchingNextWord = false
-            }
-        }
-    }
-
-    private fun createFeedback(isCorrect: Boolean, quality: Int, usedHint: Boolean): Feedback {
-        return if (usedHint) {
-            Feedback(
-                isCorrect = true,
-                quality = quality.coerceAtMost(EvaluateAnswer.HINT_RESPONSE_QUALITY),
-                usedHint = true
-            )
-        } else {
-            Feedback(isCorrect = isCorrect, quality = quality, usedHint = false)
-        }
     }
 
     fun retrySession() {
         shownWordIds.clear()
         _uiState.update {
-            UiState(
+            ActiveRecallUiState(
                 totalWords = it.totalWords,
                 correctCount = 0,
                 incorrectCount = 0,
@@ -210,6 +139,38 @@ class ActiveRecallViewModel @Inject constructor(
     fun markTutorialShown() {
         viewModelScope.launch {
             settingsRepository.setActiveRecallTutorialShown(true)
+        }
+    }
+
+    private fun loadNextWord() {
+        if (loadingWord) return
+        loadingWord = true
+        viewModelScope.launch {
+            try {
+                _uiState.update { it.copy(isLoading = true) }
+                getNextWord(excludedIds = shownWordIds.toSet())
+                    .onSuccess { word ->
+                        shownWordIds.add(word.id)
+                        _uiState.update {
+                            it.copy(
+                                currentWord = word,
+                                isLoading = false,
+                                currentWordIndex = it.currentWordIndex + 1
+                            )
+                        }
+                    }
+                    .onFailure { error ->
+                        val exhausted = error is NoSuchElementException
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                sessionComplete = exhausted || it.sessionComplete
+                            )
+                        }
+                    }
+            } finally {
+                loadingWord = false
+            }
         }
     }
 }

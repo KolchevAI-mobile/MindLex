@@ -97,6 +97,8 @@
     <string name="mechanic_rush_desc">Переведите максимум слов за ограниченное время.</string>
     <string name="mechanic_cloze_title">Контекстный пропуск</string>
     <string name="mechanic_cloze_desc">Заполните пропуск в предложении, опираясь на контекст.</string>
+    <string name="mechanic_coming_soon">Скоро будет доступно</string>
+    <string name="mechanic_cd_open">Открыть режим</string>
 
     <string name="active_recall_title">Активное вспоминание</string>
     <string name="active_recall_loading">Загрузка…</string>

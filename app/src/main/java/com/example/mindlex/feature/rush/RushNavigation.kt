@@ -9,6 +9,7 @@ object RushDestinations {
     const val SCREEN = "rush_screen"
 }
 
+/** Навигация спринта Rush. */
 fun NavGraphBuilder.rushGraph(
     onBackClick: () -> Unit
 ) {

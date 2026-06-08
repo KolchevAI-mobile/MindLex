@@ -9,6 +9,7 @@ object ActiveRecallDestinations {
     const val SCREEN = "active_recall_screen"
 }
 
+/** Навигация активного вспоминания. */
 fun NavGraphBuilder.activeRecallGraph(
     onBackClick: () -> Unit
 ) {
