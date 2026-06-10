@@ -1,6 +1,7 @@
 package com.example.mindlex.feature.notifications
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,11 +9,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -22,12 +26,16 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.MarkEmailRead
 import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -42,6 +50,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.mindlex.R
+
+private val CardShape = RoundedCornerShape(22.dp)
 
 @Composable
 fun NotificationsTopBarActions(
@@ -59,36 +69,110 @@ fun NotificationsTopBarActions(
 }
 
 @Composable
-fun NotificationsEmptyState(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+fun NotificationsUnreadSubtitle(countLabel: String) {
+    Badge(
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary
     ) {
+        Text(
+            text = stringResource(R.string.notifications_unread_badge, countLabel),
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+            style = MaterialTheme.typography.labelMedium
+        )
+    }
+}
+
+@Composable
+fun NotificationsEmptyState(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = CardShape,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 28.dp, vertical = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.NotificationsNone,
+                        contentDescription = null,
+                        modifier = Modifier.size(36.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.notifications_empty_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = stringResource(R.string.notifications_empty_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+                NotificationsSwipeHints()
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationsSwipeHints() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        SwipeHintRow(
+            icon = Icons.AutoMirrored.Filled.ArrowForward,
+            text = stringResource(R.string.notifications_swipe_read)
+        )
+        SwipeHintRow(
+            icon = Icons.AutoMirrored.Filled.ArrowBack,
+            text = stringResource(R.string.notifications_swipe_delete)
+        )
+    }
+}
+
+@Composable
+private fun SwipeHintRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            imageVector = Icons.Default.NotificationsNone,
+            imageVector = icon,
             contentDescription = null,
-            modifier = Modifier.size(56.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = stringResource(R.string.notifications_empty_title),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.notifications_empty_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = stringResource(R.string.notifications_swipe_read),
+            text = text,
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -104,8 +188,12 @@ fun NotificationsList(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        item {
+            NotificationsSwipeHints()
+            Spacer(modifier = Modifier.height(4.dp))
+        }
         items(items, key = { it.id }) { item ->
             NotificationSwipeRow(
                 item = item,
@@ -149,18 +237,21 @@ private fun NotificationSwipeRow(
         enableDismissFromEndToStart = true,
         backgroundContent = {
             val isDelete = dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart
+            val bg = if (isDelete) {
+                MaterialTheme.colorScheme.errorContainer
+            } else {
+                MaterialTheme.colorScheme.primaryContainer
+            }
+            val fg = if (isDelete) {
+                MaterialTheme.colorScheme.onErrorContainer
+            } else {
+                MaterialTheme.colorScheme.onPrimaryContainer
+            }
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        color = if (isDelete) {
-                            MaterialTheme.colorScheme.errorContainer
-                        } else {
-                            MaterialTheme.colorScheme.primaryContainer
-                        },
-                        shape = RoundedCornerShape(20.dp)
-                    )
-                    .padding(horizontal = 20.dp),
+                    .background(bg, CardShape)
+                    .padding(horizontal = 22.dp),
                 horizontalArrangement = if (isDelete) Arrangement.End else Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -171,19 +262,20 @@ private fun NotificationSwipeRow(
                     } else {
                         null
                     },
-                    tint = if (isDelete) {
-                        MaterialTheme.colorScheme.onErrorContainer
-                    } else {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    }
+                    tint = fg
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(
+                        if (isDelete) R.string.notifications_swipe_delete_short else R.string.notifications_swipe_read_short
+                    ),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = fg
                 )
             }
         }
     ) {
-        NotificationCard(
-            item = item,
-            onMarkRead = onMarkRead
-        )
+        NotificationCard(item = item, onMarkRead = onMarkRead)
     }
 }
 
@@ -192,64 +284,90 @@ private fun NotificationCard(
     item: NotificationRowState,
     onMarkRead: (Long) -> Unit
 ) {
+    val accent = if (item.isRead) {
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+
     Card(
-        shape = RoundedCornerShape(20.dp),
+        shape = CardShape,
         colors = CardDefaults.cardColors(
             containerColor = if (item.isRead) {
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
             } else {
                 MaterialTheme.colorScheme.surface
             }
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (item.isRead) 1.dp else 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (item.isRead) 1.dp else 5.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .height(IntrinsicSize.Min)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .width(5.dp)
+                    .fillMaxHeight()
+                    .background(accent)
+            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                if (!item.isRead) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (!item.isRead) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Text(
+                        text = item.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = if (item.isRead) FontWeight.Medium else FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f)
                     )
-                    Spacer(modifier = Modifier.size(8.dp))
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                    ) {
+                        Text(
+                            text = item.timeLabel,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = if (item.isRead) FontWeight.Medium else FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = item.timeLabel,
-                    style = MaterialTheme.typography.labelMedium,
+                    text = item.message,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            }
-            Text(
-                text = item.message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            if (!item.isRead) {
-                TextButton(
-                    onClick = { onMarkRead(item.id) },
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.MarkEmailRead,
-                        contentDescription = null
-                    )
-                    Spacer(modifier = Modifier.size(6.dp))
-                    Text(text = stringResource(R.string.notifications_mark_read))
+                if (!item.isRead) {
+                    TextButton(
+                        onClick = { onMarkRead(item.id) },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.MarkEmailRead,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(text = stringResource(R.string.notifications_mark_read))
+                    }
                 }
             }
         }

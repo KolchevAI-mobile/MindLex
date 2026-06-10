@@ -19,8 +19,11 @@ data class NotificationsUiState(
     val items: List<NotificationRowState> = emptyList(),
     val unreadCount: Int = 0,
     val hasUnread: Boolean = false,
-    val unreadSummary: String? = null
+    val unreadHeaderLabel: String? = null
 ) {
+    val isEmpty: Boolean
+        get() = items.isEmpty()
+
     companion object {
         fun from(notifications: List<AppNotification>): NotificationsUiState {
             val items = notifications.map(::toRow)
@@ -29,7 +32,7 @@ data class NotificationsUiState(
                 items = items,
                 unreadCount = unread,
                 hasUnread = unread > 0,
-                unreadSummary = when {
+                unreadHeaderLabel = when {
                     unread <= 0 -> null
                     unread > 9 -> "9+"
                     else -> unread.toString()
