@@ -1,14 +1,16 @@
 package com.example.mindlex.data.repository
 
 import android.content.Context
+import com.example.mindlex.core.constants.LearningDefaults
 import com.example.mindlex.data.local.entity.VocabularyEntity
 import com.example.mindlex.data.local.repository.VocabularyLocalDataSource
-import com.example.mindlex.core.constants.LearningDefaults
 import com.example.mindlex.domain.model.CustomDatasetMeta
 import com.example.mindlex.domain.model.DatasetImportPayload
+import com.example.mindlex.domain.model.ManualWordEntry
 import com.example.mindlex.domain.model.VocabularySource
 import com.example.mindlex.domain.repository.CustomDatasetRepository
 import com.example.mindlex.domain.repository.SettingsRepository
+import com.example.mindlex.domain.repository.WordProgressRepository
 import java.security.MessageDigest
 import javax.inject.Inject
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -21,6 +23,7 @@ import kotlinx.serialization.json.Json
 class CustomDatasetRepositoryImpl @Inject constructor(
     private val localDataSource: VocabularyLocalDataSource,
     private val settingsRepository: SettingsRepository,
+    private val wordProgressRepository: WordProgressRepository,
     @ApplicationContext private val appContext: Context
 ) : CustomDatasetRepository {
 
@@ -32,16 +35,53 @@ class CustomDatasetRepositoryImpl @Inject constructor(
     override fun observeDatasetHistory(): Flow<List<CustomDatasetMeta>> =
         settingsRepository.getCustomDatasetHistory()
 
-    override suspend fun importDataset(payload: DatasetImportPayload): Result<CustomDatasetMeta> = runCatching {
-        importPayload(payload)
+    override suspend fun importDataset(payload: DatasetImportPayload): Result<CustomDatasetMeta> =
+        runCatching { importPayload(payload) }
+
+    override suspend fun importManualDataset(
+        entries: List<ManualWordEntry>,
+        displayName: String
+    ): Result<CustomDatasetMeta> = runCatching {
+        val records = entries.mapNotNull { entry ->
+            val word = entry.word.trim()
+            val translation = entry.translation.trim()
+            if (word.isBlank() || translation.isBlank()) return@mapNotNull null
+            ParsedRecord(
+                word = word,
+                translation = translation,
+                example = entry.example?.trim().takeUnless { it.isNullOrBlank() },
+                phonetic = entry.phonetic?.trim().takeUnless { it.isNullOrBlank() },
+                partOfSpeech = null,
+                category = "general",
+                synonyms = null
+            )
+        }
+        if (records.isEmpty()) {
+            throw IllegalArgumentException("Добавьте хотя бы одну пару слово–перевод.")
+        }
+        val now = Clock.System.now()
+        val metaId = stableId("manual", displayName, now.toEpochMilliseconds().toString())
+        applyRecords(
+            records = records,
+            meta = CustomDatasetMeta(
+                id = metaId,
+                displayName = displayName.ifBlank { DEFAULT_MANUAL_NAME },
+                format = "MANUAL",
+                recordsCount = records.size,
+                importedAtEpochMillis = now.toEpochMilliseconds(),
+                sourceUri = "manual://$metaId"
+            )
+        )
     }
 
     override suspend fun refreshDataset(datasetId: String): Result<CustomDatasetMeta> = runCatching {
         val history = settingsRepository.getCustomDatasetHistory().first()
         val item = history.firstOrNull { it.id == datasetId }
             ?: throw IllegalArgumentException("Датасет не найден в истории.")
-        val payload = readPayloadFromStoredMeta(item)
-        importPayload(payload, datasetId = item.id)
+        if (item.format == "MANUAL") {
+            throw IllegalArgumentException("Ручной датасет нельзя обновить из файла.")
+        }
+        importPayload(readPayloadFromStoredMeta(item), datasetId = item.id)
     }
 
     override suspend fun deleteDataset(datasetId: String): Result<Unit> = runCatching {
@@ -51,10 +91,7 @@ class CustomDatasetRepositoryImpl @Inject constructor(
 
         val current = settingsRepository.getCustomDatasetMeta().first()
         if (current?.id == datasetId) {
-            localDataSource.clearAll()
-            settingsRepository.setCustomDatasetMeta(null)
-            settingsRepository.setSelectedCategory(LearningDefaults.FALLBACK_CATEGORY)
-            settingsRepository.setVocabularySource(VocabularySource.REMOTE)
+            resetToRemoteMode()
         }
     }
 
@@ -62,11 +99,6 @@ class CustomDatasetRepositoryImpl @Inject constructor(
         payload: DatasetImportPayload,
         datasetId: String? = null
     ): CustomDatasetMeta {
-        val categoryBefore = settingsRepository.getSelectedCategory().first()
-        if (categoryBefore != LearningDefaults.CUSTOM_DATASET_CATEGORY) {
-            settingsRepository.setLastRemoteCategory(categoryBefore)
-        }
-        val language = settingsRepository.getSelectedLanguage().first()
         val extension = payload.fileName.substringAfterLast('.', "").lowercase()
         val records = when (extension) {
             "csv" -> parseCsv(payload.rawContent)
@@ -76,9 +108,32 @@ class CustomDatasetRepositoryImpl @Inject constructor(
         if (records.isEmpty()) {
             throw IllegalArgumentException("Файл не содержит валидных слов.")
         }
-
         val now = Clock.System.now()
         val metaId = datasetId ?: stableId(payload.sourceUri, payload.fileName, now.toEpochMilliseconds().toString())
+        return applyRecords(
+            records = records,
+            meta = CustomDatasetMeta(
+                id = metaId,
+                displayName = payload.fileName,
+                format = extension.uppercase(),
+                recordsCount = records.size,
+                importedAtEpochMillis = now.toEpochMilliseconds(),
+                sourceUri = payload.sourceUri
+            )
+        )
+    }
+
+    /** Перед новым датасетом чистим словарь и весь прогресс, потом включаем офлайн-режим. */
+    private suspend fun applyRecords(
+        records: List<ParsedRecord>,
+        meta: CustomDatasetMeta
+    ): CustomDatasetMeta {
+        val categoryBefore = settingsRepository.getSelectedCategory().first()
+        if (categoryBefore != LearningDefaults.CUSTOM_DATASET_CATEGORY) {
+            settingsRepository.setLastRemoteCategory(categoryBefore)
+        }
+        val language = settingsRepository.getSelectedLanguage().first()
+        val now = Clock.System.now()
         val entities = records.map { record ->
             VocabularyEntity(
                 id = stableId(language, record.word, record.translation),
@@ -89,44 +144,48 @@ class CustomDatasetRepositoryImpl @Inject constructor(
                 phonetic = record.phonetic,
                 partOfSpeech = record.partOfSpeech,
                 category = record.category.ifBlank { "general" },
-                source = "custom",
+                source = SOURCE_CUSTOM,
                 synonymsForeign = record.synonyms,
                 lastAccessed = now
             )
         }
+
+        wordProgressRepository.clearAll()
         localDataSource.replaceAll(entities)
 
-        val meta = CustomDatasetMeta(
-            id = metaId,
-            displayName = payload.fileName,
-            format = extension.uppercase(),
-            recordsCount = entities.size,
-            importedAtEpochMillis = now.toEpochMilliseconds(),
-            sourceUri = payload.sourceUri
-        )
-        upsertHistory(meta)
-        settingsRepository.setCustomDatasetMeta(meta)
+        val readyMeta = meta.copy(recordsCount = entities.size)
+        upsertHistory(readyMeta)
+        settingsRepository.setCustomDatasetMeta(readyMeta)
         settingsRepository.setVocabularySource(VocabularySource.CUSTOM)
         settingsRepository.setSelectedCategory(LearningDefaults.CUSTOM_DATASET_CATEGORY)
-        return meta
+        return readyMeta
+    }
+
+    private suspend fun resetToRemoteMode() {
+        wordProgressRepository.clearAll()
+        localDataSource.clearAll()
+        settingsRepository.setCustomDatasetMeta(null)
+        settingsRepository.setVocabularySource(VocabularySource.REMOTE)
+        val restoreCategory = settingsRepository.getLastRemoteCategory().first()
+        settingsRepository.setSelectedCategory(restoreCategory)
     }
 
     private suspend fun upsertHistory(meta: CustomDatasetMeta) {
         val history = settingsRepository.getCustomDatasetHistory().first()
-        val updated = buildList {
-            add(meta)
-            addAll(history.filterNot { it.id == meta.id })
-        }
-        settingsRepository.setCustomDatasetHistory(updated)
+        settingsRepository.setCustomDatasetHistory(
+            buildList {
+                add(meta)
+                addAll(history.filterNot { it.id == meta.id })
+            }
+        )
     }
 
-    private fun readPayloadFromStoredMeta(meta: CustomDatasetMeta): DatasetImportPayload {
-        return DatasetImportPayload(
+    private fun readPayloadFromStoredMeta(meta: CustomDatasetMeta): DatasetImportPayload =
+        DatasetImportPayload(
             fileName = meta.displayName,
             rawContent = readTextFromUri(meta.sourceUri),
             sourceUri = meta.sourceUri
         )
-    }
 
     private fun readTextFromUri(uri: String): String {
         val input = android.net.Uri.parse(uri)
@@ -195,6 +254,11 @@ class CustomDatasetRepositoryImpl @Inject constructor(
     private fun List<String>.valueByIndex(index: Int): String? {
         if (index < 0) return null
         return getOrNull(index)?.takeIf { it.isNotBlank() }
+    }
+
+    private companion object {
+        const val SOURCE_CUSTOM = "custom"
+        const val DEFAULT_MANUAL_NAME = "Мой словарь"
     }
 }
 

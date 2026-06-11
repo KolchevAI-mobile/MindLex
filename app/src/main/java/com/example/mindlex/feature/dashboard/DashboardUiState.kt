@@ -21,15 +21,10 @@ data class DashboardUiState(
     val showRushHighlights: Boolean = false,
     val unreadNotifications: Int = 0,
     val notificationBadgeText: String? = null,
-    val hasImportedCustomDataset: Boolean = false,
-    val isOfflineCustomDatasetMode: Boolean = false,
-    val isVocabularySwitchBusy: Boolean = false
+    val isCustomDatasetActive: Boolean = false
 ) {
     companion object {
-        fun from(
-            snapshot: DashboardSnapshot,
-            vocabularySwitchBusy: Boolean = false
-        ): DashboardUiState {
+        fun from(snapshot: DashboardSnapshot): DashboardUiState {
             val goal = snapshot.dailyGoal.coerceAtLeast(1)
             val unread = snapshot.unreadNotificationsCount
             return DashboardUiState(
@@ -56,9 +51,7 @@ data class DashboardUiState(
                     unread > 9 -> "9+"
                     else -> unread.toString()
                 },
-                hasImportedCustomDataset = snapshot.hasImportedCustomDataset,
-                isOfflineCustomDatasetMode = snapshot.isOfflineCustomDatasetMode,
-                isVocabularySwitchBusy = vocabularySwitchBusy
+                isCustomDatasetActive = snapshot.isOfflineCustomDatasetMode
             )
         }
     }

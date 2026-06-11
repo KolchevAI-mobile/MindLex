@@ -56,6 +56,10 @@ class WordProgressRepositoryImpl @Inject constructor(
         return wordRepository.getWordById(wordId)
     }
 
+    override suspend fun clearAll() {
+        wordProgressDao.clearAll()
+    }
+
     private fun WordProgressEntity.toDomain(): WordProgress {
         return WordProgress(
             id = this.id,

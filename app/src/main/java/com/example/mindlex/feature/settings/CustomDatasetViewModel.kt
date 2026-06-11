@@ -5,8 +5,8 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mindlex.domain.model.CustomDatasetMeta
 import com.example.mindlex.domain.model.DatasetImportPayload
+import com.example.mindlex.domain.model.ManualWordEntry
 import com.example.mindlex.domain.usecase.ManageCustomDataset
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -25,52 +25,110 @@ class CustomDatasetViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
-    data class UiState(
-        val isLoading: Boolean = false,
-        val currentMeta: CustomDatasetMeta? = null,
-        val history: List<CustomDatasetMeta> = emptyList(),
-        val message: String? = null,
-        val error: String? = null
-    )
+    private val local = MutableStateFlow(CustomDatasetUiState())
 
-    private val localState = MutableStateFlow(UiState())
-
-    val uiState: StateFlow<UiState> = combine(
-        localState,
+    val uiState: StateFlow<CustomDatasetUiState> = combine(
+        local,
         manageCustomDataset.observeCurrentMeta(),
         manageCustomDataset.observeHistory()
-    ) { local, currentMeta, history ->
-        local.copy(currentMeta = currentMeta, history = history)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiState())
+    ) { state, currentMeta, history ->
+        state.copy(currentMeta = currentMeta, history = history)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CustomDatasetUiState())
 
-    fun importFromUri(uri: Uri) {
+    fun selectTab(tab: CustomDatasetTab) {
+        local.update { it.copy(selectedTab = tab, error = null) }
+    }
+
+    fun onBuilderWordChange(value: String) {
+        local.update { it.copy(builderWord = value) }
+    }
+
+    fun onBuilderTranslationChange(value: String) {
+        local.update { it.copy(builderTranslation = value) }
+    }
+
+    fun onBuilderNameChange(value: String) {
+        local.update { it.copy(builderName = value) }
+    }
+
+    fun addBuilderEntry() {
+        val word = local.value.builderWord.trim()
+        val translation = local.value.builderTranslation.trim()
+        if (word.isBlank() || translation.isBlank()) {
+            local.update { it.copy(error = "Введите слово и перевод.") }
+            return
+        }
+        local.update {
+            it.copy(
+                builderEntries = it.builderEntries + ManualWordEntry(word, translation),
+                builderWord = "",
+                builderTranslation = "",
+                error = null
+            )
+        }
+    }
+
+    fun removeBuilderEntry(index: Int) {
+        local.update { state ->
+            state.copy(
+                builderEntries = state.builderEntries.filterIndexed { i, _ -> i != index }
+            )
+        }
+    }
+
+    fun saveBuilderDataset() {
+        val state = local.value
+        if (state.builderEntries.isEmpty()) return
         viewModelScope.launch {
-            localState.update { it.copy(isLoading = true, error = null, message = null) }
-            val payload = runCatching { readPayload(uri) }.getOrElse { error ->
-                localState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = error.message ?: "Не удалось прочитать файл."
-                    )
-                }
-                return@launch
-            }
-
-            manageCustomDataset.importDataset(payload)
-                .onSuccess { importedMeta ->
-                    localState.update {
+            local.update { it.copy(isLoading = true, error = null, message = null) }
+            val name = state.builderName.trim().ifBlank { "Мой словарь" }
+            manageCustomDataset.importManualDataset(state.builderEntries, name)
+                .onSuccess { meta ->
+                    local.update {
                         it.copy(
                             isLoading = false,
-                            message = "Датасет загружен: ${importedMeta.displayName}",
-                            error = null
+                            message = "Словарь сохранён: ${meta.displayName} (${meta.recordsCount} слов)",
+                            builderEntries = emptyList(),
+                            builderName = "",
+                            builderWord = "",
+                            builderTranslation = ""
                         )
                     }
                 }
                 .onFailure { error ->
-                    localState.update {
+                    local.update {
                         it.copy(
                             isLoading = false,
-                            error = error.message ?: "Ошибка импорта датасета."
+                            error = error.message ?: "Не удалось сохранить словарь."
+                        )
+                    }
+                }
+        }
+    }
+
+    fun importFromUri(uri: Uri) {
+        viewModelScope.launch {
+            local.update { it.copy(isLoading = true, error = null, message = null) }
+            val payload = runCatching { readPayload(uri) }.getOrElse { error ->
+                local.update {
+                    it.copy(isLoading = false, error = error.message ?: "Не удалось прочитать файл.")
+                }
+                return@launch
+            }
+            manageCustomDataset.importDataset(payload)
+                .onSuccess { meta ->
+                    local.update {
+                        it.copy(
+                            isLoading = false,
+                            message = "Импортировано: ${meta.displayName} (${meta.recordsCount} слов)"
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    local.update {
+                        it.copy(
+                            isLoading = false,
+                            error = error.message ?: "Ошибка импорта."
                         )
                     }
                 }
@@ -79,22 +137,16 @@ class CustomDatasetViewModel @Inject constructor(
 
     fun refreshDataset(datasetId: String) {
         viewModelScope.launch {
-            localState.update { it.copy(isLoading = true, error = null, message = null) }
+            local.update { it.copy(isLoading = true, error = null, message = null) }
             manageCustomDataset.refreshDataset(datasetId)
                 .onSuccess { meta ->
-                    localState.update {
-                        it.copy(
-                            isLoading = false,
-                            message = "Датасет обновлен: ${meta.displayName}"
-                        )
+                    local.update {
+                        it.copy(isLoading = false, message = "Обновлено: ${meta.displayName}")
                     }
                 }
                 .onFailure { error ->
-                    localState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = error.message ?: "Не удалось обновить датасет."
-                        )
+                    local.update {
+                        it.copy(isLoading = false, error = error.message ?: "Не удалось обновить.")
                     }
                 }
         }
@@ -102,35 +154,29 @@ class CustomDatasetViewModel @Inject constructor(
 
     fun deleteDataset(datasetId: String) {
         viewModelScope.launch {
-            localState.update { it.copy(isLoading = true, error = null, message = null) }
+            local.update { it.copy(isLoading = true, error = null, message = null) }
             manageCustomDataset.deleteDataset(datasetId)
                 .onSuccess {
-                    localState.update {
-                        it.copy(
-                            isLoading = false,
-                            message = "Датасет удален."
-                        )
+                    local.update {
+                        it.copy(isLoading = false, message = "Датасет удалён. Снова используются слова из сети.")
                     }
                 }
                 .onFailure { error ->
-                    localState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = error.message ?: "Не удалось удалить датасет."
-                        )
+                    local.update {
+                        it.copy(isLoading = false, error = error.message ?: "Не удалось удалить.")
                     }
                 }
         }
     }
 
     fun clearMessage() {
-        localState.update { it.copy(message = null, error = null) }
+        local.update { it.copy(message = null, error = null) }
     }
 
     private fun readPayload(uri: Uri): DatasetImportPayload {
         val contentResolver = appContext.contentResolver
         try {
-            appContext.contentResolver.takePersistableUriPermission(
+            contentResolver.takePersistableUriPermission(
                 uri,
                 android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
             )
@@ -140,14 +186,8 @@ class CustomDatasetViewModel @Inject constructor(
             val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
             if (index >= 0 && cursor.moveToFirst()) cursor.getString(index) else null
         } ?: "dataset"
-
         val raw = contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
             ?: throw IllegalArgumentException("Не удалось открыть файл.")
-
-        return DatasetImportPayload(
-            fileName = fileName,
-            rawContent = raw,
-            sourceUri = uri.toString()
-        )
+        return DatasetImportPayload(fileName = fileName, rawContent = raw, sourceUri = uri.toString())
     }
 }

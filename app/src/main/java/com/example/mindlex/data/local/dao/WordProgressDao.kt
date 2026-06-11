@@ -37,4 +37,7 @@ interface WordProgressDao {
 
     @Query("SELECT COUNT(*) FROM word_progress WHERE nextReviewAt <= :now")
     suspend fun countDueReviews(now: Instant): Int
+
+    @Query("DELETE FROM word_progress")
+    suspend fun clearAll()
 }

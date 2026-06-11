@@ -115,11 +115,13 @@ object RepositoryModule {
     fun provideCustomDatasetRepository(
         localDataSource: VocabularyLocalDataSource,
         settingsRepository: SettingsRepository,
+        wordProgressRepository: WordProgressRepository,
         @ApplicationContext appContext: Context
     ): CustomDatasetRepository {
         return CustomDatasetRepositoryImpl(
             localDataSource = localDataSource,
             settingsRepository = settingsRepository,
+            wordProgressRepository = wordProgressRepository,
             appContext = appContext
         )
     }

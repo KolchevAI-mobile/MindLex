@@ -26,10 +26,11 @@ object Categories {
         CategoryOption("business", "Бизнес"),
         CategoryOption("it", "IT"),
         CategoryOption("sport", "Спорт"),
-        CategoryOption("family", "Семья"),
-        CategoryOption(LearningDefaults.CUSTOM_DATASET_CATEGORY, "Свой датасет")
+        CategoryOption("family", "Семья")
     )
 
-    fun getDisplayName(code: String): String =
-        ALL.find { it.code == code }?.displayName ?: code
+    fun getDisplayName(code: String): String = when (code) {
+        LearningDefaults.CUSTOM_DATASET_CATEGORY -> "Свой словарь"
+        else -> ALL.find { it.code == code }?.displayName ?: code
+    }
 }

@@ -2,6 +2,7 @@ package com.example.mindlex.domain.usecase
 
 import com.example.mindlex.domain.model.CustomDatasetMeta
 import com.example.mindlex.domain.model.DatasetImportPayload
+import com.example.mindlex.domain.model.ManualWordEntry
 import com.example.mindlex.domain.repository.CustomDatasetRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -38,6 +39,17 @@ class ManageCustomDatasetTest {
         }
         val v = ManageCustomDataset(repo).observeCurrentMeta().first()
         assertEquals(m, v)
+    }
+
+    @Test
+    fun `import manual delegates`() = runTest {
+        val meta = CustomDatasetMeta("id", "Мой", "MANUAL", 2, 0L, "manual://x")
+        val entries = listOf(ManualWordEntry("hello", "привет"))
+        val repo = mockk<CustomDatasetRepository> {
+            coEvery { importManualDataset(entries, "Мой") } returns Result.success(meta)
+        }
+        val r = ManageCustomDataset(repo).importManualDataset(entries, "Мой")
+        assertTrue(r.getOrNull() == meta)
     }
 
     @Test

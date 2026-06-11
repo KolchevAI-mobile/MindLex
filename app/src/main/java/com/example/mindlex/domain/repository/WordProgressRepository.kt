@@ -26,4 +26,6 @@ interface WordProgressRepository {
     suspend fun countDueReviews(now: Instant): Int
 
     suspend fun getWordById(wordId: String): Word?
+
+    suspend fun clearAll()
 }

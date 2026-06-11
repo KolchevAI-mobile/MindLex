@@ -84,12 +84,8 @@ fun DashboardScreen(
                     onStartLearning = onStartLearning
                 )
 
-                AnimatedVisibility(visible = state.hasImportedCustomDataset) {
-                    VocabularyModeCard(
-                        checked = state.isOfflineCustomDatasetMode,
-                        enabled = !state.isVocabularySwitchBusy,
-                        onCheckedChange = viewModel::setOfflineCustomDatasetEnabled
-                    )
+                AnimatedVisibility(visible = state.isCustomDatasetActive) {
+                    CustomDatasetActiveCard(onManage = onOpenCustomDataset)
                 }
 
                 DashboardBottomActions(
