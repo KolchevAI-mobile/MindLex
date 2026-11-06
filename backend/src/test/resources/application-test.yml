@@ -1,0 +1,29 @@
+# Профиль интеграционных тестов.
+# Источник данных поднимает встроенный PostgreSQL (см. EmbeddedPostgresExtension),
+# поэтому тестам не нужен Docker и внешняя СУБД.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  task:
+    execution:
+      pool:
+        core-size: 2
+        max-size: 4
+
+logging:
+  level:
+    root: WARN
+    ru.mindlex: INFO
+    org.flywaydb: INFO
+
+mindlex:
+  jwt:
+    secret: test-secret-0123456789abcdefghijklmnopqrstuvwxyz
+    ttl: PT1H
+  cors:
+    allowed-origins: http://localhost:3000
