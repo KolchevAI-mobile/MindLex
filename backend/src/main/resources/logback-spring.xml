@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Журнал MindLex в формате JSON Lines.
+
+  Фактор XI (Logs): поток событий пишется в stdout контейнера одной строкой на событие —
+  файлы не используются, ротацией занимается среда исполнения (Docker / kubelet).
+
+  Профили:
+    * любой, кроме plain — структурированный JSON для сбора Victoria Logs (по умолчанию);
+    * plain              — прежний текстовый шаблон (удобно читать глазами при локальной отладке).
+
+  Профиль выбирается через SPRING_PROFILES_ACTIVE, уровень — через MINDLEX_LOG_LEVEL.
+-->
+<configuration>
+    <springProperty scope="context" name="APP_LOG_LEVEL" source="logging.level.ru.mindlex" defaultValue="INFO"/>
+    <springProperty scope="context" name="ROOT_LOG_LEVEL" source="logging.level.root" defaultValue="INFO"/>
+
+    <springProfile name="plain">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] %logger{40} - %msg%n</pattern>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <springProfile name="!plain">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ru.mindlex.config.logging.JsonLogEncoder"/>
+        </appender>
+    </springProfile>
+
+    <logger name="ru.mindlex" level="${APP_LOG_LEVEL}"/>
+    <root level="${ROOT_LOG_LEVEL}">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
