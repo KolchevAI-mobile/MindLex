@@ -1,0 +1,117 @@
+# ============================================================================
+#  Стенд локальной проверки доставки журналов в Victoria Logs.
+#
+#  Зачем он нужен: при защите работы полезно показать, что конвейер
+#  «приложение -> сборщик -> хранилище -> LogsQL» действительно работает,
+#  не поднимая каждый раз кластер. Здесь те же образы и та же конфигурация
+#  Fluent Bit, что и в DaemonSet, отличаются только пути к журналам.
+#
+#  Запуск:  docker compose -f deploy/lab/docker-compose.yml up -d --build
+#  vmui:    http://localhost:19428/select/vmui/
+# ============================================================================
+services:
+
+  # --- Хранилище журналов --------------------------------------------------
+  victoria-logs:
+    image: victoriametrics/victoria-logs:v1.26.0
+    container_name: lab-victoria-logs
+    command:
+      - -storageDataPath=/victoria-logs-data
+      # Хранение 7 суток: минимально допустимое значение, для стенда достаточно.
+      - -retentionPeriod=7d
+      # Обязательно: в официальном образе сервер по умолчанию слушает только localhost.
+      - -httpListenAddr=:9428
+    ports:
+      - "19428:9428"
+    volumes:
+      - victoria-logs-data:/victoria-logs-data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:9428/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+  # --- База данных приложения ---------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: lab-db
+    environment:
+      POSTGRES_DB: mindlex
+      POSTGRES_USER: mindlex
+      POSTGRES_PASSWORD: mindlex
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mindlex -d mindlex"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - mindlex-db-data:/var/lib/postgresql/data
+
+  # --- Приложение ----------------------------------------------------------
+  api:
+    build:
+      context: ../../backend/target
+      dockerfile: ../../deploy/lab/Dockerfile
+    container_name: lab-api
+    environment:
+      MINDLEX_DB_URL: jdbc:postgresql://db:5432/mindlex
+      MINDLEX_DB_USER: mindlex
+      MINDLEX_DB_PASSWORD: mindlex
+      MINDLEX_JWT_SECRET: lab-secret-0123456789abcdefghijklmnop
+      MINDLEX_LOG_LEVEL: INFO
+    ports:
+      - "18080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    # Ключевой момент стенда: журнал приложения дополнительно пишется в файл общего тома.
+    # В Kubernetes этим занимается kubelet (/var/log/pods), здесь его роль играет tee —
+    # в обоих случаях Fluent Bit читает файл, а не перехватывает stdout контейнера.
+    #
+    # entrypoint: [] обязателен: без него команда compose не заменяет ENTRYPOINT образа,
+    # и строка "sh -c ..." уходит в java как аргумент.
+    #
+    # Права на каталог журнала задаются в образе (см. deploy/lab/Dockerfile).
+    # Используется bind-mount, а не именованный том: Docker при создании пустого тома
+    # выставляет владельцем root и не переносит права каталога образа, поэтому запись
+    # непривилегированным пользователем в том была бы запрещена. Каталог ./logs
+    # (внутри каталога со стендом) принадлежит пользователю, от которого идёт запись.
+    entrypoint: []
+    command:
+      - sh
+      - -c
+      - "java -XX:MaxRAMPercentage=75 -jar /app/app.jar | tee /var/log/mindlex/api.log"
+    volumes:
+      - ./logs:/var/log/mindlex
+    restart: unless-stopped
+
+  # --- Сборщик журналов ----------------------------------------------------
+  fluent-bit:
+    image: cr.fluentbit.io/fluent/fluent-bit:3.2.6
+    container_name: lab-fluent-bit
+    depends_on:
+      api:
+        condition: service_started
+      victoria-logs:
+        condition: service_healthy
+    environment:
+      # Путь к журналам приложения (в кластере здесь /var/log/containers/*.log).
+      LOG_GLOB: /var/log/mindlex/*.log
+      # Исключения не нужны: в томе только журналы приложения.
+      LOG_EXCLUDE: /var/log/mindlex/none-*.log
+      TAIL_DB: /var/lib/fluent-bit/tail.db
+      VL_HOST: victoria-logs
+      VL_PORT: "9428"
+    volumes:
+      - ./logs:/var/log/mindlex:ro
+      - ../observability/fluent-bit/lab.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - ../observability/fluent-bit/parsers_extra.conf:/fluent-bit/etc/conf/parsers_extra.conf:ro
+      - ../observability/fluent-bit/scripts:/fluent-bit/etc/conf/scripts:ro
+      - fluent-bit-state:/var/lib/fluent-bit
+    restart: unless-stopped
+
+volumes:
+  victoria-logs-data:
+  mindlex-db-data:
+  fluent-bit-state:
