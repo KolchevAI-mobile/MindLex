@@ -24,3 +24,12 @@ Thumbs.db
 *.aab
 .research/
 .env
+
+# --- Рабочие журналы стенда (deploy/lab) ---
+# Каталог нужен как точка монтирования, поэтому сам он в репозитории остаётся,
+# а содержимое — нет: это живой вывод контейнера.
+deploy/lab/logs/*
+!deploy/lab/logs/.gitkeep
+
+# --- Служебный дамп classpath из IDE ---
+backend/cp.txt
