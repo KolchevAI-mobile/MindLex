@@ -1,0 +1,126 @@
+# ============================================================================
+#  Бонус (п. 5 задания): алерт по журналам через vmalert.
+#
+#  Основание: срабатывает на одном из запросов из отчёта (фильтр по полю level),
+#  но не на «сырых» записях, а на их статистике. Смысл алерта: серия отказов
+#  аутентификации — признак подбора пароля; одно событие шум, десяток за пять
+#  минут — сигнал для дежурного.
+#
+#  vmalert умеет работать с Victoria Logs как с источником правил: тип задаётся
+#  флагом -datasource.type=vlogs (допустимые значения: graphite, prometheus, vlogs).
+#  Выражения в правилах — это LogsQL того же вида, что и запросы в vmui.
+# ============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vmalert-rules
+  namespace: mindlex
+  labels:
+    app.kubernetes.io/name: vmalert
+data:
+  mindlex-logs.rules.yaml: |
+    groups:
+      - name: mindlex-auth
+        # Одна группа правил, интервал вычисления — минута.
+        interval: 1m
+        rules:
+          - alert: MindLexAuthFailuresBurst
+            # Запрос повторяет пункт (б) отчёта: фильтр по полю level,
+            # но с агрегацией по времени — именно её ждёт vmalert.
+            # Больше 5 отказов аутентификации за 5 минут — алерт.
+            expr: |
+              _time:5m service.name:mindlex-api level:WARN message:"Отказ в аутентификации"
+                | stats count() as failures
+                | filter failures:>5
+            for: 1m
+            labels:
+              severity: warning
+              service: mindlex-api
+              source: victorialogs
+            annotations:
+              summary: "MindLex: всплеск отказов аутентификации"
+              description: "За последние 5 минут зафиксировано {{ $value }} отказов в аутентификации (неверный пароль). Возможен подбор учётных данных."
+              runbook_url: "https://github.com/Drowy7/MindLex/blob/master/Отчёт.md"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmalert
+  namespace: mindlex
+  labels:
+    app.kubernetes.io/name: vmalert
+    app.kubernetes.io/component: logging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vmalert
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vmalert
+        app.kubernetes.io/component: logging
+    spec:
+      containers:
+        - name: vmalert
+          image: victoriametrics/vmalert:v1.115.0
+          imagePullPolicy: IfNotPresent
+          args:
+            # Источник данных — Victoria Logs, тип источника vlogs.
+            - -datasource.url=http://victoria-logs:9428
+            - -datasource.type=vlogs
+            # Правила алертов берутся из ConfigMap.
+            - -rule=/etc/vmalert/rules/*.rules.yaml
+            - -evaluationInterval=1m
+            # Собственные метрики vmalert: видно, сколько правил и как они вычисляются.
+            - -httpListenAddr=:8880
+            # Куда отправлять сработавшие алерты. По умолчанию пусто: для проверки
+            # достаточно смотреть состояние правил по адресу vmalert (/api/v1/alerts).
+            # Для отправки раскомментируйте и укажите адрес получателя:
+            # - -notifier.url=http://alertmanager:9093
+          ports:
+            - name: http
+              containerPort: 8880
+          volumeMounts:
+            - name: rules
+              mountPath: /etc/vmalert/rules
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: rules
+          configMap:
+            name: vmalert-rules
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmalert
+  namespace: mindlex
+  labels:
+    app.kubernetes.io/name: vmalert
+    app.kubernetes.io/component: logging
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vmalert
+  ports:
+    - name: http
+      port: 8880
+      targetPort: http

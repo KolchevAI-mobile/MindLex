@@ -1,0 +1,146 @@
+# ============================================================================
+#  Fluent Bit: сбор журналов подов MindLex и доставка в Victoria Logs.
+#
+#  ФАЙЛ СГЕНЕРИРОВАН: tools/build-fluent-bit-manifest.py
+#  Исходные файлы конфигурации — deploy/observability/fluent-bit/;
+#  после их правки манифест пересобирается той же командой:
+#      python tools/build-fluent-bit-manifest.py
+#
+#  DaemonSet выбран вместо сайдкара: одна копия сборщика на узел вместо копии
+#  в каждом поде приложения, сборщик не делит лимиты памяти с приложением
+#  и не требует правки манифестов подов. Источник данных — те же журналы
+#  kubelet в /var/log/containers, что читал бы сайдкар.
+# ============================================================================
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fluent-bit
+  namespace: mindlex
+  labels:
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/component: logging
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fluent-bit-read
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: fluent-bit-read
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: fluent-bit-read
+subjects:
+- kind: ServiceAccount
+  name: fluent-bit
+  namespace: mindlex
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-config
+  namespace: mindlex
+  labels:
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/component: logging
+data:
+  fluent-bit.conf: "# ============================================================================\n#  Fluent Bit: сбор журналов подов MindLex и доставка в Victoria Logs.\n#\n#  Один и тот же файл используется:\n#    * в DaemonSet внутри minikube (подставляется как ConfigMap);\n#    * на локальном стенде проверки (Docker) — меняются только переменные окружения.\n#\n#  Пути к журналам задаются переменными окружения, значения по умолчанию — для Kubernetes.\n# ============================================================================\n\n[SERVICE]\n    # Flush — как часто буфер уезжает в Victoria Logs. Одна секунда удобна для демонстрации:\n    # записи появляются в vmui почти сразу после запроса к API.\n    Flush         1\n    # Grace — сколько ждать при остановке, чтобы успеть отправить накопленное.\n    Grace         5\n    Daemon        Off\n    Log_Level     info\n    # Стандартный набор парсеров (в нём же лежит парсер `docker` для строк containerd/dockerd)\n    # и собственные парсеры.\
+    \ Путь указан относительно каталога этого файла\n    # (/fluent-bit/etc), поэтому файл лежит в conf/parsers_extra.conf.\n    Parsers_File  parsers.conf\n    Parsers_File  conf/parsers_extra.conf\n    # Встроенный http-сервер Fluent Bit — по нему видно состояние плагинов и метрики.\n    HTTP_Server   On\n    HTTP_Listen   0.0.0.0\n    HTTP_Port     2020\n\n[INPUT]\n    Name              tail\n    # В Kubernetes kubelet пишет журналы контейнеров в /var/log/pods, а в /var/log/containers\n    # лежат симлинки с удобными именами (<pod>_<namespace>_<container>-<id>.log).\n    # Тейлим каталог симлинков — так попадают журналы всех подов, включая приложение.\n    Path              /var/log/containers/*.log\n    Path_Key          source_file\n    # Читаем с конца файла: позиция хранится в DB, поэтому перезапуск пода не приводит\n    # к повторной отправке уже собранных записей. Для первого развёртывания, когда нужно\n    # забрать историю из уже существующих файлов, поставьте On.\n    Read_from_Head\
+    \    false\n    # Позиция чтения: после перезапуска пода файлы не перечитываются целиком.\n    DB                /var/lib/fluent-bit/tail.db\n    DB.Sync           Normal\n    # Не собираем собственные журналы и журналы хранилища: иначе получим лавину\n    # «логов о логах» и закольцованную обратную связь по нагрузке.\n    Exclude_Path      /var/log/containers/fluent-bit-*.log,/var/log/containers/victoria-logs-*.log\n    # Стек исключений Java — это несколько строк. Multiline-парсер склеивает их в одну запись,\n    # иначе LogsQL показывал бы каждый кадр стека отдельным событием.\n    Multiline.Parser  java_multiline\n    Tag               kube.*\n    Mem_Buf_Limit     16MB\n    Skip_Long_Lines   On\n\n[FILTER]\n    # Обогащение метаданными Kubernetes: pod_name, namespace_name, container_name, labels.\n    # Из них формируется поток (stream) в Victoria Logs.\n    #\n    # ВНИМАНИЕ: в локальном стенде (вне кластера) этот фильтр недоступен — там конфигурация\n    # подключается без него\
+    \ (см. deploy/lab/README.md).\n    Name                kubernetes\n    Match               kube.*\n    Kube_URL            https://kubernetes.default.svc:443\n    Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token\n    Kube_Tag_Prefix     kube.var.log.containers.\n    Merge_Log           Off\n    Keep_Log            Off\n    K8S-Logging.Parser  Off\n    K8S-Logging.Exclude Off\n    Labels              Off\n    Annotations         Off\n\n[FILTER]\n    # Строка от containerd/dockerd уже разобрана парсером `docker` в поля log/stream/time.\n    # В поле log лежит JSON приложения — разбираем его, чтобы поля стали доступны LogsQL.\n    Name           parser\n    Match          kube.*\n    Key_Name       log\n    Parser         mindlex_json\n    Reserve_Data   On\n    Preserve_Key   Off\n\n[FILTER]\n    # Перенос времени события в @timestamp и нормализация уровня (см. scripts/prepare_record.lua).\n\
+    \    Name    lua\n    Match   kube.*\n    Script  /fluent-bit/etc/conf/scripts/prepare_record.lua\n    Call    prepare\n\n[OUTPUT]\n    # Victoria Logs принимает журналы по ES-bulk API: формат тот же, что у Elasticsearch\n    # (строка действия + строка документа), поэтому используется штатный плагин `es`.\n    Name               es\n    Match              kube.*\n    Host               victoria-logs\n    Port               9428\n    TLS                Off\n    # Путь приёма вместе с параметрами Victoria Logs:\n    #   _msg_field     — поле с текстом записи (message из JSON приложения);\n    #   _time_field    — поле со временем события (его заполняет lua-фильтр);\n    #   _stream_fields — поля, образующие поток. Взяты namespace, pod, container и\n    #                    service.name: по ним удобно ограничивать выборку, а число\n    #                    сочетаний невелико. Поле request_id в поток не входит, иначе\n    #                    каждый HTTP-запрос создавал бы отдельный поток.\n\
+    \    #\n    # Параметры записаны в Path, а не в Pipeline: при заданном Pipeline плагин формирует\n    # путь \"%s/_bulk/?pipeline=%s\" (с косой чертой), и Victoria Logs отвечает\n    # 400 unsupported path requested. По той же причине не используется Logstash_Format.\n    Path               /insert/elasticsearch/_bulk?_msg_field=message&_time_field=@timestamp&_stream_fields=namespace_name,pod_name,container_name,service.name\n    # Write_Operation create даёт строку действия {\"create\":{}}. Вариант upsert требует\n    # Generate_Id или Id_Key, и тогда в строку действия добавляется идентификатор документа;\n    # Victoria Logs читает только строки с документами, метаданные действия ей не нужны.\n    Write_Operation    create\n    # Без этого плагин добавит в строку действия _type, которого Victoria Logs не ожидает.\n    Suppress_Type_Name On\n    # Имя индекса в терминах Elasticsearch. Victoria Logs принимает любое значение\n    # и сохраняет его в служебном поле _index.\n    Index \
+    \             mindlex\n    # Ограниченное число повторов: при недоступном хранилище Fluent Bit не должен\n    # бесконечно накапливать буфер и расходовать память узла.\n    Retry_Limit        5\n"
+  conf/parsers_extra.conf: "# ============================================================================\n#  Additional Fluent Bit parsers for MindLex application logs.\n#  Connected alongside the standard parsers.conf (which provides `docker`).\n#\n#  NOTE: comments in this file are intentionally ASCII-only. Configuration\n#  files are parsed by Fluent Bit itself (not by a UTF-8 aware shell), and a\n#  Cyrillic comment that gets mis-encoded can break the whole file.\n# ============================================================================\n\n[PARSER]\n    Name        mindlex_json\n    Format      json\n    # Time_Key is deliberately not set: the event time is moved into the\n    # `@timestamp` field by the Lua filter, and Victoria Logs is told to use\n    # that field via _time_field. This keeps the timestamp exactly as the\n    # application wrote it.\n\n[MULTILINE_PARSER]\n    Name          java_multiline\n    Type          regex\n    # Fluent Bit rejects values below 60 seconds\
+    \ (\"flush timeout is too low\"),\n    # so 60 is the practical minimum if the unit is seconds; 30000 is used when\n    # the unit is milliseconds. Both variants were tested against the image.\n    Flush_timeout 30000\n    # A new record starts with a JSON object beginning with the timestamp field\n    # (every MindLex log line looks like that). Continuation lines are Java\n    # exception stack frames.\n    Rule      \"start_state\"    \"/^\\{\\\"timestamp\\\":/\"    \"cont\"\n    Rule      \"cont\"           \"/^\\s+(at |\\.\\.\\. \\d+ more|Caused by: |Suppressed: )/\"   \"cont\"\n"
+  conf/scripts/prepare_record.lua: "-- ============================================================================\n--  MindLex: подготовка записи журнала к отправке в Victoria Logs.\n--\n--  Фильтр решает две задачи:\n--  1) Fluent Bit ведёт собственное время приёма записи и раскладывает события по нему,\n--     а приложение присылает время события в поле `timestamp`. Здесь это значение\n--     проверяется и переносится в поле `@timestamp`, которое указано в настройке\n--     `_time_field`: так в хранилище попадает время события, а не время доставки.\n--     Иначе запрос «за последние N минут» показывал бы неверные данные.\n--  2) Уровень журнала приводится к верхнему регистру, чтобы фильтры вида level:ERROR\n--     не зависели от регистра исходного значения.\n--\n--  Записи без времени события (баннер Spring Boot и служебные строки JVM в stdout)\n--  отбрасываются: структурированного времени у них нет, и в хранилище журналов\n--  они дают только шум.\n-- ============================================================================\n\
+    \n-- Проверяет, что строка похожа на время в формате ISO-8601: YYYY-MM-DDTHH:MM:SS[.mmm][Z|±hh:mm]\nlocal function is_iso8601(value)\n  if type(value) ~= \"string\" or #value < 19 then\n    return false\n  end\n  return string.match(value, \"^%d%d%d%d%-%d%d%-%d%dT%d%d:%d%d:%d%d\") ~= nil\nend\n\nfunction prepare(_, timestamp, record)\n  -- 0. Записи без времени события не отправляются: в stdout Java попадают ASCII-баннер\n  --    Spring Boot и служебные строки JVM, и в хранилище журналов они дают только шум.\n  --    Признак записи приложения — поле timestamp, которое пишет кодировщик журнала.\n  local ts = record[\"timestamp\"]\n  if not is_iso8601(ts) then\n    return -1\n  end\n  record[\"@timestamp\"] = ts\n\n  -- 1. Имя сервиса: у записей приложения оно уже есть (service.name = mindlex-api),\n  --    значение по умолчанию подставляется на случай строк с другим набором полей.\n  if record[\"service.name\"] == nil then\n    record[\"service.name\"] = \"mindlex-api\"\n  end\n\n  --\
+    \ 2. Уровень приводится к верхнему регистру, чтобы фильтры вида level:ERROR\n  --    не зависели от регистра исходного значения.\n  local level = record[\"level\"]\n  if type(level) == \"string\" and #level > 0 then\n    record[\"level\"] = string.upper(level)\n  else\n    record[\"level\"] = \"INFO\"\n  end\n\n  return 1, timestamp, record\nend\n"
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluent-bit
+  namespace: mindlex
+  labels:
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/component: logging
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fluent-bit
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: fluent-bit
+        app.kubernetes.io/component: logging
+    spec:
+      serviceAccountName: fluent-bit
+      tolerations: []
+      containers:
+      - name: fluent-bit
+        image: cr.fluentbit.io/fluent/fluent-bit:3.2.6
+        imagePullPolicy: IfNotPresent
+        args:
+        - --config=/fluent-bit/etc/fluent-bit.conf
+        ports:
+        - name: http
+          containerPort: 2020
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+        volumeMounts:
+        - name: config
+          mountPath: /fluent-bit/etc/fluent-bit.conf
+          subPath: fluent-bit.conf
+          readOnly: true
+        - name: config
+          mountPath: /fluent-bit/etc/conf/parsers_extra.conf
+          subPath: conf/parsers_extra.conf
+          readOnly: true
+        - name: config
+          mountPath: /fluent-bit/etc/conf/scripts/prepare_record.lua
+          subPath: conf/scripts/prepare_record.lua
+          readOnly: true
+        - name: varlog
+          mountPath: /var/log
+          readOnly: true
+        - name: state
+          mountPath: /var/lib/fluent-bit
+      volumes:
+      - name: config
+        configMap:
+          name: fluent-bit-config
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: state
+        hostPath:
+          path: /var/lib/fluent-bit
+          type: DirectoryOrCreate

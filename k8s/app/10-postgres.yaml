@@ -1,0 +1,113 @@
+# ============================================================================
+#  PostgreSQL для приложения MindLex.
+#
+#  Это часть ДЗ №1, повторённая здесь, чтобы развёртывание ДЗ №2 было
+#  самодостаточным: Victoria Logs смотрит на журналы уже работающего приложения,
+#  поэтому приложение нужно поднять тем же набором манифестов.
+#
+#  Схема создаётся миграциями Flyway внутри самого приложения (фактор XII),
+#  поэтому здесь только пустая база и пользователь.
+# ============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mindlex-db-data
+  namespace: mindlex
+  labels:
+    app.kubernetes.io/name: mindlex-db
+spec:
+  # В minikube класс storage по умолчанию — standard (провижионер hostPath).
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mindlex-db
+  namespace: mindlex
+  labels:
+    app.kubernetes.io/name: mindlex-db
+    app.kubernetes.io/component: database
+spec:
+  replicas: 1
+  # База одна, диск ReadWriteOnce: второй под одновременно поднять нельзя.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mindlex-db
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mindlex-db
+        app.kubernetes.io/component: database
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: mindlex
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mindlex-secrets
+                  key: MINDLEX_DB_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mindlex-secrets
+                  key: MINDLEX_DB_PASSWORD
+            # Данные кладутся в подкаталог: в корне тома postgres отказывается работать.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 12
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mindlex-db-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mindlex-db
+  namespace: mindlex
+  labels:
+    app.kubernetes.io/name: mindlex-db
+spec:
+  # База нужна только подам приложения внутри кластера.
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: mindlex-db
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
